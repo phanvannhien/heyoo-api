@@ -9,7 +9,11 @@ import { UsersModule }    from './users/users.module';
 import { ConfigModule }   from '@nestjs/config';
 import configuration      from './config/configuration';
 import { MONGO_URI } from './app.constants';
-
+import { AdminUsersModule } from './admin-users/admin-users.module';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { CommandModule } from 'nestjs-command';
+import { OptsModule } from './otps/otps.module';
 
 
 @Module({
@@ -23,10 +27,19 @@ import { MONGO_URI } from './app.constants';
       useCreateIndex: true,
     }),
     AuthModule, 
-    UsersModule
+    UsersModule, 
+    AdminUsersModule, 
+    RolesModule, 
+    PermissionsModule,
+    CommandModule,
+    OptsModule,
+    
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+   
+  ],
 })
 
 export class AppModule {}

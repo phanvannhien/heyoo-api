@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotAcceptableException, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
 import { UsersService } from "../users/users.service";
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dto/create.user.dto';
 import { LoginDto } from './dto/login.dto';
-import { UserDto } from 'src/users/dto/user.dto';
 import { User } from 'src/users/interfaces/user.interface';
+import * as bcrypt from 'bcryptjs'; 
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,38 +14,33 @@ export class AuthService {
         private jwtService: JwtService
     ){}
 
+    getJWTPayload(user){
+        return { phone: user.phone, sub: user._id };
+    }
+
     async validateUser( phone: string, password: string ): Promise<User>{
         const user = await this.userService.findByPhone( phone );
-        if( user && user.password == password ){
-            return user;
-        }
+        if( !user ) throw new BadRequestException("Phone not found" );
+        
+        var isValidPass = await bcrypt.compare(password, user.password);
+        if( isValidPass ) return user;
+
         return null;
     }
 
-    async login( loginDto: LoginDto) {
+    async login( loginDto: LoginDto): Promise<User> {
         const user = await this.validateUser( loginDto.phone, loginDto.password )
-        if( user ){
-            const payload = { phone: user.phone, sub: user._id };
-            return {
-                access_token: this.jwtService.sign(payload),
-                user: new UserDto(user)
-            };
-        }
-        throw new UnauthorizedException()
+        if( !user ) throw new BadRequestException("Wrong phone or password" );
+        return user;
     }
     
-    
-    async register( createUserDto: CreateUserDto ){
-        const findUser = await this.userService.findByPhone( createUserDto.phone );
+    async register( registerDto: RegisterDto ): Promise<User>{
+        const findUser = await this.userService.findByPhone( registerDto.phone );
         if( findUser ){
-            throw new NotAcceptableException("User "+createUserDto.phone+" already exists");
+            throw new BadRequestException("User "+registerDto.phone+" already exists");
         }
+        registerDto.isVerified = true;
+        return await this.userService.createUser( registerDto );
 
-        const user = await this.userService.createUser( createUserDto );
-        const payload = { phone: user.phone, sub: user._id };
-        return {
-            access_token: this.jwtService.sign(payload),
-            user: new UserDto(user)
-        };
     }
 }

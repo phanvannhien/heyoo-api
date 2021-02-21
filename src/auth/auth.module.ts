@@ -14,6 +14,10 @@ import { JwtStrategy } from './jwt.strategy';
 // services
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { FacebookStrategy } from './facebook.strategy';
+import { GoogleAuthStrategy } from './google.strategy';
+import { AppleStrategy } from './apple.strategy';
+import { GoogleVerifyTokenStrategy } from './strategies/google.strategy';
 
 @Module({
   imports:[
@@ -28,7 +32,10 @@ import { AuthController } from './auth.controller';
   providers: [
     AuthService, 
     LocalStrategy,
-    JwtStrategy
+    JwtStrategy,
+    FacebookStrategy,
+    GoogleAuthStrategy,
+    AppleStrategy, GoogleVerifyTokenStrategy
   ],
   exports: [AuthService],
 })
