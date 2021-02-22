@@ -14,6 +14,8 @@ import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { CommandModule } from 'nestjs-command';
 import { OptsModule } from './otps/otps.module';
+import { CategoriesModule } from './categories/categories.module';
+import { LivestreamsModule } from './livestreams/livestreams.module';
 
 
 @Module({
@@ -33,6 +35,8 @@ import { OptsModule } from './otps/otps.module';
     PermissionsModule,
     CommandModule,
     OptsModule,
+    CategoriesModule,
+    LivestreamsModule,
     
   ],
   controllers: [AppController],
