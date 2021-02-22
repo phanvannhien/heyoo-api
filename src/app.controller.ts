@@ -6,6 +6,7 @@ import { Controller, Get, UseGuards, Post, Request, Res, Body,
   SerializeOptions
 } from '@nestjs/common';
 import { AppService } from './app.service';
+import { countries, languages } from 'countries-list'
 
 
 @Controller()
@@ -17,6 +18,16 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('countries')
+  getCountries(){
+    return countries;
+  }
+
+  @Get('languages')
+  getLanguages(){
+    return languages;
   }
 
 }
