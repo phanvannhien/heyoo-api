@@ -23,8 +23,14 @@ export class CategoriesController {
   }
 
   @Get()
-  findAll() {
-    return this.categoriesService.findAll();
+  @ApiOkResponse({
+    type: [CategoriesResponse]
+  })
+  @HttpCode( HttpStatus.OK )
+  async findAll(): Promise<IResponse> {
+    const d = await this.categoriesService.findAll();
+    const r = d.map( i => new CategoriesResponse(i) );
+    return new ResponseSuccess(r) ;
   }
 
   @Get(':id')

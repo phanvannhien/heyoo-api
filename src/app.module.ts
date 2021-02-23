@@ -16,6 +16,7 @@ import { CommandModule } from 'nestjs-command';
 import { OptsModule } from './otps/otps.module';
 import { CategoriesModule } from './categories/categories.module';
 import { LivestreamsModule } from './livestreams/livestreams.module';
+import { AgoraModule } from './agora/agora.module';
 
 
 @Module({
@@ -37,13 +38,16 @@ import { LivestreamsModule } from './livestreams/livestreams.module';
     OptsModule,
     CategoriesModule,
     LivestreamsModule,
+    AgoraModule,
     
   ],
   controllers: [AppController],
   providers: [
     AppService,
-   
   ],
+  exports: [
+    AppService
+  ]
 })
 
 export class AppModule {}

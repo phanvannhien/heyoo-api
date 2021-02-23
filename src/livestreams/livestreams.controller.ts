@@ -9,6 +9,9 @@ import { ResponseSuccess } from 'src/common/dto/response.dto';
 import { LiveStreamResponse } from './responses/livestream.response';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesService } from 'src/files/files.service';
+import { AgoraService } from 'src/agora/agora.service';
+import { CreateTokenDto } from './dto/create-token.dto';
+
 
 @ApiTags('livestreams')
 @Controller('livestreams')
@@ -16,6 +19,7 @@ export class LivestreamsController {
   constructor(
     private readonly livestreamsService: LivestreamsService,
     private readonly fileService: FilesService,
+    private readonly agoraService: AgoraService
     ) {}
 
 
@@ -48,6 +52,19 @@ export class LivestreamsController {
     const d = await this.livestreamsService.findOne(id)
     return new ResponseSuccess( new LiveStreamResponse( d ) ) ;
   }
+
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @Post('token')
+  async getToken(@Req() req, @Body() body: CreateTokenDto ): Promise<IResponse> {
+    const d = this.agoraService.generateAgoraToken( body.channelName, req.user.id );
+    return new ResponseSuccess( {
+      token: d
+    }) ;
+  }
+
+
 
   // @Put(':id')
   // update(@Param('id') id: string, @Body() updateLivestreamDto: UpdateLivestreamDto) {
