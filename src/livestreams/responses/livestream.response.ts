@@ -1,40 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { CategoriesResponse } from "src/categories/responses/categories.response";
 import { UserResponse } from "src/users/responses/user.response";
+import { LiveStreamItemResponse } from "./live-item.response";
 
 export class LiveStreamResponse{
   
     constructor( object: any ){
-        this.id = object.id;
-        this.channelName = object.channelName;
-        this.coverPicture = object.coverPicture;
-        this.startLiveAt = object.startLiveAt;
-        this.endLiveAt = object.endLiveAt;
-        this.categories = object.categories.map( i => new CategoriesResponse(i) ) ;
-        this.members = object.members;
-        this.streamer = new UserResponse(object.streamer);
+        this.stream = new LiveStreamItemResponse(object.stream);
+        this.agoraToken = object.agoraToken || '';
     }
     @ApiProperty()
-    id: String;
+    stream: LiveStreamItemResponse;
 
     @ApiProperty()
-    channelName: String;
-
-    @ApiProperty()
-    categories: Array<object>;
-
-    @ApiProperty()
-    coverPicture: String;
-
-    @ApiProperty()
-    startLiveAt: Date;
-
-    @ApiProperty()
-    endLiveAt: Date;
-
-    @ApiProperty()
-    members: Array<object>;
-
-    @ApiProperty()
-    streamer: object;
+    agoraToken: string;
 }

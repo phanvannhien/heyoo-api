@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, UseInterceptors, Req, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, UseInterceptors, Req, UploadedFile, BadRequestException } from '@nestjs/common';
 import { LivestreamsService } from './livestreams.service';
 import { CreateLivestreamDto } from './dto/create-livestream.dto';
 import { UpdateLivestreamDto } from './dto/update-livestream.dto';
@@ -11,6 +11,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesService } from 'src/files/files.service';
 import { AgoraService } from 'src/agora/agora.service';
 import { CreateTokenDto } from './dto/create-token.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { LiveStreamItemResponse } from './responses/live-item.response';
 
 
 @ApiTags('livestreams')
@@ -24,7 +26,9 @@ export class LivestreamsController {
 
 
   @ApiBearerAuth()
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: LiveStreamResponse
+  })
   @ApiBody({
       type: CreateLivestreamDto
   })
@@ -34,34 +38,66 @@ export class LivestreamsController {
   @UseInterceptors(FileInterceptor('coverPicture'))
   async create(@Req() request, @Body() body: CreateLivestreamDto, @UploadedFile() coverPicture): Promise<IResponse> {
     const coverPhoto = await this.fileService.uploadPublicFile(coverPicture.buffer, coverPicture.originalname);
-    body.coverPicture = coverPhoto;
-    body.streamer = request.user.id;
-    const d = await this.livestreamsService.create(body);
-    return new ResponseSuccess(new LiveStreamResponse(d));
+    const createData = {
+      channelName: uuidv4(),
+      coverPicture: coverPhoto,
+      streamer: request.user.id,
+      channelTitle: body.channelTitle,
+      categories: body.categories,
+    };
+    const responseObj = {
+      stream:  await this.livestreamsService.create(createData),
+      agoraToken: await this.agoraService.generateAgoraToken( createData.channelName, request.user.id )
+    };
+    return new ResponseSuccess(new LiveStreamResponse(responseObj));
   }
 
 
-  // @Get()
-  // findAll() {
-  //   return this.livestreamsService.findAll();
-  // }
+  @Get()
+  @ApiOkResponse({
+    type: [LiveStreamItemResponse]
+  })
+  async findAll(): Promise<IResponse>{
+    const d = await this.livestreamsService.findAll();
+    return new ResponseSuccess( d.map( i => new LiveStreamItemResponse(i) ) );
+  }
 
   @ApiOkResponse()
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<IResponse> {
     const d = await this.livestreamsService.findOne(id)
-    return new ResponseSuccess( new LiveStreamResponse( d ) ) ;
+    return new ResponseSuccess( new LiveStreamItemResponse( d ) ) ;
   }
 
-  @ApiBearerAuth()
+
   @ApiOkResponse()
   @UseGuards(JwtAuthGuard)
-  @Post('token')
-  async getToken(@Req() req, @Body() body: CreateTokenDto ): Promise<IResponse> {
-    const d = this.agoraService.generateAgoraToken( body.channelName, req.user.id );
-    return new ResponseSuccess( {
-      token: d
-    }) ;
+  @ApiBearerAuth()
+  @Post(':id/join')
+  async joinLive(@Param('id') id: string, @Req() request ): Promise<IResponse>{
+    const d = await this.livestreamsService.joinMember( id, request.user.id );
+    const responseObj = {
+      stream: d.liveStream,
+      agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName , request.user.id )
+    };
+    return new ResponseSuccess(new LiveStreamResponse(responseObj));
+  }
+
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/leave')
+  async leaveLive(@Param('id') id: string, @Req() request ): Promise<IResponse>{
+    const d = await this.livestreamsService.leaveMember( id, request.user.id );
+    return new ResponseSuccess({
+      data: {
+        "joinAt": d.joinAt ,
+        "id": d.id,
+        "liveStream": d.liveStream ,
+        "member": d.member,
+        "leaveAt": d.leaveAt
+      }
+    });
   }
 
 

@@ -8,7 +8,7 @@ export class AgoraService {
         private readonly configService: ConfigService
     ) {}
 
-    generateAgoraToken(channelName: string, accountId: string ){
+    async generateAgoraToken(channelName: string, accountId: string ): Promise<string>{
         // Rtc Examples
         const appID = this.configService.get('AGORA_APP_ID');
         const appCertificate = this.configService.get('AGORA_CERTIFICATE');

@@ -7,7 +7,7 @@ export class CreateLivestreamDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    channelName: string;
+    channelTitle: string;
 
     @ApiProperty()
     @IsNotEmpty()

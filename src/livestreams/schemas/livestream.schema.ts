@@ -1,7 +1,23 @@
 import * as mongoose from 'mongoose';
 
+export const LiveStreamMemberSchema = new mongoose.Schema({
+    liveStream: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LiveStreams'
+    },
+    member: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    joinAt: { type: Date, default: Date.now() },
+    leaveAt: Date
+})
+
+// const StreamMembers = mongoose.model('StreamMembers', MemberSchema)
+
 export const LiveStreamSchema = new mongoose.Schema({
     channelName: String,
+    channelTitle: String,
     categories: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Categories'
@@ -9,12 +25,9 @@ export const LiveStreamSchema = new mongoose.Schema({
     coverPicture: String,
     startLiveAt: { type: Date, default: Date.now() },
     endLiveAt: Date,
-    members: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
     streamer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }
 });
+
