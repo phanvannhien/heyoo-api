@@ -20,11 +20,13 @@ export class LivestreamsService {
   async create(createLivestreamDto: CreateLivestreamDto): Promise<any> {
     const doc = new this.liveStreamModel( createLivestreamDto );
     await doc.save();
-    return doc.populate('categories').populate('streamer');
+    return doc.populate('categories').populate('streamer').execPopulate();
   }
 
   async findAll(): Promise<LiveStreamEntityDocument[]> {
-    return await this.liveStreamModel.find().populate(['categories','streamer']).exec();
+    return await this.liveStreamModel
+      .find({ endLiveAt: { "$in": [ null, "" ] } })
+      .populate(['categories','streamer']).exec();
   }
 
   async findOne(id: string): Promise<LiveStreamEntityDocument> {
@@ -64,7 +66,6 @@ export class LivestreamsService {
     return find;
 
   }
-
 
   update(id: number, updateLivestreamDto: UpdateLivestreamDto) {
     return `This action updates a #${id} livestream`;
