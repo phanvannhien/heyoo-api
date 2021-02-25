@@ -58,7 +58,7 @@ export class AuthController{
     async login(@Body() loginDto: LoginDto): Promise<IResponse> {
         const user = await this.authService.login(loginDto);
         return new ResponseSuccess( new AuthResponse({
-            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) ),
+            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
             user: user
         }));
     }
@@ -74,7 +74,7 @@ export class AuthController{
            
             const user = await this.userService.findOrCreateFacebookId( socialUser );
             return new ResponseSuccess( new AuthResponse({
-                accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) ),
+                accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
                 user: user
             }));
         }catch(err){
@@ -94,7 +94,7 @@ export class AuthController{
         const user = await this.userService.findOrCreateGoogleId( socialUser );
 
         return new ResponseSuccess( new AuthResponse({
-            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) ),
+            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
             user: user
         }));
 
@@ -118,7 +118,7 @@ export class AuthController{
         const socialUser = this.parseJwt( body.access_token ) ;
         const user = await this.userService.findOrCreateAppleId( socialUser );
         return new ResponseSuccess( new AuthResponse({
-            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) ),
+            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
             user: user
         }));
 
@@ -137,7 +137,7 @@ export class AuthController{
         const user = await this.authService.register( registerDto );
 
         return new ResponseSuccess( new AuthResponse({
-            accessToken: this.jwtService.sign(this.authService.getJWTPayload(user)),
+            accessToken: this.jwtService.sign(this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
             user: user
         }));
     

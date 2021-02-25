@@ -5,7 +5,6 @@ import { CreateLivestreamDto } from './dto/create-livestream.dto';
 import { UpdateLivestreamDto } from './dto/update-livestream.dto';
 import { LiveStreamEntityDocument, LiveStreamMemberEntityDocument } from './entities/livestream.entity';
 import * as mongoose from 'mongoose';
-
 var ObjectId = mongoose.Types.ObjectId;
 
 @Injectable()
@@ -24,8 +23,7 @@ export class LivestreamsService {
   }
 
   async findAll(): Promise<LiveStreamEntityDocument[]> {
-    return await this.liveStreamModel
-      .find({ endLiveAt: { "$in": [ null, "" ] } })
+    return await this.liveStreamModel.find({ endLiveAt: null })
       .populate(['categories','streamer']).exec();
   }
 
@@ -65,6 +63,14 @@ export class LivestreamsService {
     await find.save();
     return find;
 
+  }
+
+  async endLiveStream(liveStreamId: string, memberId: string ): Promise<LiveStreamEntityDocument> {
+    const live = await this.findOne(liveStreamId)
+    if(!live) throw new BadRequestException("Live stream doest not exists")
+    if( live.streamer != memberId ) throw new BadRequestException("User is not a streamer")
+    live.endLiveAt = new Date();
+    return await live.save();
   }
 
   update(id: number, updateLivestreamDto: UpdateLivestreamDto) {

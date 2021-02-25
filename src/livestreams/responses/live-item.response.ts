@@ -13,6 +13,7 @@ export class LiveStreamItemResponse{
         this.endLiveAt = object.endLiveAt;
         this.categories = object.categories.map( i => new CategoriesResponse(i) ) ;
         this.streamer = new UserResponse(object.streamer);
+        this.streamerUid = object.streamerUid;
     }
     @ApiProperty()
     id: String;
@@ -37,5 +38,8 @@ export class LiveStreamItemResponse{
 
     @ApiProperty()
     streamer: UserResponse;
+
+    @ApiProperty()
+    streamerUid: number;
 
 }

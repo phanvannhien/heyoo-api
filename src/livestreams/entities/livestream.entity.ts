@@ -8,12 +8,12 @@ export interface LiveStreamMemberEntityDocument extends Document{
 }
 
 export interface LiveStreamEntityDocument extends Document {
- 
     readonly channelTitle: string;
     readonly channelName: string;
     readonly coverPicture: string;
     readonly startLiveAt: Date;
-    readonly endLiveAt: string;
+    endLiveAt: Date;
+    streamerUid: number;
     readonly streamer: string;
     readonly categories: Array<any>;
 }

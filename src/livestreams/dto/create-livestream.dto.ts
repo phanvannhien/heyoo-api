@@ -16,5 +16,8 @@ export class CreateLivestreamDto {
     @IsOptional()
     streamer: string;
 
+    @IsOptional()
+    streamerUid: number;
+
 
 }

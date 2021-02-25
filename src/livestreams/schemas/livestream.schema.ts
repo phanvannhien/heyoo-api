@@ -28,6 +28,7 @@ export const LiveStreamSchema = new mongoose.Schema({
     streamer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+    streamerUid: Number
 });
 
