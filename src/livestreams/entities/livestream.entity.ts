@@ -5,6 +5,7 @@ export interface LiveStreamMemberEntityDocument extends Document{
     readonly member: string;
     readonly joinAt?: Date;
     leaveAt?: Date;
+    uid: number;
 }
 
 export interface LiveStreamEntityDocument extends Document {

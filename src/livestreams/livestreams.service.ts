@@ -34,13 +34,14 @@ export class LivestreamsService {
       .exec();
   }
 
-  async joinMember( streamId: string, memberId: string ): Promise<LiveStreamMemberEntityDocument>{
+  async joinMember( streamId: string, memberId: string, uid: number ): Promise<LiveStreamMemberEntityDocument>{
     const d = await this.findOne(streamId)
     if(!d) throw new BadRequestException("Live stream doest not exists")
 
     const mem = new this.liveStreamMemberModel({
       liveStream: streamId,
-      member: memberId
+      member: memberId,
+      uid: uid
     })
     await mem.save();
     return mem.populate({
@@ -57,7 +58,7 @@ export class LivestreamsService {
       liveStream: live._id,
       member: memberId
     })
-    if( !find )  throw new BadRequestException("Not found")
+    if( !find )  throw new BadRequestException("Not join any live stream")
 
     find.leaveAt = new Date();
     await find.save();
@@ -78,6 +79,8 @@ export class LivestreamsService {
   }
 
   async remove(id: string): Promise<any> {
+    // remove live members item
+    await this.liveStreamMemberModel.deleteMany({liveStream: id});
     return await this.liveStreamModel.findByIdAndRemove( id );
   }
 }

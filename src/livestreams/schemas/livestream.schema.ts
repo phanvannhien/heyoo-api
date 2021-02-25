@@ -10,7 +10,8 @@ export const LiveStreamMemberSchema = new mongoose.Schema({
         ref: 'User'
     },
     joinAt: { type: Date, default: Date.now() },
-    leaveAt: Date
+    leaveAt: Date,
+    uid: Number
 })
 
 // const StreamMembers = mongoose.model('StreamMembers', MemberSchema)

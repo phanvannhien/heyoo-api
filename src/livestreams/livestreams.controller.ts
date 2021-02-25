@@ -13,6 +13,8 @@ import { AgoraService } from 'src/agora/agora.service';
 import { CreateTokenDto } from './dto/create-token.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { LiveStreamItemResponse } from './responses/live-item.response';
+import { LiveMemerResponse } from './responses/live-member.response';
+import { LiveMemerLeaveResponse } from './responses/live-member-leave.response';
 var crypto = require('crypto');
 
 
@@ -83,35 +85,36 @@ export class LivestreamsController {
   }
 
 
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: LiveMemerResponse
+  })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post(':id/join')
   async joinLive(@Param('id') id: string, @Req() request ): Promise<IResponse>{
-    const d = await this.livestreamsService.joinMember( id, request.user.id );
     const uid = crypto.randomBytes(4).readUInt32BE(0, true);
+    const d = await this.livestreamsService.joinMember( id, request.user.id, uid );
     const responseObj = {
       stream: d.liveStream,
-      agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid )
+      agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
+      joinInfo: d
     };
-    return new ResponseSuccess(new LiveStreamResponse(responseObj));
+    return new ResponseSuccess(new LiveMemerResponse(responseObj));
   }
 
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: LiveMemerLeaveResponse
+  })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post(':id/leave')
   async leaveLive(@Param('id') id: string, @Req() request ): Promise<IResponse>{
     const d = await this.livestreamsService.leaveMember( id, request.user.id );
-    return new ResponseSuccess({
-      data: {
-        "joinAt": d.joinAt ,
-        "id": d.id,
-        "liveStream": d.liveStream ,
-        "member": d.member,
-        "leaveAt": d.leaveAt
-      }
-    });
+    const responseObj = {
+      stream: d.liveStream,
+      joinInfo: d
+    };
+    return new ResponseSuccess( new LiveMemerLeaveResponse( responseObj ) );
   }
 
 
@@ -121,8 +124,8 @@ export class LivestreamsController {
   //   return this.livestreamsService.update(+id, updateLivestreamDto);
   // }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.livestreamsService.remove(+id);
-  // }
+  @Delete(':id')
+  async remove(@Param('id') liveStreamId: string): Promise<any>{
+    return await this.livestreamsService.remove(liveStreamId);
+  }
 }
