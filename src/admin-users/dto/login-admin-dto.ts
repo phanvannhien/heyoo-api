@@ -1,17 +1,20 @@
 import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
+import { string } from "yargs";
 
-
-export class CreateAdminUserDto {
+export class LoginAdminDto{
+    
     @ApiProperty({
         default: 'admin@admmin.com'
     })
     @IsNotEmpty()
-    email: string;
+    username: string;
 
     @ApiProperty({
+        type: string,
         default: '123456'
     })
     @IsNotEmpty()
+    @IsString()
     password: string;
 }

@@ -4,8 +4,7 @@ export const AdminUserSchema = new mongoose.Schema({
     fullname: String,
     email: String,
     password: String,
-    avatar: String,
-    activated: Boolean,
+    activated: { type: Boolean, default: 1 },
     language: { type: String, default: 'en' },
     createdAt: { type: Date, default: Date.now() }
 });

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, UseInterceptors, Req, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, UseInterceptors, Req, UploadedFile, BadRequestException, Query } from '@nestjs/common';
 import { LivestreamsService } from './livestreams.service';
 import { CreateLivestreamDto } from './dto/create-livestream.dto';
 import { UpdateLivestreamDto } from './dto/update-livestream.dto';
@@ -15,7 +15,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { LiveStreamItemResponse } from './responses/live-item.response';
 import { LiveMemerResponse } from './responses/live-member.response';
 import { LiveMemerLeaveResponse } from './responses/live-member-leave.response';
-var crypto = require('crypto');
+import { GetLiveStreamDto } from './dto/get-livestream.dto';
+const crypto = require('crypto');
 
 
 @ApiTags('livestreams')
@@ -52,7 +53,8 @@ export class LivestreamsController {
     };
     const responseObj = {
       stream:  await this.livestreamsService.create(createData),
-      agoraToken: await this.agoraService.generateAgoraToken( createData.channelName, uid  )
+      agoraToken: await this.agoraService.generateAgoraToken( createData.channelName, uid  ),
+      rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString() )
     };
     return new ResponseSuccess(new LiveStreamResponse(responseObj));
   }
@@ -63,10 +65,18 @@ export class LivestreamsController {
   @Post(':id/end')
   @UseGuards(JwtAuthGuard)
   async endLiveStream(@Param('id') id: string, @Req() request): Promise<IResponse> {
-    const d = this.livestreamsService.endLiveStream( id, request.user.id );
+    const d = await this.livestreamsService.endLiveStream( id, request.user.id );
     return new ResponseSuccess(new LiveStreamItemResponse( d ));
   }
 
+  @Get('all')
+  @ApiOkResponse({
+    type: [LiveStreamItemResponse]
+  })
+  async findAllLive( @Query() query: GetLiveStreamDto ): Promise<IResponse>{
+    const d = await this.livestreamsService.findAllStatus(query);
+    return new ResponseSuccess( d.map( i => new LiveStreamItemResponse(i) ) );
+  }
 
   @Get()
   @ApiOkResponse({
@@ -97,6 +107,7 @@ export class LivestreamsController {
     const responseObj = {
       stream: d.liveStream,
       agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
+      rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString() ),
       joinInfo: d
     };
     return new ResponseSuccess(new LiveMemerResponse(responseObj));
@@ -128,4 +139,11 @@ export class LivestreamsController {
   async remove(@Param('id') liveStreamId: string): Promise<any>{
     return await this.livestreamsService.remove(liveStreamId);
   }
+
+  @Delete()
+  @ApiOkResponse()
+  async deleteAll(): Promise<any>{
+    return await this.livestreamsService.removeAll();
+  }
+
 }

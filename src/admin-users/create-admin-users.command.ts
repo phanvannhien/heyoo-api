@@ -32,10 +32,10 @@ export class CreateAdminUserCommand {
         
     ) {
         console.log('Starting...')
-        const user = await this.adminUserService.create(new CreateAdminUserDto({
-            email: email,
-            password: password
-        }))
+        const data  = new CreateAdminUserDto();
+        data.email = email;
+        data.password = password;
+        const user = await this.adminUserService.create(data);
         console.log('Created admin user success:' + user._id)
     }
 }

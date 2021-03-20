@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { UserEntity } from 'src/users/serializes/user.serialize';
 
 export interface LiveStreamMemberEntityDocument extends Document{
     readonly liveStream: LiveStreamEntityDocument;
@@ -15,6 +16,6 @@ export interface LiveStreamEntityDocument extends Document {
     readonly startLiveAt: Date;
     endLiveAt: Date;
     streamerUid: number;
-    readonly streamer: string;
+    readonly streamer: UserEntity ;
     readonly categories: Array<any>;
 }

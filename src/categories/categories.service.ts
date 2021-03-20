@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesEntityDocument } from './entities/category.entity';
+import { GetCategoryDto } from './dto/get-category.dto';
 
 
 @Injectable()
@@ -20,6 +21,14 @@ export class CategoriesService {
 
   async findAll(): Promise<CategoriesEntityDocument[]> {
     return await this.categoryModel.find().exec();
+  }
+
+  async findAllCategories(query: GetCategoryDto): Promise<CategoriesEntityDocument[]> {
+
+    return await this.categoryModel.find()
+      .skip( Number( (query.page - 1)*query.limit ) )
+      .limit( Number( query.limit ) )
+      .exec();
   }
 
   async findOne(id: string): Promise<CategoriesEntityDocument> {

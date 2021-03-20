@@ -21,10 +21,24 @@ export class AgoraService {
 
         // console.log(uid);
         // Build token with uid
-        const token = RtcTokenBuilder.buildTokenWithUid(appID, appCertificate, channelName, uid , role, privilegeExpiredTs);
-
-        return token;
+        return RtcTokenBuilder.buildTokenWithUid(appID, appCertificate, channelName, uid , role, privilegeExpiredTs);
+       
     }
+
+    async generateAgoraRtmToken( uid : string ): Promise<string>{
+        // Rtc Examples
+        const appID = this.configService.get('AGORA_APP_ID');
+        const appCertificate = this.configService.get('AGORA_CERTIFICATE');
+        const expirationTimeInSeconds = 3600*24*7;
+        const currentTimestamp = Math.floor(Date.now() / 1000)
+        const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds
+     
+        return RtmTokenBuilder.buildToken( appID, appCertificate, uid , RtmRole, privilegeExpiredTs );
+        
+
+       
+    }
+
 
     
 }

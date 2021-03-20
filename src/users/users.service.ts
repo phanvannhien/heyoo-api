@@ -4,10 +4,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { FilesService } from 'src/files/files.service';
+import { LivestreamsService } from 'src/livestreams/livestreams.service';
 import { CreateUserDto } from './dto/create.user.dto';
 import { FindUserDto } from './dto/find-user.dto';
 import { User } from './interfaces/user.interface';
 import { UserSchema } from './schemas/users.schema';
+import { GetUserDto } from './dto/get-users.dto';
 
 
 
@@ -15,13 +17,18 @@ import { UserSchema } from './schemas/users.schema';
 export class UsersService {
     constructor(
         @InjectModel('User') private readonly userModel: Model<User>,
-        private readonly filesService: FilesService
+        private readonly filesService: FilesService,
+        private readonly liveStreamService: LivestreamsService
     ){
 
     }
 
-    async findAll(): Promise<User[]> {
-        return this.userModel.find().exec();
+    async findAll( query: GetUserDto ): Promise<User[]> {
+        let builder = this.userModel.find();
+        if( query.phone ) builder.where({ phone: query.phone });
+        return await builder.limit( Number(query.limit) )
+            .skip( Number(query.limit * (query.page - 1)) )
+            .exec();
     }
 
     async findOne( findUser: FindUserDto ):  Promise<User> {
@@ -110,7 +117,10 @@ export class UsersService {
     }
 
     async delete( id ): Promise<any> {
+        // delete user
         const deleted = await this.userModel.findByIdAndRemove(id);
+        // delete livestream by user
+        await this.liveStreamService.removeLiveStreamByUser( id );
         return deleted;
     }
 }

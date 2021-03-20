@@ -16,6 +16,9 @@ import { AgoraModule } from 'src/agora/agora.module';
     AgoraModule
   ],
   controllers: [LivestreamsController],
-  providers: [LivestreamsService]
+  providers: [LivestreamsService],
+  exports: [
+    LivestreamsService
+  ]
 })
 export class LivestreamsModule {}

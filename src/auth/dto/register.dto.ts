@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsEmail, IsPhoneNumber, IsOptional } from "class-validator";
+import { IsNotEmpty, IsNumber, IsEmail, IsPhoneNumber, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto{
@@ -18,6 +18,7 @@ export class RegisterDto{
         default: '123456'
     })
     @IsNotEmpty()
+    @IsString()
     password: string;
 
     isVerified: boolean;

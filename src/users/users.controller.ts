@@ -12,6 +12,7 @@ import { UpdateAvatarDto } from './dto/update-avatar.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { string } from 'yargs';
+import { GetUserDto } from './dto/get-users.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -20,10 +21,16 @@ export class UsersController {
     constructor( private userService: UsersService ){}
 
     @Get()
-    @HttpCode(200)
-    async getAll( @Res() res ){
-        const data = await this.userService.findAll();
-        return res.json( { data: data } )
+    @HttpCode(HttpStatus.OK )
+    async getAll( @Res() res, @Query() queryParams: GetUserDto ){
+         
+        const data = await this.userService.findAll(queryParams);
+        return res.json( {
+            data: { 
+                items: data,
+                total: data.length
+            }
+        });
     }
 
     @ApiResponse({ type: UserResponse })
@@ -37,7 +44,6 @@ export class UsersController {
 
     }
 
-    
 
     // // add a customer
     // @Post('/create')

@@ -23,6 +23,7 @@ async function bootstrap() {
       region: configService.get('AWS_REGION'),
   });
 
+  app.enableCors();
 
   const documentSwagger = SwaggerModule.createDocument(app, configSwagger);
 
@@ -34,7 +35,7 @@ async function bootstrap() {
     }),
   );
   app.listen( PORT , () => {
-    console.log("Application is running at port 3000")
+    console.log("Application is running at port:" + PORT )
     console.log( MONGO_URI )
   });
 }

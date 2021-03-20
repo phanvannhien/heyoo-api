@@ -9,6 +9,7 @@ export class LiveMemerResponse{
     constructor( object: any ){
         this.stream = new LiveStreamItemResponse(object.stream);
         this.agoraToken = object.agoraToken || '';
+        this.agoraRtmToken = object.rtmToken || '';
         this.joinInfo = new LiveMemerInfoResponse(object.joinInfo)
     }
 
@@ -17,6 +18,9 @@ export class LiveMemerResponse{
 
     @ApiProperty()
     agoraToken: string;
+
+    @ApiProperty()
+    agoraRtmToken: string;
 
     @ApiProperty()
     joinInfo: LiveMemerInfoResponse;

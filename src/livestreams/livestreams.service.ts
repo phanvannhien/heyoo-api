@@ -5,6 +5,7 @@ import { CreateLivestreamDto } from './dto/create-livestream.dto';
 import { UpdateLivestreamDto } from './dto/update-livestream.dto';
 import { LiveStreamEntityDocument, LiveStreamMemberEntityDocument } from './entities/livestream.entity';
 import * as mongoose from 'mongoose';
+import { GetLiveStreamDto } from './dto/get-livestream.dto';
 var ObjectId = mongoose.Types.ObjectId;
 
 @Injectable()
@@ -22,8 +23,20 @@ export class LivestreamsService {
     return doc.populate('categories').populate('streamer').execPopulate();
   }
 
+  async findAllStatus(query: GetLiveStreamDto): Promise<LiveStreamEntityDocument[]> {
+    const builder = this.liveStreamModel.find();
+    if(query.title) builder.where({ channelTitle: {'$regex': query.title }  });
+    return await builder
+      .skip( Number( (query.page - 1)*query.limit ) )
+      .limit( Number( query.limit ) )
+      .sort({ startLiveAt: -1 })
+      .populate(['categories','streamer'])
+      .exec();
+  }
+
   async findAll(): Promise<LiveStreamEntityDocument[]> {
     return await this.liveStreamModel.find({ endLiveAt: null })
+      .sort({ startLiveAt: -1 })
       .populate(['categories','streamer']).exec();
   }
 
@@ -67,9 +80,11 @@ export class LivestreamsService {
   }
 
   async endLiveStream(liveStreamId: string, memberId: string ): Promise<LiveStreamEntityDocument> {
-    const live = await this.findOne(liveStreamId)
+    const live = await this.liveStreamModel.findById(liveStreamId).populate('categories')
+      .populate('streamer')
+      .exec();
     if(!live) throw new BadRequestException("Live stream doest not exists")
-    if( live.streamer != memberId ) throw new BadRequestException("User is not a streamer")
+    if( live.streamer.id.toString() != memberId ) throw new BadRequestException("User is not a streamer")
     live.endLiveAt = new Date();
     return await live.save();
   }
@@ -80,7 +95,31 @@ export class LivestreamsService {
 
   async remove(id: string): Promise<any> {
     // remove live members item
-    await this.liveStreamMemberModel.deleteMany({liveStream: id});
     return await this.liveStreamModel.findByIdAndRemove( id );
   }
+
+  async removeAll(): Promise<any>{
+    const allLiveStream = await this.liveStreamModel.find({}).exec();
+    if( allLiveStream.length > 0 ){
+      allLiveStream.map( async i => {
+        await this.liveStreamMemberModel.deleteMany({ liveStream: i.id });
+      });
+      await this.liveStreamModel.remove({});
+      return true;
+    }
+
+  }
+
+  async removeLiveStreamByUser( userId ){
+    const allLiveStream = await this.liveStreamModel.find({ streamer: userId }).exec();
+    if( allLiveStream.length > 0 ){
+      allLiveStream.map( async i => {
+        await this.liveStreamMemberModel.deleteMany({ liveStream: i.id });
+      });
+      await this.liveStreamModel.deleteMany({ streamer: userId });
+      return true;
+    }
+    return false;  
+  }
+
 }

@@ -20,12 +20,16 @@ export class AdminUsersService {
     return await adminUser.save();
   }
 
-  findAll() {
-    return `This action returns all adminUsers`;
+  async findAll(): Promise<any> {
+    return await this.adminUserModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} adminUser`;
+  async findById(id: string): Promise<any> {
+    return await this.adminUserModel.findById( id ).exec();
+  }
+
+  async findOneByEmail(email: string): Promise<any> {
+    return await this.adminUserModel.findOne({ email:email}).exec();
   }
 
   update(id: number, updateAdminUserDto: UpdateAdminUserDto) {
