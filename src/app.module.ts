@@ -17,6 +17,9 @@ import { OptsModule } from './otps/otps.module';
 import { CategoriesModule } from './categories/categories.module';
 import { LivestreamsModule } from './livestreams/livestreams.module';
 import { AgoraModule } from './agora/agora.module';
+import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
+import { WalletsModule } from './wallets/wallets.module';
 
 
 @Module({
@@ -39,6 +42,9 @@ import { AgoraModule } from './agora/agora.module';
     CategoriesModule,
     LivestreamsModule,
     AgoraModule,
+    ProductsModule,
+    OrdersModule,
+    WalletsModule,
     
   ],
   controllers: [AppController],
