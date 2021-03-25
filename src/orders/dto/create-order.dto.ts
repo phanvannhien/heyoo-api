@@ -1,14 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsIn } from "class-validator";
+import { IsNotEmpty, IsNumber, IsIn, IsMongoId, Min } from "class-validator";
 
 export class CreateOrderDto {
+
     
     @ApiProperty()
+    @IsNotEmpty()
+    @IsMongoId()
     product: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        type: Number,
+        default: 1
+    })
     @IsNotEmpty()
     @IsNumber()
+    @Min(1)
     quantity: number;
 
     @ApiProperty({
@@ -17,5 +24,5 @@ export class CreateOrderDto {
     })
     @IsIn(['gateway','wallet'])
     @IsNotEmpty()
-    payment_method: number;
+    paymentMethod: string;
 }

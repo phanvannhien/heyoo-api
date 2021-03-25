@@ -20,6 +20,7 @@ import { AgoraModule } from './agora/agora.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { WalletsModule } from './wallets/wallets.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 
 @Module({
@@ -45,6 +46,7 @@ import { WalletsModule } from './wallets/wallets.module';
     ProductsModule,
     OrdersModule,
     WalletsModule,
+    TransactionModule,
     
   ],
   controllers: [AppController],

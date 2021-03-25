@@ -1,30 +1,34 @@
-import { BadRequestException, Injectable
+import { 
+    Injectable,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { FilesService } from 'src/files/files.service';
 import { LivestreamsService } from 'src/livestreams/livestreams.service';
-import { CreateUserDto } from './dto/create.user.dto';
 import { FindUserDto } from './dto/find-user.dto';
 import { User } from './interfaces/user.interface';
-import { UserSchema } from './schemas/users.schema';
 import { GetUserDto } from './dto/get-users.dto';
-
 
 
 @Injectable()
 export class UsersService {
+
+
     constructor(
         @InjectModel('User') private readonly userModel: Model<User>,
         private readonly filesService: FilesService,
-        private readonly liveStreamService: LivestreamsService
+        private readonly liveStreamService: LivestreamsService,
     ){
 
     }
 
+    async find(): Promise<User[]>{
+        return await this.userModel.find().exec();
+    }
+
     async findAll( query: GetUserDto ): Promise<User[]> {
-        let builder = this.userModel.find();
+        const builder = this.userModel.find();
         if( query.phone ) builder.where({ phone: query.phone });
         return await builder.limit( Number(query.limit) )
             .skip( Number(query.limit * (query.page - 1)) )
@@ -95,8 +99,7 @@ export class UsersService {
         return await createUser.save();
         
     }
-
-    
+ 
     async createUser( registerDto: RegisterDto ) : Promise<User>{
         const createdUser = new this.userModel(registerDto);
         return await createdUser.save();
@@ -123,4 +126,5 @@ export class UsersService {
         await this.liveStreamService.removeLiveStreamByUser( id );
         return deleted;
     }
+
 }

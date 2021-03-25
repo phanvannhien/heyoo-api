@@ -1,18 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ProductItemResponse } from "src/products/responses/product.response";
 import { UserResponse } from "src/users/responses/user.response";
 
-export class OrderItemResponse{
+export class TransactionItemResponse{
   
     constructor( object: any ){
         this.id = object.id;
-        this.product = new ProductItemResponse(object.product);
         this.user = new UserResponse(object.user);
-        this.price = object.price;
+        this.rate = object.price;
         this.quantity = object.quantity;
         this.total = object.total;
-        this.paymentMethod = object.paymentMethod;
         this.status = object.status;
+        this.resource = object.resource;
+        this.paymentMethod = object.paymentMethod;
         this.createdAt = object.createdAt;
     }
 
@@ -22,11 +21,9 @@ export class OrderItemResponse{
     @ApiProperty()
     user: any;
 
-    @ApiProperty()
-    product: any;
 
     @ApiProperty()
-    price: number;
+    rate: number;
 
     @ApiProperty()
     quantity: number;
@@ -35,10 +32,13 @@ export class OrderItemResponse{
     total: number;
 
     @ApiProperty()
+    status: string;
+
+    @ApiProperty()
     paymentMethod: string;
 
     @ApiProperty()
-    status: string;
+    resource: string;
 
     @ApiProperty()
     createdAt: Date;

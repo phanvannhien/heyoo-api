@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetUserDto{
+export class GetWalletsDto{
 
     @ApiProperty({
         type: Number,
@@ -16,11 +16,4 @@ export class GetUserDto{
     })
     @IsNotEmpty()
     limit: number;
-
-    @ApiProperty({
-        required: false,
-        type: String
-    })
-    @IsOptional()
-    phone?: string;
 }
