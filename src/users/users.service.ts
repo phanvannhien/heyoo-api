@@ -1,5 +1,5 @@
 import { 
-    Injectable,
+    Injectable, BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -9,7 +9,10 @@ import { LivestreamsService } from 'src/livestreams/livestreams.service';
 import { FindUserDto } from './dto/find-user.dto';
 import { User } from './interfaces/user.interface';
 import { GetUserDto } from './dto/get-users.dto';
-
+import { FollowEntityDocument } from './interfaces/follow.entity';
+import { GetFollowerDto } from './dto/get-\bfollower.dto';
+import { GetFollowingDto } from './dto/get-\bfollowing.dto';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +20,7 @@ export class UsersService {
 
     constructor(
         @InjectModel('User') private readonly userModel: Model<User>,
+        @InjectModel('Follow') private readonly followModel: Model<FollowEntityDocument>,
         private readonly filesService: FilesService,
         private readonly liveStreamService: LivestreamsService,
     ){
@@ -125,6 +129,115 @@ export class UsersService {
         // delete livestream by user
         await this.liveStreamService.removeLiveStreamByUser( id );
         return deleted;
+    }
+
+    async doFollow(userId, followUser): Promise<any>{
+        const findFollowUser = await this.userModel.findById(followUser);
+        if (!findFollowUser) throw new BadRequestException('User not found');
+        const followExist = await this.followModel.findOne({
+            user: userId,
+            follow: followUser
+        }).exec()
+
+        if (followExist) return await followExist.populate('user').populate('follow').execPopulate()
+
+        const n = await this.followModel.create({
+            user: userId,
+            follow: followUser
+        })
+        return await n.populate('user').populate('follow').execPopulate()
+    }
+
+    async unFollow(userId, followUser): Promise<any>{
+        await this.followModel.findOneAndDelete({
+            user: userId,
+            follow: followUser
+        }).exec()
+        return true
+    }
+
+    async getFollower(userId, query: GetFollowerDto): Promise<any>{
+        const findFollowUser = await this.userModel.findById(userId);
+        if (!findFollowUser) throw new BadRequestException('User not found');
+
+        return await this.followModel.find({
+            user: userId
+        }).populate('user')
+            .populate('follow')
+            .sort({ createdAt: -1 })
+            .skip( Number( (query.page - 1)*query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec()
+            
+    }
+
+    async getFollowing(userId, query: GetFollowingDto): Promise<any>{
+        const findFollowUser = await this.userModel.findById(userId);
+        if (!findFollowUser) throw new BadRequestException('User not found');
+
+        return await this.followModel.find({
+            follow: userId
+        }).populate('user')
+            .populate('follow')
+            .skip( Number( (query.page - 1)*query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec()
+    }
+
+
+    async getProfile( id: string) : Promise<User[]>{
+        return await this.userModel
+            .aggregate([
+                { 
+                    $match: { _id: new mongoose.Types.ObjectId(id) }
+                },
+                {
+                    $lookup: {
+                        from: "follows",
+                        localField: "_id",
+                        foreignField: "follow",
+                        as: "follower"
+                    }
+                },
+               
+                {
+                    $lookup: {
+                        from: "follows",
+                        localField: "_id",
+                        foreignField: "user",
+                        as: "following"
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        phone: 1,
+                        email: 1,
+                        gender: 1,
+                        isVerified: 1,
+                        fullname: 1,
+                        password: 1,
+                        bio: 1,
+                        address: 1,
+                        country: 1,
+                        avatar: 1,
+                        facebook: 1,
+                        google: 1,
+                        apple: 1,
+                        follower: { $size: '$follower' },
+                        following: { $size: '$following' }
+                    }
+                },
+               
+                { $limit: 1 }
+
+            ])
+        
+        .exec()
+
+
+
+        // return await this.userModel.findById(id).exec()
     }
 
 }

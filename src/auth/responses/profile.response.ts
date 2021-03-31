@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export class UserProfileResponse{
   
     constructor( object: any ){
-        this.id         = object.id;
+        this.id         = object.id || object._id;
         this.fullname   = object.fullname;
         this.phone      = object.phone;
         this.email      = object.email;

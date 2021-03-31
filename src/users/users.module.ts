@@ -5,10 +5,14 @@ import { UserSchema } from './schemas/users.schema'
 import { UsersController } from './users.controller';
 import { FilesModule } from 'src/files/files.module';
 import { LivestreamsModule } from 'src/livestreams/livestreams.module';
+import { FollowSchema } from './schemas/follow.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: 'Follow', schema: FollowSchema },
+    ]),
     FilesModule,
     LivestreamsModule,
   ],

@@ -102,8 +102,8 @@ export class AuthController{
 
 
     parseJwt(token) {
-        var base64Payload = token.split('.')[1];
-        var payload = Buffer.from(base64Payload, 'base64');
+        const base64Payload = token.split('.')[1];
+        const payload = Buffer.from(base64Payload, 'base64');
         return JSON.parse(payload.toString());
     }
 
@@ -153,8 +153,12 @@ export class AuthController{
     @Get('profile')
     @HttpCode(HttpStatus.OK)
     async getProfile(@Request() req): Promise<IResponse>  {
-        const user = await this.userService.findById(req.user.id);
-        return new ResponseSuccess( new UserProfileResponse(user) );
+        const user = await this.userService.getProfile(req.user.id);
+        if( user.length <= 0 ){
+            throw new BadRequestException('User not found')
+        }
+        console.log(user)
+        return new ResponseSuccess( new UserProfileResponse(user[0]) );
     }
 
     @ApiOkResponse({

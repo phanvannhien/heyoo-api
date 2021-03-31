@@ -28,6 +28,7 @@ export class WalletsService {
     async findAll(query: GetWalletsDto): Promise<WalletEntityDocument[]> {
         return await this.walletModel.find()
             .populate('user')
+            .populate('toUser')
             .populate('product')
             .sort({ createdAt: -1 })
             .skip( Number( (query.page - 1)*query.limit ) )
