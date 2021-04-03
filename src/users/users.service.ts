@@ -184,6 +184,12 @@ export class UsersService {
             .exec()
     }
 
+    async checkIsFollowing(userId, followId ): Promise<FollowEntityDocument>{
+        return await this.followModel.findOne({
+            user: userId,
+            follow: followId
+        }).exec()
+    }
 
     async getProfile( id: string) : Promise<User[]>{
 

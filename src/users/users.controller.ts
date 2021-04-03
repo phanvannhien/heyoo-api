@@ -13,6 +13,7 @@ import { FollowsResponse } from './responses/follows.response';
 import { GetFollowerDto } from './dto/getfollower.dto';
 import { GetFollowingDto } from './dto/getfollowing.dto';
 import { UserProfileResponse } from 'src/auth/responses/profile.response';
+import { request } from 'http';
 
 
 @ApiTags('users')
@@ -108,6 +109,21 @@ export class UsersController {
         return new ResponseSuccess( new FollowsResponse(d) )
     }
 
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @Get(':userId/is-following')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    async checkIsFollowing( 
+        @Req() request,
+        @Param('userId', new MongoIdValidationPipe() ) userId: string
+    ): Promise<any> {
+        const d = await this.userService.checkIsFollowing(request.user.id, userId )
+        if( d ){
+            return new ResponseSuccess({ isFollowing: true }) 
+        }
+        return new ResponseSuccess({ isFollowing: false }) 
+    }
 
 
 }
