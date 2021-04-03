@@ -8,13 +8,13 @@ export class UserProfileResponse{
         this.phone      = object.phone;
         this.email      = object.email;
         this.gender     = object.gender;
-        this.avatar     = object.avatar;
+        this.avatar     = object.avatar || '';
         this.isVerified = object.isVerified;
         this.otp        = object.opt;
         this.otpCreatedAt = object.otpCreatedAt;
         this.bio = object.bio || '';
-        this.dob = object.dob || '01/01/1970';
-        this.country = object.country || 'Việt nam';
+        this.dob = object.dob || '1970-01-01T00:00:00.000Z';
+        this.country = object.country || 'VN';
         this.address = object.address || '';
         this.follower = object.follower || 0;
         this.following = object.following || 0;

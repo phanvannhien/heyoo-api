@@ -1,6 +1,6 @@
 import { Controller, Get, Res, HttpCode, Param, BadRequestException, HttpStatus, Delete, Query, UseGuards, Req, Post, Body } from '@nestjs/common';
 import { UsersService } from './users.service'
-import { ApiResponse, ApiTags, ApiCookieAuth, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiResponse, ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserResponse } from './responses/user.response';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { ResponseSuccess } from 'src/common/dto/response.dto';
@@ -8,11 +8,11 @@ import { FindIdUserDto } from './dto/find-id.dto';
 import { GetUserDto } from './dto/get-users.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { request } from 'http';
 import { FollowResponse } from './responses/follow.response';
 import { FollowsResponse } from './responses/follows.response';
-import { GetFollowerDto } from './dto/get-\bfollower.dto';
-import { GetFollowingDto } from './dto/get-\bfollowing.dto';
+import { GetFollowerDto } from './dto/getfollower.dto';
+import { GetFollowingDto } from './dto/getfollowing.dto';
+import { UserProfileResponse } from 'src/auth/responses/profile.response';
 
 
 @ApiTags('users')
@@ -35,13 +35,16 @@ export class UsersController {
         });
     }
 
-    @ApiResponse({ type: UserResponse })
+    @ApiResponse({ type: UserProfileResponse })
     @Get(':id')
     @HttpCode( HttpStatus.OK )
     async getCustomer( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse> {
-        const find = await this.userService.findById(id);
-        if (!find) throw new BadRequestException('User not found');
-        return new ResponseSuccess( new UserResponse(find) )
+        const user = await this.userService.getProfile(id);
+        if( user.length <= 0 ){
+            throw new BadRequestException('User not found')
+        }
+
+        return new ResponseSuccess( new UserProfileResponse(user[0]) )
     }
 
 

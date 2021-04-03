@@ -157,7 +157,6 @@ export class AuthController{
         if( user.length <= 0 ){
             throw new BadRequestException('User not found')
         }
-        console.log(user)
         return new ResponseSuccess( new UserProfileResponse(user[0]) );
     }
 

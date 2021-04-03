@@ -10,8 +10,8 @@ import { FindUserDto } from './dto/find-user.dto';
 import { User } from './interfaces/user.interface';
 import { GetUserDto } from './dto/get-users.dto';
 import { FollowEntityDocument } from './interfaces/follow.entity';
-import { GetFollowerDto } from './dto/get-\bfollower.dto';
-import { GetFollowingDto } from './dto/get-\bfollowing.dto';
+import { GetFollowerDto } from './dto/getfollower.dto';
+import { GetFollowingDto } from './dto/getfollowing.dto';
 import * as mongoose from 'mongoose';
 
 @Injectable()
@@ -186,6 +186,7 @@ export class UsersService {
 
 
     async getProfile( id: string) : Promise<User[]>{
+
         return await this.userModel
             .aggregate([
                 { 

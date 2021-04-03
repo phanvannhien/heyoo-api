@@ -16,19 +16,19 @@ export class LiveStreamItemResponse{
         this.streamerUid = object.streamerUid;
     }
     @ApiProperty()
-    id: String;
+    id: string;
 
     @ApiProperty()
-    channelTitle: String;
+    channelTitle: string;
 
     @ApiProperty()
-    channelName: String;
+    channelName: string;
 
     @ApiProperty()
     categories: Array<CategoriesResponse>;
 
     @ApiProperty()
-    coverPicture: String;
+    coverPicture: string;
 
     @ApiProperty()
     startLiveAt: Date;

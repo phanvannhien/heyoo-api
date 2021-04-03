@@ -14,7 +14,11 @@ export class ResponseError implements IResponse{
 export class ResponseSuccess implements IResponse{
   constructor (data: any) {
     this.data = data;
+    this.code = 200;
+    this.message = "Successful"
   };
   data: any[];
   error: any;
+  code: number;
+  message: string;
 }

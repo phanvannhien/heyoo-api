@@ -12,5 +12,5 @@ export class ProductItemsResponse{
     items: ProductItemResponse[];
 
     @ApiProperty()
-    total: Number;
+    total: number;
 }
