@@ -30,10 +30,12 @@ export class UserProfileResponse{
         required: false
     })
     readonly email: string;
+    
     @ApiProperty({
         required: false
     })
     readonly gender: number;
+
     @ApiProperty({
         required: false
     })

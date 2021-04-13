@@ -6,7 +6,7 @@ export const UserSchema = new mongoose.Schema({
     phone: { type: String, index: true, default: '' },
     email: { type: String, index: true, default: '' },
     password: String,
-    gender: { type: String, default: '' },
+    gender: { type: Number, default: 0 },
     avatar: String,
     isVerified: { type: Boolean, default: false },
     facebook: {

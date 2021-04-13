@@ -48,6 +48,7 @@ export class WalletsService {
                 { 
                     $project: {
                         product: 1,
+                        image: 1,
                         total: 1
                     }
                 },
@@ -64,6 +65,7 @@ export class WalletsService {
                     $project: {
                         _id: 0,
                         total: 1,
+                        image: "$product_info.image",
                         productName: "$product_info.productName"
                     }
                 },
@@ -85,6 +87,7 @@ export class WalletsService {
                 { 
                     $project: {
                         product: 1,
+                        image: 1,
                         total: 1
                     }
                 },
@@ -101,6 +104,7 @@ export class WalletsService {
                     $project: {
                         _id: 0,
                         total: 1,
+                        image: "$product_info.image",
                         productName: "$product_info.productName"
                     }
                 },

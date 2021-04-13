@@ -1,4 +1,6 @@
-import { Controller, UseGuards, Post, Req, Body, Get, Query, HttpCode, HttpStatus, Param, BadRequestException } from '@nestjs/common';
+import { Controller, UseGuards, Post, Req, Body, Get, Query, HttpCode, 
+        HttpStatus, Param, BadRequestException, Res 
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { TransactionService } from './transaction.service';
 import { TransactionItemResponse } from './responses/transaction.response';
@@ -58,9 +60,13 @@ export class TransactionController {
 
     @Get(':userId/balance')
     @HttpCode( HttpStatus.OK )
-    async getUserBlance( @Param('userId', new MongoIdValidationPipe() ) userId: string ): Promise<any> {
+    async getUserBlance( @Res() res, @Param('userId', new MongoIdValidationPipe() ) userId: string ): Promise<any> {
         const balance = await this.transactionService.getUserBlance(userId)
-        return new ResponseSuccess({ balance: balance }); 
+        return res.json({
+            data: { balance: balance },
+            code: 200,
+            message: 'Successful'
+        }) 
     }
 
     @ApiOkResponse({

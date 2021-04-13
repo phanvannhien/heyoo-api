@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsNumber, IsEmail, IsPhoneNumber, IsOptional, IsDateString, IsString, IsEnum, IsISO31661Alpha2 } from "class-validator";
+import { IsNotEmpty, IsNumber, IsEmail, IsPhoneNumber, IsOptional, IsDateString, IsString, IsEnum, IsISO31661Alpha2, IsBoolean } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
+import { boolean } from "yargs";
 
 export class UpdateProfileDto{
 
@@ -8,19 +9,16 @@ export class UpdateProfileDto{
     fullname: string;
 
     @ApiProperty({
-        enum: ['Male','Female']
+       type: Number,
+       default: 0
     })
     @IsNotEmpty()
-    @IsEnum({
-        Male: 'Male',
-        Female: 'Female'
-    })
-    gender: string;
+    @IsNumber()
+    gender: number;
 
     @ApiProperty({
         type: Date()
     })
-    @IsDateString()
     dob: string;
 
     @ApiProperty({

@@ -5,7 +5,7 @@ export class TransactionItemResponse{
   
     constructor( object: any ){
         this.id = object.id;
-        this.user = new UserResponse(object.user);
+        this.user = object.user ? new UserResponse(object.user) : null;
         this.rate = object.price;
         this.quantity = object.quantity;
         this.total = object.total;
