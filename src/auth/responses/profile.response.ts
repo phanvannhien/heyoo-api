@@ -13,7 +13,7 @@ export class UserProfileResponse{
         this.otp        = object.opt;
         this.otpCreatedAt = object.otpCreatedAt;
         this.bio = object.bio || '';
-        this.dob = object.dob || '1970-01-01T00:00:00.000Z';
+        this.dob = object.dob;
         this.country = object.country || 'VN';
         this.address = object.address || '';
         this.follower = object.follower || 0;

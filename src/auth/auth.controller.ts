@@ -168,8 +168,9 @@ export class AuthController{
     @Post('profile')
     @HttpCode(HttpStatus.OK)
     async updateProfile(@Request() req, @Body() body: UpdateProfileDto ): Promise<IResponse>  {
-        const user = await this.userService.updateUser(req.user.id, body );
-        return new ResponseSuccess( new UserProfileResponse(user) );
+        await this.userService.updateUser(req.user.id, body );
+        const user = await this.userService.getProfile(req.user.id);
+        return new ResponseSuccess( new UserProfileResponse(user[0]) );
     }
 
     @ApiBearerAuth()

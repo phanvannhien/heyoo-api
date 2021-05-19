@@ -161,7 +161,7 @@ export class UsersService {
         if (!findFollowUser) throw new BadRequestException('User not found');
 
         return await this.followModel.find({
-            user: userId
+            follow: userId
         }).populate('user')
             .populate('follow')
             .sort({ createdAt: -1 })
@@ -176,7 +176,7 @@ export class UsersService {
         if (!findFollowUser) throw new BadRequestException('User not found');
 
         return await this.followModel.find({
-            follow: userId
+            user: userId
         }).populate('user')
             .populate('follow')
             .skip( Number( (query.page - 1)*query.limit ) )
@@ -219,6 +219,7 @@ export class UsersService {
                     $project: {
                         _id: 1,
                         phone: 1,
+                        dob: 1,
                         email: 1,
                         gender: 1,
                         isVerified: 1,
