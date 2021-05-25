@@ -21,6 +21,8 @@ import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { WalletsModule } from './wallets/wallets.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { NewsCategoriesModule } from './news-categories/news-categories.module';
+import { NewsModule } from './news/news.module';
 
 
 @Module({
@@ -47,7 +49,8 @@ import { TransactionModule } from './transaction/transaction.module';
     OrdersModule,
     WalletsModule,
     TransactionModule,
-    
+    NewsCategoriesModule,
+    NewsModule
   ],
   controllers: [AppController],
   providers: [

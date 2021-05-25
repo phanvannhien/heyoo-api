@@ -5,6 +5,7 @@ import { MONGO_URI, PORT } from './app.constants'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { config } from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
+import { useContainer } from 'class-validator';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,7 +29,7 @@ async function bootstrap() {
   const documentSwagger = SwaggerModule.createDocument(app, configSwagger);
 
   SwaggerModule.setup('api', app, documentSwagger);
-
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
