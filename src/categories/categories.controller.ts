@@ -7,6 +7,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesResponse } from './responses/categories.response';
 import { GetCategoryDto } from './dto/get-category.dto';
+import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -54,7 +55,7 @@ export class CategoriesController {
     type: CategoriesResponse
   })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<IResponse> {
+  async findOne(@Param('id', new MongoIdValidationPipe()) id: string): Promise<IResponse> {
     const data = await this.categoriesService.findOne(id)
     return new ResponseSuccess(new CategoriesResponse(data))
   }
@@ -63,7 +64,7 @@ export class CategoriesController {
     type: CategoriesResponse
   })
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto): Promise<IResponse> {
+  async update(@Param('id', new MongoIdValidationPipe()) id: string, @Body() updateCategoryDto: UpdateCategoryDto): Promise<IResponse> {
     const data = await this.categoriesService.update(id, updateCategoryDto);
     return new ResponseSuccess(new CategoriesResponse(data))
   }

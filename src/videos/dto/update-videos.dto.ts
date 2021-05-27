@@ -1,0 +1,31 @@
+import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, Min, MinLength } from "class-validator";
+import { CreateVideosDto } from "./create-videos.dto";
+
+// export class UpdateVideosDto extends PartialType(CreateVideosDto) {}
+
+export class UpdateVideosDto {
+    @ApiProperty({
+        type: String
+    })
+    @IsNotEmpty()
+    @MinLength(5)
+    title: string;
+
+    @ApiProperty({ type: 'string', format: 'binary' })
+    image: string;
+
+    @ApiProperty({
+        type: String,
+        default: '60a4cb1bb76a9f089c8d281d'
+    })
+    @IsNotEmpty()
+    @IsMongoId()
+    category: string;
+    
+    @ApiProperty({
+        type: String
+    })
+    @IsNotEmpty()
+    description: string;
+}

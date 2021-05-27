@@ -23,6 +23,8 @@ import { WalletsModule } from './wallets/wallets.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { NewsCategoriesModule } from './news-categories/news-categories.module';
 import { NewsModule } from './news/news.module';
+import { VideoCategoriesModule } from './video-categories/video-categories.module';
+import { VideosModule } from './videos/videos.module';
 
 
 @Module({
@@ -50,7 +52,9 @@ import { NewsModule } from './news/news.module';
     WalletsModule,
     TransactionModule,
     NewsCategoriesModule,
-    NewsModule
+    NewsModule,
+    VideoCategoriesModule,
+    VideosModule
   ],
   controllers: [AppController],
   providers: [

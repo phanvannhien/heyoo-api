@@ -7,6 +7,7 @@ import { CreateNewsCategoryDto } from './dto/create-news-category.dto';
 import { UpdateNewsCategoryDto } from './dto/update-category.dto';
 import { NewsCategoriesResponse } from './responses/news-categories.response';
 import { GetNewsCategoryDto } from './dto/get-news-category.dto';
+import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 
 @ApiTags('news-categories')
 @Controller('news-categories')
@@ -54,7 +55,7 @@ export class NewsCategoriesController {
     type: NewsCategoriesResponse
   })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<IResponse> {
+  async findOne(@Param('id', new MongoIdValidationPipe()) id: string): Promise<IResponse> {
     const data = await this.newsCategoriesService.findOne(id)
     return new ResponseSuccess(new NewsCategoriesResponse(data))
   }
@@ -63,7 +64,7 @@ export class NewsCategoriesController {
     type: NewsCategoriesResponse
   })
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateCategoryDto: UpdateNewsCategoryDto): Promise<IResponse> {
+  async update(@Param('id', new MongoIdValidationPipe()) id: string, @Body() updateCategoryDto: UpdateNewsCategoryDto): Promise<IResponse> {
     const data = await this.newsCategoriesService.update(id, updateCategoryDto);
     return new ResponseSuccess(new NewsCategoriesResponse(data))
   }
