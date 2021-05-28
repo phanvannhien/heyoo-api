@@ -14,4 +14,5 @@ export interface NewsEntityDocument extends Document {
     readonly updatedBy: AdminUser;
     readonly createdAt: Date;
     readonly updatedAt: Date;
+    readonly status: number;
 }

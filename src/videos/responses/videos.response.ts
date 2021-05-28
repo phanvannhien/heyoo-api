@@ -9,9 +9,14 @@ export class VideosItemResponse{
         this.id = object.id;
         this.title = object.title;
         this.image = object.image;
+        this.videoUrl = object.videoUrl;
         this.category = new VideoCategoriesResponse(object.category);
         this.createdAt = object.createdAt;
+        this.excerpt = object.excerpt;
         this.description = object.description;
+        this.viewCount = object.viewCount;
+        this.shareCount = object.shareCount;
+        this.status = object.status;
     }
     @ApiProperty()
     id: String;
@@ -21,6 +26,9 @@ export class VideosItemResponse{
 
     @ApiProperty()
     image: String;
+    
+    @ApiProperty()
+    videoUrl: String;
 
     @ApiProperty()
     category: VideoCategoriesResponse;
@@ -29,5 +37,17 @@ export class VideosItemResponse{
     createdAt: Date;
     
     @ApiProperty()
+    excerpt: String;
+
+    @ApiProperty()
     description: String;
+
+    @ApiProperty()
+    viewCount: Number;
+
+    @ApiProperty()
+    shareCount: String;
+
+    @ApiProperty()
+    status: Number;
 }

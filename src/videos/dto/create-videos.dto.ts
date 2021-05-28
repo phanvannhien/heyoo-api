@@ -7,8 +7,13 @@ export class CreateVideosDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiProperty({ type: 'string', format: 'binary' })
+    @ApiProperty({ type: String })
+    @IsNotEmpty()
     image: string;
+    
+    @ApiProperty({ type: String })
+    @IsNotEmpty()
+    videoUrl: string;
 
     @ApiProperty({
         type: String,
@@ -19,11 +24,20 @@ export class CreateVideosDto {
     category: string;
     
     @ApiProperty({
-        type: String, 
-        
+        type: String
+    })
+    @IsNotEmpty()
+    excerpt: string;
+    
+    @ApiProperty({
+        type: String,
     })
     @IsNotEmpty()
     description: string;
 
-
+    @ApiProperty({
+        type: Number, 
+    })
+    @IsNotEmpty()
+    status: Number;
 }

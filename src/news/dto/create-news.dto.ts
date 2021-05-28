@@ -7,7 +7,8 @@ export class CreateNewsDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiProperty({ type: 'string', format: 'binary' })
+    @IsNotEmpty()
+    @ApiProperty({ type: String })
     image: string;
 
     @ApiProperty({
@@ -20,10 +21,13 @@ export class CreateNewsDto {
     
     @ApiProperty({
         type: String, 
-        
     })
     @IsNotEmpty()
     description: string;
 
-
+    @ApiProperty({
+        type: Number, 
+    })
+    @IsNotEmpty()
+    status: Number;
 }

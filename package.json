@@ -40,6 +40,8 @@
     "class-validator": "^0.12.2",
     "countries-list": "^2.6.1",
     "mongoose": "^5.11.13",
+    "multer-s3": "^2.9.0",
+    "multer-sharp-s3": "^0.2.1",
     "nestjs-command": "^2.0.0",
     "passport": "^0.4.1",
     "passport-apple-verify-token": "^1.1.0",

@@ -12,8 +12,13 @@ export class UpdateVideosDto {
     @MinLength(5)
     title: string;
 
-    @ApiProperty({ type: 'string', format: 'binary' })
-    image: string;
+    @ApiProperty({ type: String, required: false })
+    @IsOptional()
+    image?: string;
+
+    @ApiProperty({ type: String, required: false })
+    @IsOptional()
+    videoUrl?: string;
 
     @ApiProperty({
         type: String,
@@ -27,5 +32,17 @@ export class UpdateVideosDto {
         type: String
     })
     @IsNotEmpty()
+    excerpt: string;
+
+    @ApiProperty({
+        type: String
+    })
+    @IsNotEmpty()
     description: string;
+
+    @ApiProperty({
+        type: Number, 
+    })
+    @IsNotEmpty()
+    status: Number;
 }

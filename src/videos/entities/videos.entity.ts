@@ -8,10 +8,13 @@ export interface VideosEntityDocument extends Document {
     readonly image: string;
     readonly category: VideoCategoriesEntityDocument;
     readonly description: string;
+    readonly excerpt: string;
+    readonly videoUrl: string;
     readonly viewCount: number;
     readonly shareCount: number;
     readonly createdBy: AdminUser;
     readonly updatedBy: AdminUser;
     readonly createdAt: Date;
     readonly updatedAt: Date;
+    readonly status: number;
 }

@@ -12,6 +12,7 @@ export class NewsItemResponse{
         this.category = new NewsCategoriesResponse(object.category);
         this.createdAt = object.createdAt;
         this.description = object.description;
+        this.status = object.status;
     }
     @ApiProperty()
     id: String;
@@ -30,4 +31,7 @@ export class NewsItemResponse{
     
     @ApiProperty()
     description: String;
+
+    @ApiProperty()
+    status: Number;
 }

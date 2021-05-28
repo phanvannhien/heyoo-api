@@ -25,12 +25,18 @@ export class VideosService {
     }
 
     async findAll(query: GetVideosDto): Promise<VideosEntityDocument[]> {
-        return await this.newsModel.find()
+
+        const builder = this.newsModel.find();
+            if( query.status ) builder.where({ status: query.status });
+            if( query.title ) builder.where({ title: query.title });
+
+        return await builder
             .populate('category')
             .sort({ createdAt: -1 })
-            .skip( Number( (query.page - 1)*query.limit ) )
-            .limit( Number( query.limit ) )
+            .limit( Number(query.limit) )
+            .skip( Number(query.limit * (query.page - 1)) )
             .exec();
+
     }
 
     async update(id: string, updateDto: object ): Promise<any>  {

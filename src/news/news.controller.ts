@@ -28,30 +28,19 @@ export class NewsController {
     @ApiOkResponse({ type: NewsItemResponse })
     @ApiBody({ type: CreateNewsDto })
     @ApiBearerAuth()
-    @ApiConsumes('multipart/form-data')
     @UseGuards( JwtAuthGuard )
     @Post()
-    @UseInterceptors(FileInterceptor('image'))
     async create( 
         @Req() req, 
-        @Body() body: CreateNewsDto, 
-        @UploadedFile() image)
-            : Promise<IResponse>
+        @Body() body: CreateNewsDto) : Promise<IResponse>
     {
        
-        const imageUploaded = await this.fileService.uploadPublicFile(
-            image.buffer, 
-            image.originalname
-        );
-
         const createData = { 
             ...body,
-            image: imageUploaded,
             createdBy: req.user.id,
         };
         
         const data = await this.newsService.create(createData);
-        console.log(data);
         return new ResponseSuccess(new NewsItemResponse(data));
     }
 
@@ -78,21 +67,15 @@ export class NewsController {
     @ApiOkResponse({ type: NewsItemResponse })
     @ApiBody({ type: UpdateNewsDto })
     @ApiBearerAuth()
-    @ApiConsumes('multipart/form-data')
-    @UseInterceptors(FileInterceptor('image'))
     @Put(':id')
     async update(
             @Param('id', new MongoIdValidationPipe() ) id: string,
-            @Body() body: UpdateNewsDto, @UploadedFile() image
+            @Body() body: UpdateNewsDto
         ): Promise<IResponse> {
         const find = await this.newsService.findById(id);
         if( !find ) throw new BadRequestException('News not found');
 
-        const imageUploaded = await this.fileService.uploadPublicFile(
-            image.buffer, image.originalname
-        );
-        const updateData = { ...body,  image: imageUploaded };
-        const data = await this.newsService.update( id,  updateData);
+        const data = await this.newsService.update( id,  body);
         return new ResponseSuccess(new NewsItemResponse(data));
     }
 

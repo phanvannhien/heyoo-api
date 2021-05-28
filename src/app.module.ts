@@ -25,6 +25,7 @@ import { NewsCategoriesModule } from './news-categories/news-categories.module';
 import { NewsModule } from './news/news.module';
 import { VideoCategoriesModule } from './video-categories/video-categories.module';
 import { VideosModule } from './videos/videos.module';
+import { ImageUploadModule } from './upload/upload.module';
 
 
 @Module({
@@ -37,7 +38,8 @@ import { VideosModule } from './videos/videos.module';
       useUnifiedTopology: true,
       useCreateIndex: true,
     }),
-    AuthModule, 
+    ImageUploadModule,
+    AuthModule,
     UsersModule, 
     AdminUsersModule, 
     RolesModule, 

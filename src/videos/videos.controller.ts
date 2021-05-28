@@ -25,30 +25,19 @@ export class VideosController {
     @ApiOkResponse({ type: VideosItemResponse })
     @ApiBody({ type: CreateVideosDto })
     @ApiBearerAuth()
-    @ApiConsumes('multipart/form-data')
     @UseGuards( JwtAuthGuard )
     @Post()
-    @UseInterceptors(FileInterceptor('image'))
     async create( 
         @Req() req, 
-        @Body() body: CreateVideosDto, 
-        @UploadedFile() image)
-            : Promise<IResponse>
+        @Body() body: CreateVideosDto,
+    ): Promise<IResponse>
     {
-       
-        const imageUploaded = await this.fileService.uploadPublicFile(
-            image.buffer, 
-            image.originalname
-        );
-
         const createData = { 
             ...body,
-            image: imageUploaded,
             createdBy: req.user.id,
         };
         
         const data = await this.newsService.create(createData);
-        console.log(data);
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 
@@ -75,21 +64,14 @@ export class VideosController {
     @ApiOkResponse({ type: VideosItemResponse })
     @ApiBody({ type: UpdateVideosDto })
     @ApiBearerAuth()
-    @ApiConsumes('multipart/form-data')
-    @UseInterceptors(FileInterceptor('image'))
     @Put(':id')
     async update(
             @Param('id', new MongoIdValidationPipe() ) id: string,
-            @Body() body: UpdateVideosDto, @UploadedFile() image
+            @Body() body: UpdateVideosDto
         ): Promise<IResponse> {
         const find = await this.newsService.findById(id);
         if( !find ) throw new BadRequestException('videos not found');
-
-        const imageUploaded = await this.fileService.uploadPublicFile(
-            image.buffer, image.originalname
-        );
-        const updateData = { ...body,  image: imageUploaded };
-        const data = await this.newsService.update( id,  updateData);
+        const data = await this.newsService.update( id,  body);
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 

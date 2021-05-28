@@ -12,8 +12,9 @@ export class UpdateNewsDto {
     @MinLength(5)
     title: string;
 
-    @ApiProperty({ type: 'string', format: 'binary' })
-    image: string;
+    @ApiProperty({ type: String, required: false })
+    @IsOptional()
+    image?: string;
 
     @ApiProperty({
         type: String,
@@ -28,4 +29,10 @@ export class UpdateNewsDto {
     })
     @IsNotEmpty()
     description: string;
+
+    @ApiProperty({
+        type: Number, 
+    })
+    @IsNotEmpty()
+    status: Number;
 }
