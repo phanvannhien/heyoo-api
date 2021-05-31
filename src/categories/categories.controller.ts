@@ -9,8 +9,8 @@ import { CategoriesResponse } from './responses/categories.response';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 
-@ApiTags('categories')
-@Controller('categories')
+@ApiTags('livestream-categories')
+@Controller('livestream-categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 

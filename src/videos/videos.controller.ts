@@ -12,6 +12,7 @@ import { UpdateVideosDto } from './dto/update-videos.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FilesService } from 'src/files/files.service';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
+import { VideosEntityDocument } from './entities/videos.entity';
 
 @ApiTags('videos')
 @Controller('videos')
@@ -56,8 +57,26 @@ export class VideosController {
     @ApiBearerAuth()
     @Get(':id')
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
-        const find = await this.newsService.findById(id);
+        const find: VideosEntityDocument = await this.newsService.findById(id);
         if( !find ) throw new BadRequestException('videos not found');
+        const updateView = {
+            viewCount: find.viewCount + 1
+        }
+        await this.newsService.update( id, updateView );
+        return new ResponseSuccess(new VideosItemResponse(find));
+    }
+
+    @ApiOkResponse({ type: VideosItemResponse  })
+    @ApiBearerAuth()
+    @Post(':id/share-count')
+    async postShare(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
+        const find: VideosEntityDocument = await this.newsService.findById(id);
+        if( !find ) throw new BadRequestException('News not found');
+        // update share count
+        const update = {
+            shareCount: find.shareCount + 1
+        }
+        await this.newsService.update( id, update );
         return new ResponseSuccess(new VideosItemResponse(find));
     }
 

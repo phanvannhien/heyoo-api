@@ -2,6 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { CategoriesResponse } from "src/categories/responses/categories.response";
 import { UserResponse } from "src/users/responses/user.response";
 import { VideoCategoriesResponse } from "src/video-categories/responses/video-categories.response";
+import * as moment from 'moment';
+
 
 export class VideosItemResponse{
   
@@ -11,7 +13,7 @@ export class VideosItemResponse{
         this.image = object.image;
         this.videoUrl = object.videoUrl;
         this.category = new VideoCategoriesResponse(object.category);
-        this.createdAt = object.createdAt;
+        this.createdAt = moment(object.createdAt).fromNow();
         this.excerpt = object.excerpt;
         this.description = object.description;
         this.viewCount = object.viewCount;
@@ -34,7 +36,7 @@ export class VideosItemResponse{
     category: VideoCategoriesResponse;
     
     @ApiProperty()
-    createdAt: Date;
+    createdAt: String;
     
     @ApiProperty()
     excerpt: String;

@@ -4,17 +4,17 @@ import { VideoCategoriesEntityDocument } from 'src/video-categories/entities/vid
 
 
 export interface VideosEntityDocument extends Document {
-    readonly title: string;
-    readonly image: string;
+    readonly title: String;
+    readonly image: String;
     readonly category: VideoCategoriesEntityDocument;
-    readonly description: string;
-    readonly excerpt: string;
-    readonly videoUrl: string;
+    readonly description: String;
+    readonly excerpt: String;
+    readonly videoUrl: String;
     readonly viewCount: number;
     readonly shareCount: number;
     readonly createdBy: AdminUser;
     readonly updatedBy: AdminUser;
     readonly createdAt: Date;
     readonly updatedAt: Date;
-    readonly status: number;
+    readonly status: Number;
 }

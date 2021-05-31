@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, UseIntercep
 import { LivestreamsService } from './livestreams.service';
 import { CreateLivestreamDto } from './dto/create-livestream.dto';
 import { UpdateLivestreamDto } from './dto/update-livestream.dto';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { ResponseSuccess } from 'src/common/dto/response.dto';
@@ -34,7 +34,8 @@ export class LivestreamsController {
     type: LiveStreamResponse
   })
   @ApiBody({
-      type: CreateLivestreamDto
+      type: CreateLivestreamDto,
+      description: 'Start a livestream'
   })
   @ApiConsumes('multipart/form-data')
   @Post()
@@ -61,7 +62,9 @@ export class LivestreamsController {
 
 
   @ApiBearerAuth()
-  @ApiOkResponse()
+  @ApiOkResponse({
+    description: 'End a livestream'
+  })
   @Post(':id/end')
   @UseGuards(JwtAuthGuard)
   async endLiveStream(@Param('id') id: string, @Req() request): Promise<IResponse> {
@@ -71,23 +74,28 @@ export class LivestreamsController {
 
   @Get('all')
   @ApiOkResponse({
-    type: [LiveStreamItemResponse]
+    type: [LiveStreamItemResponse],
+    description: 'Find all livestreams with pagination'
   })
   async findAllLive( @Query() query: GetLiveStreamDto ): Promise<IResponse>{
     const d = await this.livestreamsService.findAllStatus(query);
     return new ResponseSuccess( d.map( i => new LiveStreamItemResponse(i) ) );
   }
 
+
   @Get()
   @ApiOkResponse({
-    type: [LiveStreamItemResponse]
+    type: [LiveStreamItemResponse],
+    description: 'Find all livestreams'
   })
   async findAll(): Promise<IResponse>{
     const d = await this.livestreamsService.findAll();
     return new ResponseSuccess( d.map( i => new LiveStreamItemResponse(i) ) );
   }
 
-  @ApiOkResponse()
+  @ApiOkResponse({
+    description: 'Get a livestream info success'
+  })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<IResponse> {
     const d = await this.livestreamsService.findOne(id)
@@ -96,7 +104,8 @@ export class LivestreamsController {
 
 
   @ApiOkResponse({
-    type: LiveMemerResponse
+    type: LiveMemerResponse,
+    description: 'Member join to a livestream success'
   })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -114,7 +123,8 @@ export class LivestreamsController {
   }
 
   @ApiOkResponse({
-    type: LiveMemerLeaveResponse
+    type: LiveMemerLeaveResponse,
+    description: 'Leaving a livestream'
   })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -136,12 +146,17 @@ export class LivestreamsController {
   // }
 
   @Delete(':id')
+  @ApiOkResponse({
+    description: 'Deleted a livestream'
+  })
   async remove(@Param('id') liveStreamId: string): Promise<any>{
     return await this.livestreamsService.remove(liveStreamId);
   }
 
   @Delete()
-  @ApiOkResponse()
+  @ApiOkResponse({
+    description: 'Deleted all livestreams'
+  })
   async deleteAll(): Promise<any>{
     return await this.livestreamsService.removeAll();
   }

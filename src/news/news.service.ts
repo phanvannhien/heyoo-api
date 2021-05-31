@@ -18,7 +18,7 @@ export class NewsService {
         return await doc.populate('category').execPopulate();
     }
 
-    async findById( id: string ): Promise<any> {
+    async findById( id: string ): Promise<NewsEntityDocument> {
         return await this.newsModel.findById(id)
             .populate('category')
             .exec();

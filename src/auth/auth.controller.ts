@@ -37,6 +37,7 @@ import { UserProfileResponse } from './responses/profile.response';
 import { UpdateAvatarDto } from 'src/users/dto/update-avatar.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { LoginSocialDto } from './dto/login-social.dto';
 
 const clientTwilio = require('twilio')( TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN);
 
@@ -62,6 +63,33 @@ export class AuthController{
             user: user
         }));
     }
+
+    @ApiOkResponse({
+        type: AuthResponse,
+    })
+    @Post('social')
+    async socialLogin(@Request() req, @Body() body: LoginSocialDto ) {
+        try{
+            
+            const socialUser = this.parseJwt( body.access_token ) ;
+            let user = null;
+            if( body.provider == 'facebook' ){
+                user = await this.userService.findOrCreateFacebookId( socialUser );
+            }else if( body.provider == 'google' ){
+                user = await this.userService.findOrCreateGoogleId( socialUser );
+            }else if( body.provider == 'apple' ){
+                user = await this.userService.findOrCreateAppleId( socialUser );
+            }
+            
+            return new ResponseSuccess( new AuthResponse({
+                accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
+                user: user
+            }));
+        }catch(err){
+            throw new BadRequestException( err )
+        }
+    }
+
 
     @ApiOkResponse({
         type: AuthResponse,

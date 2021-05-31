@@ -14,6 +14,7 @@ import { FilesService } from 'src/files/files.service';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { CategoriesService } from 'src/categories/categories.service';
 import { NewsCategoriesService } from 'src/news-categories/news-categories.service';
+import { NewsEntityDocument } from './entities/news.entity';
 
 
 @ApiTags('news')
@@ -59,8 +60,29 @@ export class NewsController {
     @ApiBearerAuth()
     @Get(':id')
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
-        const find = await this.newsService.findById(id);
+        const find: NewsEntityDocument = await this.newsService.findById(id);
         if( !find ) throw new BadRequestException('News not found');
+        // update count view
+        const updateView = {
+            viewCount: find.viewCount + 1
+        }
+        await this.newsService.update( id, updateView );
+    
+        return new ResponseSuccess(new NewsItemResponse(find));
+    }
+
+
+    @ApiOkResponse({ type: NewsItemResponse  })
+    @ApiBearerAuth()
+    @Post(':id/share-count')
+    async postShare(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
+        const find: NewsEntityDocument = await this.newsService.findById(id);
+        if( !find ) throw new BadRequestException('News not found');
+        // update share count
+        const update = {
+            shareCount: find.shareCount + 1
+        }
+        await this.newsService.update( id, update );
         return new ResponseSuccess(new NewsItemResponse(find));
     }
 
@@ -74,7 +96,7 @@ export class NewsController {
         ): Promise<IResponse> {
         const find = await this.newsService.findById(id);
         if( !find ) throw new BadRequestException('News not found');
-
+        delete body['createdAt'];
         const data = await this.newsService.update( id,  body);
         return new ResponseSuccess(new NewsItemResponse(data));
     }

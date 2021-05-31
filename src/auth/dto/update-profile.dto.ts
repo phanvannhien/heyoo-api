@@ -17,7 +17,7 @@ export class UpdateProfileDto{
     gender: number;
 
     @ApiProperty({
-        type: Date()
+        type: Date
     })
     dob: string;
 

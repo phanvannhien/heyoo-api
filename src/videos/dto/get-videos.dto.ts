@@ -8,18 +8,18 @@ export class GetVideosDto{
         default: 1
     })
     @IsNotEmpty()
-    page: number;
+    page: Number;
 
     @ApiProperty({
         type: Number,
         default: 20
     })
     @IsNotEmpty()
-    limit: number;
+    limit: Number;
 
     @ApiProperty({ enum: [0,1], default: 1, required: false })
     @IsOptional()
-    status?: number;
+    status?: Number;
 
     @ApiProperty({ type: String, required: false })
     @IsOptional()

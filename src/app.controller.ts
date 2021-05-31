@@ -22,7 +22,28 @@ export class AppController {
 
   @Get('countries')
   getCountries(){
-    return countries;
+   
+    let data = [];
+    Object.keys(countries).forEach( o => {
+      data[countries[o]] = {
+        name: countries[o]['name'],
+        phone: countries[o]['phone'],
+      }
+      // data.push()
+    });
+    return data;
+  }
+
+  @Get('v2/countries')
+  getCountriesV2(){
+    let data = [];
+    Object.keys(countries).forEach( o => {
+      data.push({
+        name: countries[o]['name'],
+        phone: countries[o]['phone'],
+      })
+    });
+    return data;
   }
 
   @Get('languages')
