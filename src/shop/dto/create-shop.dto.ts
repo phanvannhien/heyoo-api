@@ -1,0 +1,49 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsUrl, Validate } from "class-validator";
+
+export class CreateShopDto { 
+    @ApiProperty()
+    @IsNotEmpty()
+    shopName: string;
+
+    @ApiProperty({ 
+        type: String,
+        default: 'https://picsum.photos/800/400'
+    })
+    @IsNotEmpty()
+    @IsUrl()
+    image: string;
+    
+    @ApiProperty({ type: String })
+    @IsNotEmpty()
+    @IsPhoneNumber('ZZ')
+    phone: string;
+
+    @ApiProperty({ type: String })
+    @IsNotEmpty()
+    email: string;
+
+    @ApiProperty({ type: String })
+    @IsOptional()
+    location: string;
+
+    @ApiProperty({
+        type: String,
+    })
+    description: string;
+
+    @ApiProperty({
+        type: Number,
+        default: 1
+    })
+    @IsNotEmpty()
+    status: Number;
+
+    @ApiProperty({
+        type: String,
+        default: '60a4cb1bb76a9f089c8d281d'
+    })
+    @IsNotEmpty()
+    @IsMongoId()
+    category: string;
+}

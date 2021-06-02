@@ -26,6 +26,8 @@ import { NewsModule } from './news/news.module';
 import { VideoCategoriesModule } from './video-categories/video-categories.module';
 import { VideosModule } from './videos/videos.module';
 import { ImageUploadModule } from './upload/upload.module';
+import { ShopCategoriesModule } from './shop-categories/shop-categories.module';
+import { ShopModule } from './shop/shop.module';
 
 
 @Module({
@@ -56,7 +58,9 @@ import { ImageUploadModule } from './upload/upload.module';
     NewsCategoriesModule,
     NewsModule,
     VideoCategoriesModule,
-    VideosModule
+    VideosModule,
+    ShopCategoriesModule,
+    ShopModule
   ],
   controllers: [AppController],
   providers: [

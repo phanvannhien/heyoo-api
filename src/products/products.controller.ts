@@ -1,5 +1,5 @@
 import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { ProductItemResponse } from './responses/product.response';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -28,6 +28,7 @@ export class ProductsController {
     @ApiBody({
         type: CreateProductDto
     })
+    @ApiBearerAuth()
     @ApiConsumes('multipart/form-data')
     @Post()
     @UseInterceptors(FileInterceptor('image'))

@@ -1,12 +1,13 @@
 import { Controller, Post, Req, Res, UseGuards, UseInterceptors, UploadedFile, Get } from '@nestjs/common';
 import { ImageUploadService } from './upload.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { ApiOkResponse, ApiTags, ApiConsumes } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {Promise} from "bluebird";
 import * as AWS from 'aws-sdk';
 const AWS_S3_BUCKET_NAME = process.env.AWS_PUBLIC_BUCKET_NAME;
 import { v4 as uuid } from 'uuid';
+import { UploadFileDto } from './dto/upload.dto';
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -18,10 +19,16 @@ const s3 = new AWS.S3({
 
 
 @ApiTags('fileupload')
+@ApiConsumes('multipart/form-data')
 @Controller('fileupload')
 export class ImageUploadController {
     constructor(private readonly imageUploadService: ImageUploadService) {}
 
+    @ApiBody({
+        type: UploadFileDto
+    })
+    @ApiBearerAuth()
+    @ApiConsumes('multipart/form-data')
     @Post()
     @UseGuards( JwtAuthGuard )
     async create(@Req() request, @Res() response) {
@@ -34,7 +41,7 @@ export class ImageUploadController {
         }
     }
 
-    @ApiConsumes('multipart/form-data')
+    
     @Post('video')
     @UseInterceptors(FileInterceptor('file'))
     async uploadVideo( @UploadedFile() file, @Res() response ): Promise<object> {

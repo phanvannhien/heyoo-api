@@ -25,7 +25,6 @@ async function bootstrap() {
   });
 
   app.enableCors();
-
   const documentSwagger = SwaggerModule.createDocument(app, configSwagger);
 
   SwaggerModule.setup('api', app, documentSwagger);
@@ -37,7 +36,6 @@ async function bootstrap() {
   );
   app.listen( PORT , () => {
     console.log("Application is running at port:" + PORT )
-    console.log( MONGO_URI )
   });
 }
 
