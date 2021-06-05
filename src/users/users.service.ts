@@ -51,6 +51,7 @@ export class UsersService {
         return await this.userModel.findById(id).exec()
     }
 
+
     async findOrCreateFacebookId( socialProfile: any ) : Promise<User>{
 
         const user = await this.userModel.findOne({ 'facebook.id': socialProfile.id }).exec();
@@ -64,9 +65,7 @@ export class UsersService {
                 id: socialProfile.id,
             }
         });
-    
         return await createUser.save();
-        
     } 
 
     async findOrCreateGoogleId( socialProfile: any ) : Promise<User>{

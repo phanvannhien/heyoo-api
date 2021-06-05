@@ -13,11 +13,16 @@ import { OtpSchema } from './schemas/otp.schema';
 import { OtpResponse } from './responses/otp.response';
 import { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_PHONE } from "src/app.constants";
 const clientTwilio = require('twilio')( TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN);
+import { SmsService } from './sms.service';
+import { PublishInput } from 'aws-sdk/clients/sns';
 
 @ApiTags('otps')
 @Controller('otps')
 export class OtpsController {
-  constructor(private readonly otpsService: OtpsService) {}
+  constructor(
+      private readonly otpsService: OtpsService,
+      private readonly smsService: SmsService
+    ) {}
 
   @ApiOkResponse({
     type: OtpResponse
@@ -28,15 +33,22 @@ export class OtpsController {
     const OtpNumber = randomOTP();
 
     try{        
-      const message = await clientTwilio.messages
-          .create({
-              body: OtpNumber,
-              from: TWILIO_FROM_PHONE,
-              to: createOptDto.phone
-          })
-      .then( message => message );
+      // const message = await clientTwilio.messages
+      //     .create({
+      //         body: OtpNumber,
+      //         from: TWILIO_FROM_PHONE,
+      //         to: createOptDto.phone
+      //     })
+      // .then( message => message );
+
+      const params: PublishInput = {
+        PhoneNumber: createOptDto.phone,
+        Message: OtpNumber.toString(),
+        // Subject: 'Heyoo Otp'
+      }
+      const message =  await this.smsService.sendSMS(params);
           
-      createOptDto.otpCode = OtpNumber;
+      createOptDto.otpCode = String(OtpNumber);
       createOptDto.expriredAt = new Date( new Date().getTime() + OPT_MINUTES_EXPIRED *60000);
       createOptDto.nextRequestMinutes = 1;
       const otp = await this.otpsService.create(createOptDto);

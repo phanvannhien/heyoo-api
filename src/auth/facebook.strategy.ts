@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { UsersService } from "src/users/users.service";
 import * as FacebookTokenStrategy from 'passport-facebook-token';
 import { use } from 'passport';
@@ -24,7 +24,9 @@ export class FacebookStrategy {
           refreshToken: string,
           profile: any,
           done: any,
+
         ) => {
+          if(!profile){  throw new BadRequestException('Fao;;;') }
           return done(null, profile);
         },
       ),

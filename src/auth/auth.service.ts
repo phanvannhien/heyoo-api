@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotAcceptableException, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotAcceptableException, HttpException, HttpStatus, BadRequestException, HttpService } from '@nestjs/common';
 import { UsersService } from "../users/users.service";
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dto/create.user.dto';
@@ -11,8 +11,28 @@ import { RegisterDto } from './dto/register.dto';
 export class AuthService {
     constructor( 
         private userService: UsersService , 
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private httpService: HttpService
     ){}
+
+    async verifyGoolgeTokenId( access_token ){
+        try{
+            const check = await this.httpService.get('https://oauth2.googleapis.com/tokeninfo', {
+                params:{
+                    id_token: access_token
+                }
+            }).toPromise();
+
+            if( check.data.aud != process.env.GOOGLE_CLIENT_ID ){
+                throw new BadRequestException('Google app is not valid')
+            }
+
+            return check;
+
+        }catch{
+            throw new BadRequestException('Can not verify token')
+        }
+    }
 
     getJWTPayload(user){
         return { phone: user.phone, sub: user._id };
@@ -39,7 +59,7 @@ export class AuthService {
         if( findUser ){
             throw new BadRequestException("User "+registerDto.phone+" already exists");
         }
-        registerDto.isVerified = true;
+        registerDto.isVerified = false;
         return await this.userService.createUser( registerDto );
 
     }

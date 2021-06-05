@@ -20,7 +20,7 @@ export class OtpsService {
   async findByPhoneAndOtpCode( verifyOtpDto: VerifyOtpDto ): Promise<OtpEntityDocument>{
     return await this.otpModel.findOne({
       phone: verifyOtpDto.phone,
-      otpCode: verifyOtpDto.otpCode,
+      otpCode: String(verifyOtpDto.otpCode),
       expriredAt: { $gte: new Date() }
     }).exec()
   }
@@ -30,7 +30,7 @@ export class OtpsService {
   }
 
   async update(id: number, updateOptDto: UpdateOtpDto): Promise<OtpEntityDocument> {
-      return await this.otpModel.findByIdAndUpdate( id,  );
+      return await this.otpModel.findByIdAndUpdate( id, updateOptDto );
   }
 
   async remove(id: number): Promise<any> {

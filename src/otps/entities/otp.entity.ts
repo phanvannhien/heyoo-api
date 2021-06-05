@@ -2,7 +2,7 @@ import { Document } from 'mongoose';
 
 export interface OtpEntityDocument extends Document {
     phone: String,
-    otpCode: Number,
+    otpCode: String,
     otpType: String,
     createdAt: Date,
     expriredAt: Date,

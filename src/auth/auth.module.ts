@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 // modules
 import { UsersModule } from "../users/users.module";
 import { JwtModule } from '@nestjs/jwt';
@@ -27,6 +27,11 @@ import { GoogleVerifyTokenStrategy } from './strategies/google.strategy';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60s' },
     }),
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 5,
+    }),
+    
   ],
   controllers: [AuthController],
   providers: [

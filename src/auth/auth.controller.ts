@@ -10,7 +10,8 @@ import { Controller, Get, UseGuards, Post, Request, Res, Body,
     BadRequestException,
     Req,
     Param,
-    UploadedFile
+    UploadedFile,
+    HttpService
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -47,7 +48,8 @@ export class AuthController{
     constructor(
         private authService: AuthService,
         private userService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private httpService: HttpService
     ) {}
     
 
@@ -71,8 +73,46 @@ export class AuthController{
     async socialLogin(@Request() req, @Body() body: LoginSocialDto ) {
         try{
             
-            const socialUser = this.parseJwt( body.access_token ) ;
+            let socialUser = null;
             let user = null;
+
+            if( body.provider == 'facebook' ){
+                const check = await this.httpService.get('https://graph.facebook.com/debug_token', {
+                    params:{
+                        input_token: body.access_token,
+                        access_token: body.access_token,
+                    }
+                }).toPromise();
+     
+                if(check.data.data.app_id != process.env.FACEBOOK_APP_ID ){
+                    throw new BadRequestException('App is not valid');
+                }
+
+                const fbProfile = await this.httpService.get('https://graph.facebook.com/v2.6/me' , {
+                    params:{
+                        fields: 'id,email,name,picture',
+                        access_token: body.access_token
+                    }
+                }).toPromise();
+
+                
+                if(fbProfile){
+                    socialUser = {
+                        displayName: fbProfile.data.name,
+                        emails: [{
+                            value: fbProfile.data.email
+                        }],
+                        photos: [{
+                            value: fbProfile.data.picture.data.url
+                        }],
+                        id: fbProfile.data.id
+                    };
+                }
+
+            }else{
+                socialUser = this.parseJwt( body.access_token ) ;
+            }      
+              
             if( body.provider == 'facebook' ){
                 user = await this.userService.findOrCreateFacebookId( socialUser );
             }else if( body.provider == 'google' ){
@@ -98,6 +138,7 @@ export class AuthController{
     @Post('login-facebook')
     async getTokenAfterFacebookSignIn(@Request() req, @Body() loginFacebookDto: LoginFacebookDto ) {
         try{
+            if( !req.user ) throw new BadRequestException('Token is invalid');
             const socialUser = req.user;
            
             const user = await this.userService.findOrCreateFacebookId( socialUser );

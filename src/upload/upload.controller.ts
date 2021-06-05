@@ -32,6 +32,7 @@ export class ImageUploadController {
     @Post()
     @UseGuards( JwtAuthGuard )
     async create(@Req() request, @Res() response) {
+       
         try {
             await this.imageUploadService.fileupload(request, response);
         } catch (error) {
