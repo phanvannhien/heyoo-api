@@ -3,7 +3,6 @@ import { IsNotEmpty, IsNumber, IsIn, IsMongoId, Min } from "class-validator";
 
 export class CreateOrderDto {
 
-    
     @ApiProperty()
     @IsNotEmpty()
     @IsMongoId()

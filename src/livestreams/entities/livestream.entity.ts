@@ -18,4 +18,5 @@ export interface LiveStreamEntityDocument extends Document {
     streamerUid: number;
     readonly streamer: UserEntity ;
     readonly categories: Array<any>;
+    readonly viewCount: number;
 }

@@ -89,8 +89,9 @@ export class LivestreamsService {
     return await live.save();
   }
 
-  update(id: number, updateLivestreamDto: UpdateLivestreamDto) {
-    return `This action updates a #${id} livestream`;
+  async update(id: string, updateLivestreamDto: object): Promise<LiveStreamEntityDocument> {
+    return await this.liveStreamModel.findByIdAndUpdate(id, updateLivestreamDto);
+    
   }
 
   async remove(id: string): Promise<any> {

@@ -18,6 +18,12 @@ export class CreateNewsDto {
     @IsNotEmpty()
     @IsMongoId()
     category: string;
+
+    @ApiProperty({
+        type: String, 
+    })
+    @IsNotEmpty()
+    excerpt: string;
     
     @ApiProperty({
         type: String, 

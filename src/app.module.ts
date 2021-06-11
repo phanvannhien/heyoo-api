@@ -28,6 +28,7 @@ import { VideosModule } from './videos/videos.module';
 import { ImageUploadModule } from './upload/upload.module';
 import { ShopCategoriesModule } from './shop-categories/shop-categories.module';
 import { ShopModule } from './shop/shop.module';
+import { IdolController } from './idol.controller';
 
 
 @Module({
@@ -62,7 +63,10 @@ import { ShopModule } from './shop/shop.module';
     ShopCategoriesModule,
     ShopModule
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    IdolController
+  ],
   providers: [
     AppService,
   ],

@@ -13,6 +13,7 @@ export class NewsItemResponse{
         this.image = object.image;
         this.category = new NewsCategoriesResponse(object.category);
         this.createdAt = moment(object.createdAt).fromNow();
+        this.excerpt = object.excerpt;
         this.description = object.description;
         this.status = object.status;
         this.viewCount = object.viewCount;
@@ -34,6 +35,9 @@ export class NewsItemResponse{
     @ApiProperty()
     createdAt: String;
     
+    @ApiProperty()
+    excerpt: String;
+
     @ApiProperty()
     description: String;
 

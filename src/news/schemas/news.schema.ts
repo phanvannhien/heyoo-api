@@ -19,6 +19,7 @@ export const NewsSchema = new mongoose.Schema({
     },
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() },
+    excerpt: String,
     description: String,
     status: { type: Number, default: 0 }
 }, {

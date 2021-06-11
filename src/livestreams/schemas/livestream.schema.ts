@@ -30,6 +30,7 @@ export const LiveStreamSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    viewCount: { type: Number, default: 0 },
     streamerUid: Number
 });
 

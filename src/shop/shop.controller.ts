@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards, UploadedFiles, Res, Delete } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards, UploadedFiles, Res, Delete, HttpStatus, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ShopService } from './shop.service';
 import { ShopItemResponse } from './responses/shop.response';
@@ -46,8 +46,9 @@ export class ShopController {
 
     @Get()
     @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
     @ApiOkResponse({
-        type: ShopsResponse
+        type: [ShopsResponse]
     })
     async find( @Query() query: GetShopDto ): Promise<IResponse>{
         const d = await this.shopService.findAll(query);

@@ -13,6 +13,7 @@ import { FollowEntityDocument } from './interfaces/follow.entity';
 import { GetFollowerDto } from './dto/getfollower.dto';
 import { GetFollowingDto } from './dto/getfollowing.dto';
 import * as mongoose from 'mongoose';
+import { SearchIdoDto } from './dto/search-ido.dto';
 
 @Injectable()
 export class UsersService {
@@ -241,10 +242,104 @@ export class UsersService {
             ])
         
         .exec()
-
-
-
         // return await this.userModel.findById(id).exec()
+    }
+
+    async searchByName(query: SearchIdoDto ) : Promise<User[]>{
+       
+        return await this.userModel
+        .aggregate([
+            
+            // way 1
+            // {
+            //     $match: {
+            //         fullname: { $regex: new RegExp(keyword) }
+            //     }
+            // }, 
+            // {
+            //     $lookup: {
+            //         from: 'livestreams',
+            //         let: { user_id: '$_id' },
+            //         pipeline: [
+            //             {
+            //                 $match: 
+            //                     { 
+            //                         $expr: {
+            //                             $eq: ['$streamer', '$$user_id']
+            //                         }
+            //                     }
+            //                 },
+            //             {
+            //                 $project: {
+            //                     _id: 1,
+            //                     isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+            //                 }
+            //             },
+            //             { $group: { _id: '$isLiveNow' } },
+            //             { $sort: { _id: -1 } },
+            //             { $limit: 1 }
+            //         ],
+            //         as: 'livestream'
+            //     }
+            // }, 
+            // {
+            //     $unwind: {
+            //         path: '$livestream',
+            //         preserveNullAndEmptyArrays: true
+            //     }
+            // }, 
+            // {
+            //     $project: {
+            //         fullname: 1,
+            //         isLiveNow: {$cond: [{$not: ['$livestream']}, false, '$livestream._id'] }
+            //     }
+            // },
+
+            {
+                $match: {
+                    fullname: { $regex: new RegExp(query.keyword) }
+                }
+            }, 
+            {
+                $lookup: {
+                    from: 'livestreams',
+                    let: { user_id: '$_id' },
+                    pipeline: [
+                        {
+                            $match: 
+                                { 
+                                    $expr: {
+                                        $eq: ['$streamer', '$$user_id']
+                                    }
+                                }
+                            },
+                        {
+                            $project: {
+                                _id: 1,
+                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+                            }
+                        },
+                        { $group: { _id: '$isLiveNow' } },
+                        { $sort: { _id: -1 } },
+                        { $limit: 1 }
+                    ],
+                    as: 'livestream'
+                }
+            }, 
+            {
+               $addFields: {
+                   isLiveStreamNow: { 
+                        $cond: {
+                            if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                        }
+                   }
+               }
+            },
+
+            { $limit: Number(query.limit) },
+            { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+
+        ]).exec()
     }
 
 }

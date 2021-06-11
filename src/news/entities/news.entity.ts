@@ -7,6 +7,7 @@ export interface NewsEntityDocument extends Document {
     readonly title: string;
     readonly image: string;
     readonly category: NewsCategoriesEntityDocument;
+    readonly excerpt: string;
     readonly description: string;
     readonly viewCount: number;
     readonly shareCount: number;

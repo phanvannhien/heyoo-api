@@ -98,7 +98,14 @@ export class LivestreamsController {
   })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<IResponse> {
-    const d = await this.livestreamsService.findOne(id)
+    const d = await this.livestreamsService.findOne(id);
+    if( !d ) throw new BadRequestException('Not found');
+    // update count view
+    const updateView = {
+      viewCount: d.viewCount + 1
+    }
+    await this.livestreamsService.update( id, updateView );
+
     return new ResponseSuccess( new LiveStreamItemResponse( d ) ) ;
   }
 
