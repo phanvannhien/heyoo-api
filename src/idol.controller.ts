@@ -6,12 +6,15 @@ import { Controller, Get, UseGuards, Post, Request, Res, Body,
   UseInterceptors,
   SerializeOptions
 } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { QueryPaginateDto } from './common/dto/paginate.dto';
 import { ResponseSuccess } from './common/dto/response.dto';
 import { IResponse } from './common/interfaces/response.interface';
 import { SearchIdoDto } from './users/dto/search-ido.dto';
 import { SearchIdosResponse } from './users/responses/search-idos.response';
 import { UserResponse } from './users/responses/user.response';
+import { UsersProfileResponse } from './users/responses/users-profile.response';
 import { UsersResponse } from './users/responses/users.response';
 import { UsersService } from './users/users.service';
 
@@ -30,6 +33,28 @@ export class IdolController {
   async search( @Query() query: SearchIdoDto ): Promise<IResponse>{
     const data = await this.userService.searchByName(query);
     return new ResponseSuccess(new SearchIdosResponse(data));
+  }
+
+  @Get('top-streamers')
+  @ApiOkResponse({
+    type: UsersProfileResponse,
+    description: 'Return array UsersProfileResponse'
+  })
+  async getTopStreamers( @Query() query: QueryPaginateDto ): Promise<IResponse>{
+    const data = await this.userService.getTopStreamers(query);
+    return new ResponseSuccess(new UsersProfileResponse(data));
+  }
+
+  @ApiBearerAuth()
+  @UseGuards( JwtAuthGuard )
+  @Get('is-following')
+  @ApiOkResponse({
+    type: UsersProfileResponse,
+    description: 'Return array UsersProfileResponse'
+  })
+  async getIsFollowing( @Request() req, @Query() query: QueryPaginateDto ): Promise<IResponse>{
+    const data = await this.userService.getIsFollowing(req.user.id, query);
+    return new ResponseSuccess(new UsersProfileResponse(data));
   }
 
 }

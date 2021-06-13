@@ -18,6 +18,7 @@ export class UserProfileResponse{
         this.address = object.address || '';
         this.follower = object.follower || 0;
         this.following = object.following || 0;
+        this.isLiveStreamNow = object.isLiveStreamNow ?? false;
     }
     @ApiProperty()
     readonly id: string;
@@ -64,4 +65,8 @@ export class UserProfileResponse{
 
     @ApiProperty()
     readonly following: number;
+
+    @ApiProperty()
+    readonly isLiveStreamNow: boolean;
+    
 }

@@ -12,4 +12,13 @@ export class AppService {
     return 'Hello World!';
   }
 
+  // decode data facebook
+  base64decode(data) {
+    while (data.length % 4 !== 0){
+      data += '=';
+    }
+    data = data.replace(/-/g, '+').replace(/_/g, '/');
+    return new Buffer(data, 'base64').toString('utf-8');
+  }
+
 }

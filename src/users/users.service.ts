@@ -14,6 +14,7 @@ import { GetFollowerDto } from './dto/getfollower.dto';
 import { GetFollowingDto } from './dto/getfollowing.dto';
 import * as mongoose from 'mongoose';
 import { SearchIdoDto } from './dto/search-ido.dto';
+import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 
 @Injectable()
 export class UsersService {
@@ -236,7 +237,11 @@ export class UsersService {
                         following: { $size: '$following' }
                     }
                 },
-               
+
+                {
+                    $sort: { follower: -1 }
+                },
+
                 { $limit: 1 }
 
             ])
@@ -249,7 +254,6 @@ export class UsersService {
        
         return await this.userModel
         .aggregate([
-            
             // way 1
             // {
             //     $match: {
@@ -325,16 +329,38 @@ export class UsersService {
                     ],
                     as: 'livestream'
                 }
-            }, 
+            },
+
+            {
+                $lookup: {
+                    from: "follows",
+                    localField: "_id",
+                    foreignField: "follow",
+                    as: "follower"
+                }
+            },
+           
+            {
+                $lookup: {
+                    from: "follows",
+                    localField: "_id",
+                    foreignField: "user",
+                    as: "following"
+                }
+            },
             {
                $addFields: {
-                   isLiveStreamNow: { 
-                        $cond: {
-                            if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
-                        }
-                   }
+                    isLiveStreamNow: { 
+                            $cond: {
+                                if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                            }
+                    },
+                    follower: { $size: '$follower' },
+                    following: { $size: '$following' }
                }
+               
             },
+            
 
             { $limit: Number(query.limit) },
             { $skip:  Number(query.limit) * (Number(query.page) - 1) }
@@ -342,4 +368,152 @@ export class UsersService {
         ]).exec()
     }
 
+    async getTopStreamers( query: QueryPaginateDto ){
+        return await this.userModel
+        .aggregate([
+            {
+                $lookup: {
+                    from: 'livestreams',
+                    let: { user_id: '$_id' },
+                    pipeline: [
+                        {
+                            $match: 
+                                { 
+                                    $expr: {
+                                        $eq: ['$streamer', '$$user_id']
+                                    }
+                                }
+                            },
+                        {
+                            $project: {
+                                _id: 1,
+                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+                            }
+                        },
+                        { $group: { _id: '$isLiveNow' } },
+                        { $sort: { _id: -1 } },
+                        { $limit: 1 }
+                    ],
+                    as: 'livestream'
+                }
+            },
+
+            {
+                $lookup: {
+                    from: "follows",
+                    localField: "_id",
+                    foreignField: "follow",
+                    as: "follower"
+                }
+            },
+           
+            {
+                $lookup: {
+                    from: "follows",
+                    localField: "_id",
+                    foreignField: "user",
+                    as: "following"
+                }
+            },
+            {
+               $addFields: {
+                    isLiveStreamNow: { 
+                        $cond: {
+                            if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                        }
+                    },
+                    follower: { $size: '$follower' },
+                    following: { $size: '$following' }
+               }
+               
+            },
+            
+            { $limit: Number(query.limit) },
+            { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+
+        ]).exec()
+    }
+
+
+    async getIsFollowing(  userId, query: QueryPaginateDto  ){
+        const allUserIsFollowingIds = await this.getAllFollowingOfUser( userId );
+       
+        const arrIds = allUserIsFollowingIds.map( i => i.follow );
+
+        return await this.userModel
+        .aggregate([
+            
+            { "$match" : { "_id": { "$in": arrIds } } },
+            {
+                
+                $lookup: {
+                    from: 'livestreams',
+                    let: { user_id: '$_id' },
+                    pipeline: [
+                        {
+                            $match: 
+                                { 
+                                    $expr: {
+                                        $eq: ['$streamer', '$$user_id']
+                                    }
+                                }
+                            },
+                        {
+                            $project: {
+                                _id: 1,
+                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+                            }
+                        },
+                        { $group: { _id: '$isLiveNow' } },
+                        { $sort: { _id: -1 } },
+                        { $limit: 1 }
+                    ],
+                    as: 'livestream'
+                }
+            },
+
+            {
+                $lookup: {
+                    from: "follows",
+                    localField: "_id",
+                    foreignField: "follow",
+                    as: "follower"
+                }
+            },
+           
+            {
+                $lookup: {
+                    from: "follows",
+                    localField: "_id",
+                    foreignField: "user",
+                    as: "following"
+                }
+            },
+            {
+               $addFields: {
+                    isLiveStreamNow: { 
+                        $cond: {
+                            if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                        }
+                    },
+                    follower: { $size: '$follower' },
+                    following: { $size: '$following' }
+               }
+               
+            },
+            
+            { $limit: Number(query.limit) },
+            { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+
+        ]).exec()
+    }
+
+    async getAllFollowingOfUser(userId): Promise<any>{
+        return await this.followModel.find({
+            user: userId
+        }).select({
+            follow: 1, _id: 0
+        })
+        .exec()
+    }
 }
