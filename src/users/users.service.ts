@@ -201,6 +201,65 @@ export class UsersService {
                 },
                 {
                     $lookup: {
+                        from: 'livestreams',
+                        let: { user_id: '$_id' },
+                        pipeline: [
+                            {
+                                $match:{ 
+                                    $expr: {
+                                        $eq: ['$streamer', '$$user_id'],
+                                    }
+                                }
+                            },
+                            {
+                                $project: {
+                                    _id: 1,
+                                    isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] },
+                                    categories: 1,
+                                    startLiveAt: 1,
+                                    viewCount: 1,
+                                    channelName: 1,
+                                    coverPicture: 1,
+                                    streamer: 1,
+                                    channelTitle: 1,
+                                    streamerUid: 1,
+                                    endLiveAt: 1,
+                                }
+                            },
+                            // { $group: { _id: '$isLiveNow' } },
+                            // { $sort: { _id: -1 } },
+                            {
+                                $lookup: {
+                                    from: "users",
+                                    localField: "streamer",
+                                    foreignField: "_id",
+                                    as: "streamer"
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "categories",
+                                    localField: "categories",
+                                    foreignField: "_id",
+                                    as: "categories"
+                                }
+                            },
+                            {
+                                $unwind: {  path: "$streamer" }
+                            },
+    
+                            { $limit: 1 }
+                        ],
+                        as: 'livestreams'
+                    }
+                },
+
+                {
+                    $unwind: {  path: "$livestreams" }
+                },
+
+                {
+                    $lookup: {
                         from: "follows",
                         localField: "_id",
                         foreignField: "follow",
@@ -216,30 +275,19 @@ export class UsersService {
                         as: "following"
                     }
                 },
+               
                 {
-                    $project: {
-                        _id: 1,
-                        phone: 1,
-                        dob: 1,
-                        email: 1,
-                        gender: 1,
-                        isVerified: 1,
-                        fullname: 1,
-                        password: 1,
-                        bio: 1,
-                        address: 1,
-                        country: 1,
-                        avatar: 1,
-                        facebook: 1,
-                        google: 1,
-                        apple: 1,
+                   $addFields: {
+                        isLiveStreamNow: { 
+                            $cond: {
+                                if: "$livestreams.isLiveNow" , then: true , else: false 
+                            }
+                        },
+                        livestream: { $cond: { if: "$livestreams.isLiveNow" , then: "$livestreams" , else: null  } },
                         follower: { $size: '$follower' },
                         following: { $size: '$following' }
-                    }
-                },
-
-                {
-                    $sort: { follower: -1 }
+                   }
+                   
                 },
 
                 { $limit: 1 }
@@ -327,7 +375,7 @@ export class UsersService {
                         { $sort: { _id: -1 } },
                         { $limit: 1 }
                     ],
-                    as: 'livestream'
+                    as: 'livestreams'
                 }
             },
 
@@ -352,7 +400,7 @@ export class UsersService {
                $addFields: {
                     isLiveStreamNow: { 
                             $cond: {
-                                if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                                if: {$gt: [{$size: "$livestreams"}, 0 ]} , then: true, else: false 
                             }
                     },
                     follower: { $size: '$follower' },
@@ -377,25 +425,57 @@ export class UsersService {
                     let: { user_id: '$_id' },
                     pipeline: [
                         {
-                            $match: 
-                                { 
-                                    $expr: {
-                                        $eq: ['$streamer', '$$user_id']
-                                    }
+                            $match:{ 
+                                $expr: {
+                                    $eq: ['$streamer', '$$user_id'],
                                 }
-                            },
+                            }
+                        },
                         {
                             $project: {
                                 _id: 1,
-                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] },
+                                categories: 1,
+                                startLiveAt: 1,
+                                viewCount: 1,
+                                channelName: 1,
+                                coverPicture: 1,
+                                streamer: 1,
+                                channelTitle: 1,
+                                streamerUid: 1,
+                                endLiveAt: 1,
                             }
                         },
-                        { $group: { _id: '$isLiveNow' } },
-                        { $sort: { _id: -1 } },
+                        // { $group: { _id: '$isLiveNow' } },
+                        // { $sort: { _id: -1 } },
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "streamer",
+                                foreignField: "_id",
+                                as: "streamer"
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "categories",
+                                localField: "categories",
+                                foreignField: "_id",
+                                as: "categories"
+                            }
+                        },
+                        {
+                            $unwind: {  path: "$streamer" }
+                        },
+
                         { $limit: 1 }
                     ],
-                    as: 'livestream'
+                    as: 'livestreams'
                 }
+            },
+
+            {
+                $unwind: {  path: "$livestreams" }
             },
 
             {
@@ -415,25 +495,25 @@ export class UsersService {
                     as: "following"
                 }
             },
+
             {
                $addFields: {
                     isLiveStreamNow: { 
                         $cond: {
-                            if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                            if:  "$livestreams.isLiveNow" , then: true, else: false 
                         }
                     },
+                    livestream: { $cond: { if: "$livestreams.isLiveNow" , then: "$livestreams" , else: null  } },
                     follower: { $size: '$follower' },
                     following: { $size: '$following' }
                }
-               
             },
-            
+
             { $limit: Number(query.limit) },
             { $skip:  Number(query.limit) * (Number(query.page) - 1) }
 
         ]).exec()
     }
-
 
     async getIsFollowing(  userId, query: QueryPaginateDto  ){
         const allUserIsFollowingIds = await this.getAllFollowingOfUser( userId );
@@ -468,7 +548,7 @@ export class UsersService {
                         { $sort: { _id: -1 } },
                         { $limit: 1 }
                     ],
-                    as: 'livestream'
+                    as: 'livestreams'
                 }
             },
 
@@ -493,7 +573,7 @@ export class UsersService {
                $addFields: {
                     isLiveStreamNow: { 
                         $cond: {
-                            if: {$gt: [{$size: "$livestream"}, 0 ]} , then: true, else: false 
+                            if: {$gt: [{$size: "$livestreams"}, 0 ]} , then: true, else: false 
                         }
                     },
                     follower: { $size: '$follower' },

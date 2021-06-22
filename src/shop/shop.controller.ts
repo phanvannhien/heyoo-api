@@ -1,5 +1,5 @@
 import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards, UploadedFiles, Res, Delete, HttpStatus, HttpCode } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ShopService } from './shop.service';
 import { ShopItemResponse } from './responses/shop.response';
 import { CreateShopDto } from './dto/create-shop.dto';
@@ -12,6 +12,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { ShopEntityDocument } from './entities/shop.entity';
 import { ShopCategoriesService } from 'src/shop-categories/shop-categories.service';
+import { ShopFollowResponse } from './responses/shop-follow.response';
 
 
 @ApiTags('shop')
@@ -39,8 +40,13 @@ export class ShopController {
             ...body,
             user: req.user.id,
         };
-        const data = await this.shopService.create(createData);
-        return new ResponseSuccess(new ShopItemResponse(data));
+        const shop = await this.shopService.create(createData);
+        const responseData = {
+            ...shop.toObject(),
+            followCount: await this.shopService.getCountShopFollow(shop)
+        };
+
+        return new ResponseSuccess(new ShopItemResponse(responseData));
     }
 
 
@@ -59,13 +65,17 @@ export class ShopController {
     @ApiBearerAuth()
     @Get(':id')
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
-        const find: ShopEntityDocument = await this.shopService.findById(id);
-        if( !find ) throw new BadRequestException('videos not found');
+        const shop: ShopEntityDocument = await this.shopService.findById(id);
+        if( !shop ) throw new BadRequestException('Shop not found');
         const updateView = {
-            viewCount: find.viewCount + 1
+            viewCount: shop.viewCount + 1
         }
         await this.shopService.update( id, updateView );
-        return new ResponseSuccess(new ShopItemResponse(find));
+        const responseData = {
+            ...shop.toObject(),
+            followCount: await this.shopService.getCountShopFollow(shop)
+        };
+        return new ResponseSuccess(new ShopItemResponse(responseData));
     }
 
 
@@ -84,8 +94,14 @@ export class ShopController {
         const foundCat = await this.shopCategoryService.findCategoryById(body.category);
         if(!foundCat) throw new BadRequestException('Category not found');
 
-        const data = await this.shopService.update( id,  body);
-        return new ResponseSuccess(new ShopItemResponse(data));
+        const shop = await this.shopService.update( id,  body);
+
+        const responseData = {
+            ...shop.toObject(),
+            followCount: await this.shopService.getCountShopFollow(shop)
+        };
+
+        return new ResponseSuccess(new ShopItemResponse(responseData));
     }
 
     @ApiBearerAuth()
@@ -94,5 +110,33 @@ export class ShopController {
       return await this.shopService.remove(id);
     }
 
+
+    /**
+     * FOLLOWS
+     */
+
+    @ApiResponse({
+        type: ShopFollowResponse
+    })
+    @ApiBearerAuth()
+    @Post(':shopId/dofollow')
+    @HttpCode( HttpStatus.OK )
+    @UseGuards(JwtAuthGuard)
+    async doFollow( @Req() request, @Param('shopId', new MongoIdValidationPipe() ) shopId: string ): Promise<IResponse> {
+        const find = await this.shopService.findById(shopId);
+        if (!find) throw new BadRequestException('User not found');
+        const follow = await this.shopService.doFollow(request.user.id, shopId);
+        return new ResponseSuccess( new ShopFollowResponse(follow) )
+    }
+
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @Post(':shopId/unfollow')
+    @HttpCode( HttpStatus.OK )
+    @UseGuards(JwtAuthGuard)
+    async unFollow( @Req() request, @Param('shopId', new MongoIdValidationPipe() ) shopId: string ): Promise<any> {
+        const d = await this.shopService.unFollow(request.user.id, shopId);
+        return new ResponseSuccess( d )
+    }
 
 }

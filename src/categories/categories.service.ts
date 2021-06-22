@@ -48,7 +48,7 @@ export class CategoriesService {
   async getLiveByCategory(id: string, query): Promise<any> {
 
     return await this.liveStreamModel
-      .find({})
+      .find({ endLiveAt : null })
       .populate({
         path: 'categories',
         '$match': { '$expr': { $in: [ id, '$categories' ] } }
@@ -59,42 +59,56 @@ export class CategoriesService {
       .sort({'startLiveAt': -1 })
       .exec();
 
-    return await this.categoryModel.aggregate([
-      { $match: { _id:  new Types.ObjectId(id)  } },
-      {
-        $lookup: {
-          from: "livestreams",
-          let: {
-            'categoryId': '$_id'
-          },
-          'pipeline': [
-            {
-              '$match': { '$expr': { $in: [ '$$categoryId', '$categories' ] } }
-            }, 
-            { '$sort': {  'startLiveAt': -1 } }, 
-            { $limit: Number(query.limit) },
-            { $skip:  Number(query.limit) * (Number(query.page) - 1) }
-          ],
-          as: "livestreams"
-        }
-      },
-      {
-        $unwind: {
-          path: "$livestreams",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "streamer",
-          foreignField: "_id",
-          as: "streamer"
-        }
-      },
-    ])
-    .exec();
+    // return await this.categoryModel.aggregate([
+    //   { $match: { _id:  new Types.ObjectId(id)  } },
+    //   {
+    //     $lookup: {
+    //       from: "livestreams",
+    //       let: {
+    //         'categoryId': '$_id'
+    //       },
+    //       'pipeline': [
+    //         {
+    //           '$match': { '$expr': { $in: [ '$$categoryId', '$categories' ] } }
+    //         }, 
+    //         { '$sort': {  'startLiveAt': -1 } }, 
+    //         { $limit: Number(query.limit) },
+    //         { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+    //       ],
+    //       as: "livestreams"
+    //     }
+    //   },
+    //   {
+    //     $unwind: {
+    //       path: "$livestreams",
+    //       preserveNullAndEmptyArrays: true
+    //     }
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       localField: "streamer",
+    //       foreignField: "_id",
+    //       as: "streamer"
+    //     }
+    //   },
+    // ])
+    // .exec();
    
   }
-  
+
+
+  async getAllLiveStream(query): Promise<any> {
+
+    return await this.liveStreamModel
+      .find({ endLiveAt : null })
+      .populate({
+        path: 'categories'
+      })
+      .populate('streamer')
+      .skip( Number(query.limit) * (Number(query.page) - 1) )
+      .limit( Number(query.limit) )
+      .sort({'startLiveAt': -1 })
+      .exec();
+  }
 }

@@ -8,11 +8,19 @@ export class CreateShopDto {
 
     @ApiProperty({ 
         type: String,
-        default: 'https://picsum.photos/800/400'
+        default: 'https://picsum.photos/400/400'
     })
     @IsNotEmpty()
     @IsUrl()
     image: string;
+
+    @ApiProperty({ 
+        type: String,
+        default: 'https://picsum.photos/800/400'
+    })
+    @IsNotEmpty()
+    @IsUrl()
+    banner: string;
     
     @ApiProperty({ type: String })
     @IsNotEmpty()

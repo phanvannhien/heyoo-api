@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, Min, MinLength } from "class-validator";
+import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsUrl, Min, MinLength } from "class-validator";
 
 // export class UpdateVideosDto extends PartialType(CreateVideosDto) {}
 
@@ -10,7 +10,16 @@ export class UpdateShopDto {
 
     @ApiProperty({ type: String })
     @IsNotEmpty()
+    @IsUrl()
     image: string;
+
+    @ApiProperty({ 
+        type: String,
+        default: 'https://picsum.photos/800/400'
+    })
+    @IsNotEmpty()
+    @IsUrl()
+    banner: string;
     
     @ApiProperty({ type: String })
     @IsNotEmpty()

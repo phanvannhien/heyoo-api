@@ -87,7 +87,28 @@ export class CategoriesController {
     );
   }
 
-
+    /**
+   * 
+   * @param id 
+   * @returns 
+   */
+     @ApiOkResponse({
+      type: CategoryLiveStreamResponse
+    })
+    @Get('livestreams/all')
+    async getAllLiveStream(
+        @Query() query: QueryPaginateDto
+      ): Promise<IResponse> {
+   
+      const response = await this.categoriesService.getAllLiveStream(query);
+      return new ResponseSuccess(
+        new CategoryLiveStreamResponse({
+          page: query.page,
+          items: response
+        })
+      );
+    }
+  
 
   @ApiOkResponse({
     type: CategoriesResponse

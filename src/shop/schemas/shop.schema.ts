@@ -4,6 +4,7 @@ export const ShopSchema = new mongoose.Schema({
     shopName: { type: String, require: true },
     phone:  { type: String, require: true },
     image:  { type: String, require: true },
+    banner:  { type: String, require: true },
     email:  { type: String, require: true },
     location: { type: String },
     description: { type: String },
@@ -18,7 +19,7 @@ export const ShopSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    countView: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
 }, {
     collection: 'shops'
 });

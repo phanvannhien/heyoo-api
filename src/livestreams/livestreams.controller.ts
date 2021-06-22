@@ -16,6 +16,7 @@ import { LiveStreamItemResponse } from './responses/live-item.response';
 import { LiveMemerResponse } from './responses/live-member.response';
 import { LiveMemerLeaveResponse } from './responses/live-member-leave.response';
 import { GetLiveStreamDto } from './dto/get-livestream.dto';
+import { UserWallsService } from 'src/user-walls/user-walls.service';
 const crypto = require('crypto');
 
 
@@ -25,7 +26,8 @@ export class LivestreamsController {
   constructor(
     private readonly livestreamsService: LivestreamsService,
     private readonly fileService: FilesService,
-    private readonly agoraService: AgoraService
+    private readonly agoraService: AgoraService,
+    private readonly wallService: UserWallsService,
     ) {}
 
 
@@ -52,8 +54,21 @@ export class LivestreamsController {
       categories: body.categories,
       streamerUid: uid
     };
+    const liveStream = await this.livestreamsService.create(createData);
+    // create wall post
+
+    await this.wallService.create({
+      caption: liveStream.channelTitle,
+      images: [
+        liveStream.coverPicture
+      ],
+      postType: 'livestream',
+      liveStreamId: liveStream.id,
+      user: request.user.id
+    });
+
     const responseObj = {
-      stream:  await this.livestreamsService.create(createData),
+      stream: liveStream ,
       agoraToken: await this.agoraService.generateAgoraToken( createData.channelName, uid  ),
       rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString() )
     };

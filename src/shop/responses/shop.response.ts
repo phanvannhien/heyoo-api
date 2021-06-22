@@ -6,21 +6,20 @@ import { ShopCategoriesResponse } from "src/shop-categories/responses/shop-categ
 export class ShopItemResponse{
   
     constructor( object: any ){
-        this.id = object.id;
+        this.id = object.id ?? object._id;
         this.shopName = object.shopName;
         this.image = object.image;
+        this.banner = object.banner;
         this.phone = object.phone;
         this.email = object.email;
         this.location = object.location;
         this.description = object.description;
-        this.phone = object.videoUrl;
-        this.phone = object.videoUrl;
-        this.phone = object.videoUrl;
         this.createdAt = moment(object.createdAt).fromNow();
         this.viewCount = object.viewCount;
         this.status = object.status;
         this.category = new ShopCategoriesResponse(object.category);
         this.user = new UserResponse(object.user);
+        this.followCount = object.followCount ?? 0;
     }
     @ApiProperty()
     id: String;
@@ -30,6 +29,9 @@ export class ShopItemResponse{
 
     @ApiProperty()
     image: String;
+
+    @ApiProperty()
+    banner: String;
     
     @ApiProperty()
     phone: String;
@@ -54,6 +56,9 @@ export class ShopItemResponse{
 
     @ApiProperty()
     status: Number;
+
+    @ApiProperty()
+    followCount: Number;
 
     @ApiProperty()
     user: UserResponse;

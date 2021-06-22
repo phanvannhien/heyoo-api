@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { LiveStreamItemResponse } from "src/livestreams/responses/live-item.response";
 
 export class UserProfileResponse{
   
@@ -18,7 +19,10 @@ export class UserProfileResponse{
         this.address = object.address || '';
         this.follower = object.follower || 0;
         this.following = object.following || 0;
+        this.level = object.level ?? 0;
         this.isLiveStreamNow = object.isLiveStreamNow ?? false;
+        this.livestream = object.livestream ? new LiveStreamItemResponse(object.livestream) : null ;
+
     }
     @ApiProperty()
     readonly id: string;
@@ -68,5 +72,11 @@ export class UserProfileResponse{
 
     @ApiProperty()
     readonly isLiveStreamNow: boolean;
+
+    @ApiProperty()
+    readonly level: string;
+
+    @ApiProperty()
+    readonly livestream: object;
     
 }
