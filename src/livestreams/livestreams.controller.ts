@@ -64,6 +64,7 @@ export class LivestreamsController {
       ],
       postType: 'livestream',
       liveStreamId: liveStream.id,
+      liveStreamStatus: true,
       user: request.user.id
     });
 
@@ -83,7 +84,11 @@ export class LivestreamsController {
   @Post(':id/end')
   @UseGuards(JwtAuthGuard)
   async endLiveStream(@Param('id') id: string, @Req() request): Promise<IResponse> {
+    // end live
     const d = await this.livestreamsService.endLiveStream( id, request.user.id );
+    // update status post wall
+    await this.wallService.endWallLive( id );
+
     return new ResponseSuccess(new LiveStreamItemResponse( d ));
   }
 

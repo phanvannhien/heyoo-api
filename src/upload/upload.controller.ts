@@ -61,12 +61,12 @@ export class ImageUploadController {
                 Key: req.query.fileName,
                 ContentType: req.query.fileType
             }
-            console.log(params);
+       
             let uploadData = await s3.createMultipartUpload(params).promise();
             res.send({uploadId: uploadData.UploadId})
             
         } catch(err) {
-            console.log(err)
+         
         }
     }
 
@@ -80,12 +80,12 @@ export class ImageUploadController {
                 PartNumber: req.query.partNumber,
                 UploadId: req.query.uploadId
             }
-            console.log(params);
+
             let presignedUrl = await s3.getSignedUrlPromise('uploadPart', params);
             res.send({presignedUrl});
 
         } catch(err) {
-            console.log(err)
+            throw err
         }
     }
 
@@ -93,7 +93,7 @@ export class ImageUploadController {
     @Post('completedUpload')
     async completedUpload(@Req() req, @Res() res ): Promise<object>{
         try {
-            console.log(req.body, ': body')
+         
             let params = {
                 Bucket: AWS_S3_BUCKET_NAME,
                 Key: req.body.fileName,
@@ -102,11 +102,11 @@ export class ImageUploadController {
                 },
                 UploadId: req.body.uploadId
             }
-            console.log(params)
+       
             let data = await s3.completeMultipartUpload(params).promise();
             res.send({data})
         } catch(err) {
-            console.log(err)
+            throw err
         }
     }
 }

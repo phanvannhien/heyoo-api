@@ -19,8 +19,6 @@ export class GoogleVerifyTokenStrategy {
           clientID: GOOGLE_CLIENT_ID
         },
         function (parsedToken, googleId, done){
-          console.log(parsedToken);
-          console.log(googleId);
           return done(googleId);
         },
       ),

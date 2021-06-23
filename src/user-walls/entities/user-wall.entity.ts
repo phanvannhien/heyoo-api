@@ -12,6 +12,7 @@ export interface UserWallEntityDocument extends Document {
     readonly status: number;
     readonly postType: string;
     readonly liveStreamId: string;
+    readonly liveStreamStatus: boolean;
     readonly user: User;
     isLiked: boolean;
 }

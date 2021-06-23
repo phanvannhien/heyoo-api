@@ -101,11 +101,10 @@ export class UserWallsController {
       @Param('id', new MongoIdValidationPipe() ) id: string
     ): Promise<IResponse>{
       const find: UserWallEntityDocument = await this.userWallsService.findById(id);
-      if( !find ) throw new BadRequestException('Not found');
+      if( !find ) throw new BadRequestException('Post Not found');
       
-      await this.userWallsService.saveLike( find, request.user.id );
-      
-      return new ResponseSuccess(new UserWallsItemResponse(find));
+      const data = await this.userWallsService.saveLike( find, request.user.id );
+      return new ResponseSuccess( { data: data } );
   }
 
 

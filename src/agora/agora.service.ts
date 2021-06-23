@@ -18,8 +18,6 @@ export class AgoraService {
         const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds
         // Build token with user account
         // const token = RtcTokenBuilder.buildTokenWithAccount(appID, appCertificate, channelName, accountId, role, privilegeExpiredTs);
-
-        // console.log(uid);
         // Build token with uid
         return RtcTokenBuilder.buildTokenWithUid(appID, appCertificate, channelName, uid , role, privilegeExpiredTs);
        

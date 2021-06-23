@@ -19,5 +19,6 @@ export class CreateUserWallDto {
 
     postType?: string; 
     liveStreamId?: string; 
+    liveStreamStatus?: boolean; 
     user?: string;
 }

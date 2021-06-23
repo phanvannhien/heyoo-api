@@ -31,7 +31,7 @@ export class IdolController {
     description: 'Return array UserResponse'
   })
   async search( @Query() query: SearchIdoDto ): Promise<IResponse>{
-    const data = await this.userService.searchByName(query);console.log(data)
+    const data = await this.userService.searchByName(query);
     return new ResponseSuccess(new SearchIdosResponse(data));
   }
 
@@ -42,7 +42,6 @@ export class IdolController {
   })
   async getTopStreamers( @Query() query: QueryPaginateDto ): Promise<IResponse>{
     const data = await this.userService.getTopStreamers(query);
-    console.log(data)
     return new ResponseSuccess(new UsersProfileResponse(data));
   }
 

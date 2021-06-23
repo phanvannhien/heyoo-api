@@ -65,7 +65,6 @@ export class UserWallsService {
   }
 
   async findWallByUser( userId : string, request, query): Promise<UserWallEntityDocument[]>{
-
     return await this.userWallModel.aggregate([
       {
         $match: { user: new mongoose.Types.ObjectId( userId ) }
@@ -73,7 +72,7 @@ export class UserWallsService {
       {
         $lookup: {
           from: 'user_wall_likes',
-          let: { userId: Types.ObjectId( userId ) },
+          let: { userId: Types.ObjectId( request.user.id ) },
           pipeline: [
             {
               $match: { 
@@ -97,9 +96,9 @@ export class UserWallsService {
       {
         $addFields: {
           isLiked: { 
-              $cond: {
-                if: {$gt: [{$size: "$likes"}, 0 ]} , then: true, else: false 
-              }
+            $cond: {
+              if: {$gt: [{$size: "$likes"}, 0 ]} , then: true, else: false 
+            }
           }
         }
       },
@@ -118,13 +117,21 @@ export class UserWallsService {
     return await this.userWallModel.findByIdAndUpdate(id, object);
   }
 
+  async endWallLive( liveStreamId: string ): Promise<any>{
+    return await this.userWallModel.findOneAndUpdate({
+      liveStreamId: liveStreamId
+    }, {
+      liveStreamStatus: false
+    });
+  }
+
   async remove(id: string): Promise<UserWallEntityDocument> {
     return await this.userWallModel.findByIdAndDelete(id);
   }
 
-  async saveLike( userWall: UserWallEntityDocument , userId: string ): Promise<UserWallEntityDocument>{
+  async saveLike( post: UserWallEntityDocument , userId: string ): Promise<boolean>{
     const data = {
-      userWall: userWall.id, 
+      userWall: post.id, 
       userLike: userId
     };
     let updateData = {};
@@ -133,17 +140,17 @@ export class UserWallsService {
     if(liked){
       await this.userWallLikeModel.deleteOne(data).exec();
       updateData = {
-        likeCount: userWall.likeCount - 1
+        likeCount: post.likeCount - 1
       }
+      return false;
     }else{
       updateData = {
-        likeCount: userWall.likeCount + 1
+        likeCount: post.likeCount + 1
       }
       const item = new this.userWallLikeModel(data);
       await item.save();
+      return true;
     }
-    return await this.userWallModel.findByIdAndUpdate( userWall.id, updateData );
-    
   }
 
   async findLikedWall(userWall: UserWallEntityDocument , userId: string): Promise<UserWallEntityLikeDocument> {

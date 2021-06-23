@@ -18,7 +18,6 @@ export class CategoriesExistsValidator {
     async validate(value: string) {
       
         const category = await this.categoryService.findCategoryById(value);
-        console.log(category);
         try {
            
             if(!category) return false;

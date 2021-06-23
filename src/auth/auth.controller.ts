@@ -223,6 +223,7 @@ export class AuthController{
     @HttpCode(HttpStatus.OK)
     async getProfile(@Request() req): Promise<IResponse>  {
         const user = await this.userService.getProfile(req.user.id);
+        
         if( user.length <= 0 ){
             throw new BadRequestException('User not found')
         }

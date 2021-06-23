@@ -7,7 +7,7 @@ import { UserWallEntityDocument } from "../entities/user-wall.entity";
 export class UserWallsItemResponse{
   
     constructor( object: any  ){
-        this.id = object.id;
+        this.id = object.id ?? object._id;
         this.caption = object.caption;
         this.images = object.images;
         this.status = object.status;
@@ -18,6 +18,7 @@ export class UserWallsItemResponse{
         this.createdAt = moment(object.createdAt).fromNow();
         this.isLiked = object.isLiked ?? false;
         this.liveStreamId = object.liveStreamId ?? null;
+        this.liveStreamStatus = object.liveStreamStatus ?? false;
     }
     @ApiProperty()
     id: string;
@@ -50,5 +51,8 @@ export class UserWallsItemResponse{
     isLiked: boolean;
 
     @ApiProperty()
-    liveStreamId: boolean;
+    liveStreamId: string;
+
+    @ApiProperty()
+    liveStreamStatus: boolean;
 }

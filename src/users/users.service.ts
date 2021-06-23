@@ -227,7 +227,7 @@ export class UsersService {
                                 }
                             },
                             // { $group: { _id: '$isLiveNow' } },
-                            // { $sort: { _id: -1 } },
+                            { $sort: { _id: -1 } },
                             {
                                 $lookup: {
                                     from: "users",
@@ -508,7 +508,7 @@ export class UsersService {
                     following: { $size: '$following' }
                }
             },
-
+            { $sort: { "follower": -1 } },
             { $limit: Number(query.limit) },
             { $skip:  Number(query.limit) * (Number(query.page) - 1) }
 

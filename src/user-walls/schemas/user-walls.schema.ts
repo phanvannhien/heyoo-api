@@ -12,6 +12,7 @@ export const UserWallsSchema = new mongoose.Schema({
     status: { type: Number, default: 1 },
     postType: { type: String, default: 'post' },
     liveStreamId: { type: String, default: null },
+    liveStreamStatus: { type: Boolean, default: false },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
