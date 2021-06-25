@@ -7,6 +7,7 @@ import { UpdateUserWallDto } from './dto/update-user-wall.dto';
 import { UserWallEntityLikeDocument } from './entities/user-wall-likes.entity';
 import { UserWallEntityDocument } from './entities/user-wall.entity';
 import * as mongoose from 'mongoose';
+import { GetUserWallDto } from './dto/get-userwall.dto';
 
 @Injectable()
 export class UserWallsService {
@@ -20,12 +21,12 @@ export class UserWallsService {
     return await item.save();
   }
 
-  async findAll( request, query): Promise<UserWallEntityDocument[]>{
-
-    return await this.userWallModel.aggregate([
+  async findAll( request, query: GetUserWallDto): Promise<UserWallEntityDocument[]>{
+   
+    let queryData = [
+      { $match:  query.caption ? { caption: { $regex: new RegExp( query.caption ) } } : {}  },
       {
         $lookup: {
-           
           from: 'user_wall_likes',
           let: { userId: "user" },
           pipeline: [
@@ -57,10 +58,14 @@ export class UserWallsService {
           }
         }
       },
-      { $sort: { "createdAt": -1 } },
+      { $sort: { "_id": -1 } },
       { $limit: Number(query.limit) },
       { $skip:  Number(query.limit) * (Number(query.page) - 1) }
-    ]).exec();
+    ];
+
+
+
+    return await this.userWallModel.aggregate(queryData).exec();
 
   }
 
@@ -72,19 +77,30 @@ export class UserWallsService {
       {
         $lookup: {
           from: 'user_wall_likes',
-          let: { userId: Types.ObjectId( request.user.id ) },
+          let: { 
+            userId: Types.ObjectId( request.user.id ),
+            postId: "$_id"
+          },
           pipeline: [
             {
               $match: { 
+                
                 $expr: {
-                    $eq: ['$userLike', '$$userId' ]
+                  
+                  $and: [
+                    { $eq: ['$userLike', '$$userId' ] },
+                    { $eq: ["$userWall", "$$postId" ] },
+                  ]
+                  
                 }
               }
             },
             {
               $project: {
                 _id: 1,
-                userLike: 1
+                userLike: 1,
+                userWall: 1,
+
               }
             },
             { $limit: 1 }
@@ -102,7 +118,8 @@ export class UserWallsService {
           }
         }
       },
-      { $sort: { "createdAt": -1 } },
+      // { $unwind: { path : "$likes" } },
+      { $sort: { "_id": -1 } },
       { $limit: Number(query.limit) },
       { $skip:  Number(query.limit) * (Number(query.page) - 1) }
     ]).exec();
@@ -142,11 +159,13 @@ export class UserWallsService {
       updateData = {
         likeCount: post.likeCount - 1
       }
+      await this.userWallModel.findOneAndUpdate( post.id, updateData );
       return false;
     }else{
       updateData = {
         likeCount: post.likeCount + 1
       }
+      await this.userWallModel.findOneAndUpdate( post.id, updateData );
       const item = new this.userWallLikeModel(data);
       await item.save();
       return true;

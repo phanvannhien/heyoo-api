@@ -13,7 +13,7 @@ export class VideosItemResponse{
         this.image = object.image;
         this.videoUrl = object.videoUrl;
         this.category = new VideoCategoriesResponse(object.category);
-        this.createdAt = moment(object.createdAt).fromNow();
+        this.createdAt = moment(object.createdAt).valueOf();
         this.excerpt = object.excerpt;
         this.description = object.description;
         this.viewCount = object.viewCount;
@@ -36,7 +36,7 @@ export class VideosItemResponse{
     category: VideoCategoriesResponse;
     
     @ApiProperty()
-    createdAt: String;
+    createdAt: number;
     
     @ApiProperty()
     excerpt: String;

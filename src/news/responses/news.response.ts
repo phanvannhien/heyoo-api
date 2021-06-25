@@ -12,7 +12,7 @@ export class NewsItemResponse{
         this.title = object.title;
         this.image = object.image;
         this.category = new NewsCategoriesResponse(object.category);
-        this.createdAt = moment(object.createdAt).fromNow();
+        this.createdAt = moment(object.createdAt).valueOf();
         this.excerpt = object.excerpt;
         this.description = object.description;
         this.status = object.status;
@@ -33,7 +33,7 @@ export class NewsItemResponse{
     category: NewsCategoriesResponse;
     
     @ApiProperty()
-    createdAt: String;
+    createdAt: number;
     
     @ApiProperty()
     excerpt: String;

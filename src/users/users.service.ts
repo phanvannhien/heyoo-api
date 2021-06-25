@@ -302,54 +302,9 @@ export class UsersService {
        
         return await this.userModel
         .aggregate([
-            // way 1
-            // {
-            //     $match: {
-            //         fullname: { $regex: new RegExp(keyword) }
-            //     }
-            // }, 
-            // {
-            //     $lookup: {
-            //         from: 'livestreams',
-            //         let: { user_id: '$_id' },
-            //         pipeline: [
-            //             {
-            //                 $match: 
-            //                     { 
-            //                         $expr: {
-            //                             $eq: ['$streamer', '$$user_id']
-            //                         }
-            //                     }
-            //                 },
-            //             {
-            //                 $project: {
-            //                     _id: 1,
-            //                     isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
-            //                 }
-            //             },
-            //             { $group: { _id: '$isLiveNow' } },
-            //             { $sort: { _id: -1 } },
-            //             { $limit: 1 }
-            //         ],
-            //         as: 'livestream'
-            //     }
-            // }, 
-            // {
-            //     $unwind: {
-            //         path: '$livestream',
-            //         preserveNullAndEmptyArrays: true
-            //     }
-            // }, 
-            // {
-            //     $project: {
-            //         fullname: 1,
-            //         isLiveNow: {$cond: [{$not: ['$livestream']}, false, '$livestream._id'] }
-            //     }
-            // },
-
             {
                 $match: {
-                    fullname: { $regex: new RegExp(query.keyword) }
+                    fullname: { $regex: new RegExp(query.keyword.toLowerCase()) }
                 }
             }, 
             {
@@ -358,20 +313,25 @@ export class UsersService {
                     let: { user_id: '$_id' },
                     pipeline: [
                         {
-                            $match: 
-                                { 
-                                    $expr: {
-                                        $eq: ['$streamer', '$$user_id']
+                            $match: {
+                                $and: [
+                                    { 
+                                        $expr: { $eq: ['$streamer', '$$user_id'] }
+                                    },
+                                    {
+                                        "endLiveAt" : { $exists: false }
                                     }
-                                }
+                                ]  
                             },
-                        {
-                            $project: {
-                                _id: 1,
-                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
-                            }
+                             
                         },
-                        { $group: { _id: '$isLiveNow' } },
+                        // {
+                        //     $project: {
+                        //         _id: 1,
+                        //         isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+                        //     }
+                        // },
+                        // { $group: { _id: '$isLiveNow' } },
                         { $sort: { _id: -1 } },
                         { $limit: 1 }
                     ],
@@ -399,17 +359,16 @@ export class UsersService {
             {
                $addFields: {
                     isLiveStreamNow: { 
-                            $cond: {
-                                if: {$gt: [{$size: "$livestreams"}, 0 ]} , then: true, else: false 
-                            }
+                        $cond: {
+                            if: {$gt: [{$size: "$livestreams"}, 0 ]} , then: true, else: false 
+                        }
                     },
                     follower: { $size: '$follower' },
                     following: { $size: '$following' }
                }
                
             },
-            
-
+            { $sort: { isLiveStreamNow: -1 } },
             { $limit: Number(query.limit) },
             { $skip:  Number(query.limit) * (Number(query.page) - 1) }
 
@@ -531,20 +490,24 @@ export class UsersService {
                     let: { user_id: '$_id' },
                     pipeline: [
                         {
-                            $match: 
-                                { 
-                                    $expr: {
-                                        $eq: ['$streamer', '$$user_id']
+                            $match: {
+                                $and: [
+                                    { 
+                                        $expr: { $eq: ['$streamer', '$$user_id'] }
+                                    },
+                                    {
+                                        "endLiveAt" : { $exists: false }
                                     }
-                                }
+                                ]  
                             },
-                        {
-                            $project: {
-                                _id: 1,
-                                isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
-                            }
                         },
-                        { $group: { _id: '$isLiveNow' } },
+                        // {
+                        //     $project: {
+                        //         _id: 1,
+                        //         isLiveNow: { $cond: [{$not: ['$endLiveAt']}, true, false] }
+                        //     }
+                        // },
+                        // { $group: { _id: '$isLiveNow' } },
                         { $sort: { _id: -1 } },
                         { $limit: 1 }
                     ],

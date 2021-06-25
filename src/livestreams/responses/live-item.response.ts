@@ -10,7 +10,7 @@ export class LiveStreamItemResponse{
         this.channelTitle = object.channelTitle;
         this.channelName = object.channelName;
         this.coverPicture = object.coverPicture;
-        this.startLiveAt = moment(object.startLiveAt).fromNow();
+        this.startLiveAt = moment(object.startLiveAt).valueOf();
         this.endLiveAt = object.endLiveAt;
         this.categories = object.categories.map( i => new CategoriesResponse(i) ) ;
         this.streamer = new UserResponse(object.streamer);
@@ -33,7 +33,7 @@ export class LiveStreamItemResponse{
     coverPicture: string;
 
     @ApiProperty()
-    startLiveAt: string;
+    startLiveAt: number;
 
     @ApiProperty()
     endLiveAt: Date;

@@ -6,9 +6,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { config } from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
-// import * as mongoose from 'mongoose';
-// // enable debug mongosee
-// mongoose.set('debug', true);
+import * as mongoose from 'mongoose';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -38,7 +37,8 @@ async function bootstrap() {
     }),
   );
   app.listen( PORT , () => {
-    console.log("Application is running at port:" + PORT )
+    console.log("Application is running at port:" + PORT );
+    // mongoose.set('debug', true);
   });
 }
 

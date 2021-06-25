@@ -23,5 +23,5 @@ export class GetUserWallDto{
 
     @ApiProperty({ type: String, required: false })
     @IsOptional()
-    caption?: String;
+    caption?: string;
 }

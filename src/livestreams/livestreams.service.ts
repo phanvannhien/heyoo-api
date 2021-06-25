@@ -29,14 +29,14 @@ export class LivestreamsService {
     return await builder
       .skip( Number( (query.page - 1)*query.limit ) )
       .limit( Number( query.limit ) )
-      .sort({ startLiveAt: -1 })
+      .sort({ "_id": -1 })
       .populate(['categories','streamer'])
       .exec();
   }
 
   async findAll(): Promise<LiveStreamEntityDocument[]> {
     return await this.liveStreamModel.find({ endLiveAt: null })
-      .sort({ startLiveAt: -1 })
+      .sort({ "_id": -1 })
       .populate(['categories','streamer']).exec();
   }
 
