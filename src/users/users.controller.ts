@@ -27,11 +27,11 @@ export class UsersController {
     @Get()
     @HttpCode(HttpStatus.OK )
     async getAll( @Res() res, @Query() queryParams: GetUserDto ){
-        const data = await this.userService.findAll(queryParams);
+        const data = await this.userService.findPaginate(queryParams);
         return res.json( {
             data: { 
-                items: data,
-                total: data.length
+                items: data[0].items,
+                total: data[0].total[0].count
             }
         });
     }

@@ -3,15 +3,23 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class GetLiveStreamDto{
 
-    @ApiProperty()
+    @ApiProperty({
+        type: Number,
+        default: 1
+    })
     @IsNotEmpty()
     page: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        type: Number,
+        default: 20
+    })
     @IsNotEmpty()
     limit: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        required: false
+    })
     @IsOptional()
     title?: string;
 }

@@ -15,10 +15,11 @@ export class UserWallsItemResponse{
         this.shareCount = object.shareCount;
         this.likeCount = object.likeCount;
         this.postType = object.postType;
-        this.createdAt = moment(object.createdAt).valueOf();
+        this.createdAt = moment(object.createdAt).valueOf().toString();
         this.isLiked = object.isLiked ?? false;
         this.liveStreamId = object.liveStreamId ?? null;
         this.liveStreamStatus = object.liveStreamStatus ?? false;
+        this.user = object.user ?? false;
     }
     @ApiProperty()
     id: string;
@@ -45,7 +46,7 @@ export class UserWallsItemResponse{
     postType: string;
 
     @ApiProperty()
-    createdAt: number;
+    createdAt: string;
 
     @ApiProperty()
     isLiked: boolean;
@@ -55,4 +56,7 @@ export class UserWallsItemResponse{
 
     @ApiProperty()
     liveStreamStatus: boolean;
+
+    @ApiProperty()
+    user: any;
 }

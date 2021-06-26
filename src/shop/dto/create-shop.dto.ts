@@ -18,7 +18,7 @@ export class CreateShopDto {
         type: String,
         default: 'https://picsum.photos/800/400'
     })
-    @IsNotEmpty()
+    @IsOptional()
     @IsUrl()
     banner: string;
     

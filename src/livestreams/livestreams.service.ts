@@ -34,11 +34,52 @@ export class LivestreamsService {
       .exec();
   }
 
+  async findPaginate(query: GetLiveStreamDto): Promise<any>{
+    return await this.liveStreamModel.aggregate([
+        { 
+          $match: {
+              phone: { $regex: new RegExp( query.title, 'i' ) }
+          }
+        },
+        {
+          $lookup: {
+              from: "users",
+              localField: "streamer",
+              foreignField: "_id",
+              as: "streamer"
+          }
+        },
+        {
+          $unwind: {  path: "$streamer", preserveNullAndEmptyArrays: true }
+        },
+        {
+            $lookup: {
+                from: "categories",
+                localField: "categories",
+                foreignField: "_id",
+                as: "categories"
+            }
+        },
+        { $sort: { "_id": -1 } },
+        {
+            $facet: {
+                items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+                total: [
+                    {
+                        $count: 'count'
+                    }
+                ]
+            }
+        }
+    ]).exec();
+}
+
   async findAll(): Promise<LiveStreamEntityDocument[]> {
     return await this.liveStreamModel.find({ endLiveAt: null })
       .sort({ "_id": -1 })
       .populate(['categories','streamer']).exec();
   }
+
 
   async findOne(id: string): Promise<LiveStreamEntityDocument> {
     return await this.liveStreamModel.findById(id)

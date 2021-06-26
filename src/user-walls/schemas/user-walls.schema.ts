@@ -7,8 +7,6 @@ export const UserWallsSchema = new mongoose.Schema({
     viewCount: { type: Number, default: 0 },
     shareCount: { type: Number, default: 0 },
     likeCount: { type: Number, default: 0 },
-    createdAt: { type: Date, default: Date.now() },
-    updatedAt: { type: Date },
     status: { type: Number, default: 1 },
     postType: { type: String, default: 'post' },
     liveStreamId: { type: String, default: null },
@@ -18,5 +16,6 @@ export const UserWallsSchema = new mongoose.Schema({
         ref: 'User'
     },
 }, {
+    timestamps: true,
     collection: 'user_walls'
 });

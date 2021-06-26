@@ -18,11 +18,10 @@ export const VideosSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AdminUser'
     },
-    createdAt: { type: Date, default: Date.now() },
-    updatedAt: { type: Date, default: Date.now() },
     excerpt: String,
     description: String,
     status: { type: Number, default: 0 }
 }, {
+    timestamps: true,
     collection: 'videos'
 });

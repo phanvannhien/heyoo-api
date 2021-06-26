@@ -16,6 +16,7 @@ import { GetWalletsDto } from 'src/wallets/dto/get-wallets.dto';
 import { GetUserWallDto } from './dto/get-userwall.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { UserWallEntityDocument } from './entities/user-wall.entity';
+import { UserWallsPaginationResponse } from './responses/userwalls-pagination.response';
 
 @ApiTags('user-walls')
 @Controller('user-walls')
@@ -36,11 +37,63 @@ export class UserWallsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
-      type: UserWallsResponse
+      type: UserWallsPaginationResponse
   })
   async find( @Req() request, @Query() query: GetUserWallDto ): Promise<IResponse>{
-    const d = await this.userWallsService.findAll(request, query);
-    return new ResponseSuccess(new UserWallsResponse(d));
+    
+
+    let queryData = [
+      { $match:  query.caption ? { caption: { $regex: new RegExp( query.caption ) } } : {}  },
+      {
+        $lookup: {
+          from: 'user_wall_likes',
+          let: { userId: "user" },
+          pipeline: [
+            {
+              $match: { 
+                $expr: {
+                    $eq: ['$userLike', '$$userId' ]
+                }
+              }
+            },
+            {
+              $project: {
+                _id: 1,
+                userLike: 1
+              }
+            },
+            { $limit: 1 }
+          ],
+          as: 'likes'
+        },
+
+      },
+      {
+        $addFields: {
+          isLiked: { 
+              $cond: {
+                if: {$gt: [{$size: "$likes"}, 0 ]} , then: true, else: false 
+              }
+          }
+        }
+      },
+      { $sort: { "_id": -1 } },
+      {
+        $facet: {
+          items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+          total: [
+            {
+              $count: 'count'
+            }
+          ]
+        }
+      }
+     
+    ];
+  
+    const d = await this.userWallsService.findAll(queryData);
+   
+    return new ResponseSuccess(new UserWallsPaginationResponse(  d[0] ));
   }
 
   @Get(':userId/walls')
@@ -140,4 +193,12 @@ export class UserWallsController {
   async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
     return await this.userWallsService.remove(id);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('post/reset-like-count')
+  async resetAllLikePost() {
+    return await this.userWallsService.resetAllLikeCount();
+  }
+
 }

@@ -17,6 +17,7 @@ import { LiveMemerResponse } from './responses/live-member.response';
 import { LiveMemerLeaveResponse } from './responses/live-member-leave.response';
 import { GetLiveStreamDto } from './dto/get-livestream.dto';
 import { UserWallsService } from 'src/user-walls/user-walls.service';
+import { LiveStreamPaginationResponse } from './responses/livestream-pagination.response';
 const crypto = require('crypto');
 
 
@@ -94,12 +95,12 @@ export class LivestreamsController {
 
   @Get('all')
   @ApiOkResponse({
-    type: [LiveStreamItemResponse],
+    type: [LiveStreamPaginationResponse],
     description: 'Find all livestreams with pagination'
   })
   async findAllLive( @Query() query: GetLiveStreamDto ): Promise<IResponse>{
-    const d = await this.livestreamsService.findAllStatus(query);
-    return new ResponseSuccess( d.map( i => new LiveStreamItemResponse(i) ) );
+    const d = await this.livestreamsService.findPaginate(query);
+    return new ResponseSuccess( new LiveStreamPaginationResponse(d) );
   }
 
 

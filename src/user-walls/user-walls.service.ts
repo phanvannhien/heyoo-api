@@ -21,50 +21,8 @@ export class UserWallsService {
     return await item.save();
   }
 
-  async findAll( request, query: GetUserWallDto): Promise<UserWallEntityDocument[]>{
+  async findAll( queryData ): Promise<UserWallEntityDocument[]>{
    
-    let queryData = [
-      { $match:  query.caption ? { caption: { $regex: new RegExp( query.caption ) } } : {}  },
-      {
-        $lookup: {
-          from: 'user_wall_likes',
-          let: { userId: "user" },
-          pipeline: [
-            {
-              $match: { 
-                $expr: {
-                    $eq: ['$userLike', '$$userId' ]
-                }
-              }
-            },
-            {
-              $project: {
-                _id: 1,
-                userLike: 1
-              }
-            },
-            { $limit: 1 }
-          ],
-          as: 'likes'
-        },
-
-      },
-      {
-        $addFields: {
-          isLiked: { 
-              $cond: {
-                if: {$gt: [{$size: "$likes"}, 0 ]} , then: true, else: false 
-              }
-          }
-        }
-      },
-      { $sort: { "_id": -1 } },
-      { $limit: Number(query.limit) },
-      { $skip:  Number(query.limit) * (Number(query.page) - 1) }
-    ];
-
-
-
     return await this.userWallModel.aggregate(queryData).exec();
 
   }
@@ -159,13 +117,13 @@ export class UserWallsService {
       updateData = {
         likeCount: post.likeCount - 1
       }
-      await this.userWallModel.findOneAndUpdate( post.id, updateData );
+      await this.userWallModel.findByIdAndUpdate( post.id, updateData );
       return false;
     }else{
       updateData = {
         likeCount: post.likeCount + 1
       }
-      await this.userWallModel.findOneAndUpdate( post.id, updateData );
+      await this.userWallModel.findByIdAndUpdate( post.id, updateData );
       const item = new this.userWallLikeModel(data);
       await item.save();
       return true;
@@ -177,5 +135,12 @@ export class UserWallsService {
       userWall: userWall.id, 
       userLike: userId
     }).exec()
+  }
+
+  async resetAllLikeCount(): Promise<any> {
+    await this.userWallModel.updateMany({},{
+      likeCount: 0
+    });
+    return await this.userWallLikeModel.remove();
   }
 }

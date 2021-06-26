@@ -14,7 +14,7 @@ export class ShopItemResponse{
         this.email = object.email;
         this.location = object.location;
         this.description = object.description;
-        this.createdAt = moment(object.createdAt).valueOf();
+        this.createdAt = moment(object.createdAt).valueOf().toString();
         this.viewCount = object.viewCount;
         this.status = object.status;
         this.category = new ShopCategoriesResponse(object.category);
@@ -49,7 +49,7 @@ export class ShopItemResponse{
     category: ShopCategoriesResponse;
     
     @ApiProperty()
-    createdAt: number;
+    createdAt: string;
     
     @ApiProperty()
     viewCount: Number;

@@ -1,5 +1,6 @@
 import * as mongoose from 'mongoose';
 
+
 export const LiveStreamMemberSchema = new mongoose.Schema({
     liveStream: {
         type: mongoose.Schema.Types.ObjectId,
@@ -9,7 +10,7 @@ export const LiveStreamMemberSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    joinAt: { type: Date, default: Date.now() },
+    joinAt: { type: Date, default: Date.now },
     leaveAt: Date,
     uid: Number
 })
