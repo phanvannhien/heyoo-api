@@ -1,4 +1,5 @@
 import * as mongoose from 'mongoose';
+import { SHOP_MODEL } from 'src/mongo-model.constance';
 
 
 export const LiveStreamMemberSchema = new mongoose.Schema({
@@ -25,13 +26,21 @@ export const LiveStreamSchema = new mongoose.Schema({
         ref: 'Categories'
     }],
     coverPicture: String,
-    startLiveAt: { type: Date, default: Date.now() },
+    startLiveAt: { type: Date, default: Date.now },
     endLiveAt: Date,
     streamer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
     viewCount: { type: Number, default: 0 },
-    streamerUid: Number
+    streamerUid: Number,
+    shop: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: SHOP_MODEL,
+        default: null
+    },
+    videoUrl: String
+}, {
+    timestamps: true
 });
 

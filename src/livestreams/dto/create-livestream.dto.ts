@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsIn, IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateLivestreamDto {
     @ApiProperty({ type: 'string', format: 'binary' })
@@ -13,11 +13,14 @@ export class CreateLivestreamDto {
     @IsNotEmpty()
     categories: string;
 
-    @IsOptional()
-    streamer: string;
+    streamer?: string;
+    streamerUid?: number;
 
+    @ApiProperty({
+        type: String,
+        required: false,
+    })
     @IsOptional()
-    streamerUid: number;
-
+    shop?: string;    
 
 }

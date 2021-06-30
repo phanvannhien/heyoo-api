@@ -6,6 +6,7 @@ import { ShopSchema } from './schemas/shop.schema';
 import { SHOP_MODEL,SHOP_FOLLOW_MODEL } from 'src/mongo-model.constance';
 import { ShopCategoriesModule } from 'src/shop-categories/shop-categories.module';
 import { ShopFollowSchema } from './schemas/follow.schema';
+import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
 
 
 @Module({
@@ -13,6 +14,7 @@ import { ShopFollowSchema } from './schemas/follow.schema';
     MongooseModule.forFeature([
       { name: SHOP_MODEL, schema: ShopSchema },
       { name: SHOP_FOLLOW_MODEL, schema: ShopFollowSchema },
+      { name: 'LiveStreams', schema: LiveStreamSchema },
     ]),
     ShopCategoriesModule
   ],

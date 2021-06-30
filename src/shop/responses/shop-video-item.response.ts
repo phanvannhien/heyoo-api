@@ -3,7 +3,7 @@ import { CategoriesResponse } from "src/categories/responses/categories.response
 import { UserResponse } from "src/users/responses/user.response";
 import * as moment from 'moment';
 
-export class LiveStreamItemResponse{
+export class ShopVideoItemResponse{
   
     constructor( object: any ){
         this.id = object.id ?? object._id;
@@ -12,9 +12,7 @@ export class LiveStreamItemResponse{
         this.coverPicture = object.coverPicture;
         this.startLiveAt = moment(object.startLiveAt).valueOf().toString();
         this.endLiveAt = object.endLiveAt;
-        this.categories = object.categories.map( i => new CategoriesResponse(i) ) ;
         this.streamer = new UserResponse(object.streamer);
-        this.streamerUid = object.streamerUid;
         this.viewCount = object.viewCount ?? 0;
         this.shop = object.shop ?? '';
         this.videoUrl = object.videoUrl ?? '';
@@ -29,9 +27,6 @@ export class LiveStreamItemResponse{
     channelName: string;
 
     @ApiProperty()
-    categories: Array<CategoriesResponse>;
-
-    @ApiProperty()
     coverPicture: string;
 
     @ApiProperty()
@@ -43,8 +38,6 @@ export class LiveStreamItemResponse{
     @ApiProperty()
     streamer: UserResponse;
 
-    @ApiProperty()
-    streamerUid: number;
 
     @ApiProperty()
     viewCount: number;

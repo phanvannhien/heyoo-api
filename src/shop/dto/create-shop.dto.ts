@@ -8,26 +8,25 @@ export class CreateShopDto {
 
     @ApiProperty({ 
         type: String,
-        default: 'https://picsum.photos/400/400'
+        default: 'https://picsum.photos/800/600'
     })
     @IsNotEmpty()
     @IsUrl()
     image: string;
 
-    @ApiProperty({ 
-        type: String,
-        default: 'https://picsum.photos/800/400'
-    })
-    @IsOptional()
-    @IsUrl()
-    banner: string;
+    // @ApiProperty({ 
+    //     type: String,
+    //     default: 'https://picsum.photos/800/400'
+    // })
+    // @IsOptional()
+    // @IsUrl()
+    // banner: string;
     
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: String, default: "+84902181852" })
     @IsNotEmpty()
-    @IsPhoneNumber('ZZ')
     phone: string;
 
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: String, default: "phanvannhien@gmail.com" })
     @IsNotEmpty()
     email: string;
 

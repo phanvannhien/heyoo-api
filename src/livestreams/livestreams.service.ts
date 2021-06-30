@@ -38,7 +38,8 @@ export class LivestreamsService {
     return await this.liveStreamModel.aggregate([
         { 
           $match: {
-              phone: { $regex: new RegExp( query.title, 'i' ) }
+            channelTitle: { $regex: new RegExp( query.title, 'i' ) },
+            shop: null
           }
         },
         {
@@ -72,7 +73,9 @@ export class LivestreamsService {
             }
         }
     ]).exec();
-}
+  }
+
+  
 
   async findAll(): Promise<LiveStreamEntityDocument[]> {
     return await this.liveStreamModel.find({ endLiveAt: null })

@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { LiveStreamItemResponse } from "src/livestreams/responses/live-item.response";
+import { ShopItemPlainResponse } from "src/shop/responses/shop-plain.response";
+
 
 export class UserProfileResponse{
   
@@ -22,6 +24,7 @@ export class UserProfileResponse{
         this.level = object.level ?? 0;
         this.isLiveStreamNow = object.isLiveStreamNow ?? false;
         this.livestream = object.livestream ? new LiveStreamItemResponse(object.livestream) : null ;
+        this.shop = object.shop ? new ShopItemPlainResponse(object.shop) : null;
 
     }
     @ApiProperty()
@@ -78,5 +81,8 @@ export class UserProfileResponse{
 
     @ApiProperty()
     readonly livestream: object;
+
+    @ApiProperty()
+    readonly shop: object;
     
 }

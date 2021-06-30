@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export class CategoriesResponse{
   
     constructor( object: any ){
-        this.id = object.id;
+        this.id = object._id ?? object.id;
         this.categoryName = object.categoryName;
     }
     @ApiProperty()

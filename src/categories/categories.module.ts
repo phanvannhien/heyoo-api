@@ -14,6 +14,9 @@ import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
     ]),
   ],
   controllers: [CategoriesController],
-  providers: [CategoriesService]
+  providers: [CategoriesService],
+  exports:[
+    CategoriesService
+  ]
 })
 export class CategoriesModule {}

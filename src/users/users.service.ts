@@ -301,6 +301,27 @@ export class UsersService {
                         as: "following"
                     }
                 },
+
+                {
+                    $lookup: {
+                        from: "shops",
+                        let: { user_id: '$_id' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ['$user', '$$user_id'] }
+                                }
+                            },
+                            { $sort: { _id: -1 } },
+                            { $limit: 1 }
+                        ],
+                        as: "shop"
+                    }
+                },
+
+                {
+                    $unwind: {  path: "$shop", preserveNullAndEmptyArrays: true }
+                },                
                
                 {
                    $addFields: {

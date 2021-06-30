@@ -18,6 +18,8 @@ import { LiveMemerLeaveResponse } from './responses/live-member-leave.response';
 import { GetLiveStreamDto } from './dto/get-livestream.dto';
 import { UserWallsService } from 'src/user-walls/user-walls.service';
 import { LiveStreamPaginationResponse } from './responses/livestream-pagination.response';
+import { CategoriesService } from 'src/categories/categories.service';
+import { ShopService } from 'src/shop/shop.service';
 const crypto = require('crypto');
 
 
@@ -29,6 +31,8 @@ export class LivestreamsController {
     private readonly fileService: FilesService,
     private readonly agoraService: AgoraService,
     private readonly wallService: UserWallsService,
+    private readonly categoryService: CategoriesService,
+    private readonly shopService: ShopService,
     ) {}
 
 
@@ -45,29 +49,44 @@ export class LivestreamsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('coverPicture'))
   async create(@Req() request, @Body() body: CreateLivestreamDto, @UploadedFile() coverPicture): Promise<IResponse> {
+
+    const category = await this.categoryService.findOne( body.categories );
+    if( !category ) throw new BadRequestException('Category not found');
+
+    if( body.shop ){
+      const shop = await this.shopService.findById(body.shop);
+      if( !shop ) throw new BadRequestException('Shop not found');
+    }
+
     const coverPhoto = await this.fileService.uploadPublicFile(coverPicture.buffer, coverPicture.originalname);
     const uid = crypto.randomBytes(4).readUInt32BE(0, true);
+
     const createData = {
       channelName: uuidv4(),
       coverPicture: coverPhoto,
-      streamer: request.user.id,
       channelTitle: body.channelTitle,
       categories: body.categories,
-      streamerUid: uid
+
+      streamer: request.user.id,
+      streamerUid: uid,
+      shop: body.shop
     };
     const liveStream = await this.livestreamsService.create(createData);
+        
     // create wall post
-
-    await this.wallService.create({
-      caption: liveStream.channelTitle,
-      images: [
-        liveStream.coverPicture
-      ],
-      postType: 'livestream',
-      liveStreamId: liveStream.id,
-      liveStreamStatus: true,
-      user: request.user.id
-    });
+    if( !body.shop && body.shop == '' ){
+      await this.wallService.create({
+        caption: liveStream.channelTitle,
+        images: [
+          liveStream.coverPicture
+        ],
+        postType: 'livestream',
+        liveStreamId: liveStream.id,
+        liveStreamStatus: true,
+        user: request.user.id
+      });
+    }
+    
 
     const responseObj = {
       stream: liveStream ,
@@ -100,7 +119,7 @@ export class LivestreamsController {
   })
   async findAllLive( @Query() query: GetLiveStreamDto ): Promise<IResponse>{
     const d = await this.livestreamsService.findPaginate(query);
-    return new ResponseSuccess( new LiveStreamPaginationResponse(d) );
+    return new ResponseSuccess( new LiveStreamPaginationResponse(d[0]) );
   }
 
 

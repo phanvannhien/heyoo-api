@@ -8,20 +8,20 @@ export class GetShopDto{
         default: 1
     })
     @IsNotEmpty()
-    page: Number;
+    page: number;
 
     @ApiProperty({
         type: Number,
         default: 20
     })
     @IsNotEmpty()
-    limit: Number;
+    limit: number;
 
     @ApiProperty({ enum: [0,1], default: 1, required: false })
     @IsOptional()
-    status?: Number;
+    status?: number;
 
     @ApiProperty({ type: String, required: false })
     @IsOptional()
-    title?: String;
+    title?: string;
 }

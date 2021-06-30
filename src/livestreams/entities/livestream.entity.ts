@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { ShopEntityDocument } from 'src/shop/entities/shop.entity';
 import { UserEntity } from 'src/users/serializes/user.serialize';
 
 export interface LiveStreamMemberEntityDocument extends Document{
@@ -19,4 +20,6 @@ export interface LiveStreamEntityDocument extends Document {
     readonly streamer: UserEntity ;
     readonly categories: Array<any>;
     readonly viewCount: number;
+    readonly shop: string;
+    readonly videoUrl: string;
 }

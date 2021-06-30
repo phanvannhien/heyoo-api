@@ -2,9 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { UserResponse } from "src/users/responses/user.response";
 import * as moment from 'moment';
 import { ShopCategoriesResponse } from "src/shop-categories/responses/shop-categories.response";
-import { LiveStreamItemResponse } from "src/livestreams/responses/live-item.response";
 
-export class ShopItemResponse{
+export class ShopItemPlainResponse{
   
     constructor( object: any ){
         this.id = object.id ?? object._id;
@@ -13,38 +12,29 @@ export class ShopItemResponse{
         this.phone = object.phone;
         this.email = object.email;
         this.location = object.location;
-        this.description = object.description;
         this.createdAt = moment(object.createdAt).valueOf().toString();
         this.viewCount = object.viewCount;
         this.status = object.status;
-        this.category = new ShopCategoriesResponse(object.category);
-        this.user = new UserResponse(object.user);
         this.followCount = object.followCount ?? 0;
-        this.isLiveStreamNow = object.isLiveStreamNow ?? false;
-        this.isFollow = object.isFollow ?? false;
-        this.livestream = object.livestream ? new LiveStreamItemResponse(object.livestream) : null ;
-        
     }
     @ApiProperty()
-    id: string;
+    id: String;
 
     @ApiProperty()
-    shopName: string;
+    shopName: String;
 
     @ApiProperty()
-    image: string;
+    image: String;
+
     
     @ApiProperty()
-    phone: string;
+    phone: String;
 
     @ApiProperty()
-    email: string;
+    email: String;
 
     @ApiProperty()
-    location: string;
-
-    @ApiProperty()
-    description: string;
+    location: String;
 
     @ApiProperty()
     category: ShopCategoriesResponse;
@@ -53,25 +43,14 @@ export class ShopItemResponse{
     createdAt: string;
     
     @ApiProperty()
-    viewCount: number;
+    viewCount: Number;
 
     @ApiProperty()
-    status: number;
+    status: Number;
 
     @ApiProperty()
-    followCount: number;
+    followCount: Number;
 
     @ApiProperty()
     user: UserResponse;
-
-    @ApiProperty()
-    readonly isLiveStreamNow: boolean;
-
-    @ApiProperty()
-    readonly isFollow: boolean;
-
-    @ApiProperty()
-    livestream: object;
-
-
 }
