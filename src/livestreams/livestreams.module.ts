@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { LivestreamsService } from './livestreams.service';
 import { LivestreamsController } from './livestreams.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -22,7 +22,8 @@ import { CategoriesModule } from 'src/categories/categories.module';
     UserWallsModule,
     LivestreamsModule,
     CategoriesModule,
-    ShopModule
+    ShopModule,
+    HttpModule
   ],
   controllers: [LivestreamsController],
   providers: [LivestreamsService],

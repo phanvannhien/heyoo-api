@@ -60,19 +60,30 @@ export class LivestreamsController {
 
     const coverPhoto = await this.fileService.uploadPublicFile(coverPicture.buffer, coverPicture.originalname);
     const uid = crypto.randomBytes(4).readUInt32BE(0, true);
+    
+    const channelName = uuidv4();
+    const agoraToken = await this.agoraService.generateAgoraToken( channelName, uid  );
+    const agoraRtmToken = await this.agoraService.generateAgoraRtmToken( uid.toString(), 1 );
 
     const createData = {
-      channelName: uuidv4(),
+      channelName: channelName,
       coverPicture: coverPhoto,
       channelTitle: body.channelTitle,
       categories: body.categories,
 
       streamer: request.user.id,
       streamerUid: uid,
-      shop: body.shop
+      shop: body.shop,
+      agoraToken: agoraToken,
+      agoraRtmToken: agoraRtmToken,
+
     };
     const liveStream = await this.livestreamsService.create(createData);
-        
+
+    if( body.shop ){
+      await this.livestreamsService.acquireRecordVideo( liveStream );
+    }
+   
     // create wall post
     if( !body.shop && body.shop == '' ){
       await this.wallService.create({
@@ -87,15 +98,34 @@ export class LivestreamsController {
       });
     }
     
-
     const responseObj = {
       stream: liveStream ,
-      agoraToken: await this.agoraService.generateAgoraToken( createData.channelName, uid  ),
-      rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString() )
+      agoraToken: agoraToken,
+      rtmToken: agoraRtmToken
     };
     return new ResponseSuccess(new LiveStreamResponse(responseObj));
   }
 
+
+  @ApiOkResponse({
+    description: 'Get status record livestream'
+  })
+  @Get(':id/record-video-status')
+  async getRecordVideoStatus(@Param('id') id: string): Promise<IResponse> {
+    const live = await this.livestreamsService.findOne(id);
+    const data =  await this.livestreamsService.getRecordStatus( live );
+    return new ResponseSuccess({ data: data }); 
+  }
+
+  @ApiOkResponse({
+    description: 'Stop record livestream'
+  })
+  @Post(':id/stop-record-video')
+  async stopRecordVideoStatus(@Param('id') id: string): Promise<IResponse> {
+    const live = await this.livestreamsService.findOne(id);
+    const data =  await this.livestreamsService.stopRecordVideo( live );
+    return new ResponseSuccess({ data: data }); 
+  }
 
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -109,6 +139,11 @@ export class LivestreamsController {
     // update status post wall
     await this.wallService.endWallLive( id );
 
+    // stop record
+    if( d.shop && d.shop != '' ){
+      await this.livestreamsService.stopRecordVideo( d );
+    }
+    
     return new ResponseSuccess(new LiveStreamItemResponse( d ));
   }
 
@@ -163,7 +198,7 @@ export class LivestreamsController {
     const responseObj = {
       stream: d.liveStream,
       agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
-      rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString() ),
+      rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString(), 2 ),
       joinInfo: d
     };
     return new ResponseSuccess(new LiveMemerResponse(responseObj));
@@ -206,6 +241,27 @@ export class LivestreamsController {
   })
   async deleteAll(): Promise<any>{
     return await this.livestreamsService.removeAll();
+  }
+
+
+  @ApiOkResponse({
+    description: 'Get status record livestream individual'
+  })
+  @Get(':id/record-individual/video-status')
+  async getVideoIndividualStatus(@Param('id') id: string): Promise<IResponse> {
+    const live = await this.livestreamsService.findOne(id);
+    const data =  await this.livestreamsService.getRecordIndividualStatus( live );
+    return new ResponseSuccess({ data: data }); 
+  }
+
+  @ApiOkResponse({
+    description: 'Stop record livestream individual'
+  })
+  @Post(':id/stop-record-individual-video')
+  async stopRecordVideoIndividualStatus(@Param('id') id: string): Promise<IResponse> {
+    const live = await this.livestreamsService.findOne(id);
+    const data =  await this.livestreamsService.stopRecordIndividualVideo( live );
+    return new ResponseSuccess({ data: data }); 
   }
 
 }

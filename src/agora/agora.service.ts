@@ -23,7 +23,7 @@ export class AgoraService {
        
     }
 
-    async generateAgoraRtmToken( uid : string ): Promise<string>{
+    async generateAgoraRtmToken( uid : string, rtmRule ): Promise<string>{
         // Rtc Examples
         const appID = this.configService.get('AGORA_APP_ID');
         const appCertificate = this.configService.get('AGORA_CERTIFICATE');
@@ -31,7 +31,7 @@ export class AgoraService {
         const currentTimestamp = Math.floor(Date.now() / 1000)
         const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds
      
-        return RtmTokenBuilder.buildToken( appID, appCertificate, uid , RtmRole, privilegeExpiredTs );
+        return RtmTokenBuilder.buildToken( appID, appCertificate, uid , rtmRule, privilegeExpiredTs );
         
 
        

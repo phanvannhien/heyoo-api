@@ -39,7 +39,14 @@ export const LiveStreamSchema = new mongoose.Schema({
         ref: SHOP_MODEL,
         default: null
     },
-    videoUrl: String
+    videoUrl: String,
+    agoraToken: String,
+    agoraRtmToken: String,
+    agoraRecordUid: Number,
+    agoraResourceId: String,
+    agoraSid: String,
+    agoraFileList: String,
+
 }, {
     timestamps: true
 });

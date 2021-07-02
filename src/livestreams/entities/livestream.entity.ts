@@ -22,4 +22,10 @@ export interface LiveStreamEntityDocument extends Document {
     readonly viewCount: number;
     readonly shop: string;
     readonly videoUrl: string;
+    readonly agoraToken: string;
+    readonly agoraRtmToken: string;
+    agoraRecordUid: number;
+    readonly agoraResourceId: string;
+    readonly agoraSid: string;
+    readonly agoraFileList: string;
 }

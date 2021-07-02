@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpService, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateLivestreamDto } from './dto/create-livestream.dto';
@@ -6,7 +6,10 @@ import { UpdateLivestreamDto } from './dto/update-livestream.dto';
 import { LiveStreamEntityDocument, LiveStreamMemberEntityDocument } from './entities/livestream.entity';
 import * as mongoose from 'mongoose';
 import { GetLiveStreamDto } from './dto/get-livestream.dto';
+import { AgoraService } from 'src/agora/agora.service';
 var ObjectId = mongoose.Types.ObjectId;
+const crypto = require('crypto');
+
 
 @Injectable()
 export class LivestreamsService {
@@ -14,7 +17,8 @@ export class LivestreamsService {
   constructor(
     @InjectModel('LiveStreams') private readonly liveStreamModel: Model<LiveStreamEntityDocument>,
     @InjectModel('LiveStreamMembers') private readonly liveStreamMemberModel: Model<LiveStreamMemberEntityDocument>,
-
+    private httpService: HttpService,
+    private readonly agoraService: AgoraService,
   ){}
 
   async create(createLivestreamDto: CreateLivestreamDto): Promise<any> {
@@ -166,5 +170,244 @@ export class LivestreamsService {
     }
     return false;  
   }
+
+
+  async acquireRecordVideo( liveStream: LiveStreamEntityDocument ): Promise<any>{
+    const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+    const agoraRecordUid = crypto.randomBytes(4).readUInt32BE(0, true);
+
+    try{
+      const response = await this.httpService.post(`https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/acquire`,
+        {
+          cname: liveStream.channelName,
+          uid: agoraRecordUid.toString() ,
+          clientRequest: {
+            resourceExpiredHour: 24, // Sets the time limit (in hours) for Cloud Recording RESTful API calls. Time starts counting when you successfully start a cloud recording and get an sid (the recording ID).
+            scene: 2 //  Sets the recording options.0(default) indicates allocating resources for video and audio recording in a channel.
+          }
+        },
+        { 
+          headers: { Authorization } 
+        }
+      ).toPromise();
+
+      await this.liveStreamModel.findByIdAndUpdate( liveStream.id, {
+        agoraResourceId: response.data.resourceId,
+        agoraRecordUid: agoraRecordUid
+      });
+
+      
+      return await this.startRecordIndividualVideo( liveStream, response.data.resourceId, agoraRecordUid );
+
+    }catch(e){
+      return e;
+    }
+    
+  }
+
+  async startRecordVideo(liveStream: LiveStreamEntityDocument, agoraResourceId ): Promise<any>{
+    const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+    try{
+      const response = await this.httpService.post(`https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/resourceid/${agoraResourceId}/mode/mix/start`,
+        {
+          cname: liveStream.channelName,
+          uid: liveStream.streamerUid.toString(),
+          clientRequest: {
+            token: liveStream.agoraToken,
+
+            recordingConfig: {
+              channelType: 1, // 0: (Default) Communication profile. 1: Live broadcast profile.
+              streamTypes: 2, // 2: (Default) Subscribes to both audio and video streams. 1: Subscribes to video streams only.
+              videoStreamType: 1,  // 0: (Default) Subscribes to the high-quality stream. 1: Subscribes to the low-quality stream.
+              maxIdleTime: 30, // Cloud recording automatically stops recording and leaves the channel when there is no user in the channel after a period (in seconds) set by this parameter. The value range is from 5 to 2^32-1
+              audioProfile: 1,
+
+              "transcodingConfig":{
+                "width": 360,
+                "height": 360,
+                "fps": 30,
+                "bitrate": 800,
+                "maxResolutionUid": liveStream.streamerUid.toString(),
+                "mixedVideoLayout": 1,
+                backgroundColor: "#FF0000",
+              },
+          
+              subscribeVideoUids: [liveStream.streamerUid.toString()],
+              subscribeAudioUids: [liveStream.streamerUid.toString()],
+              subscribeUidGroup: 0
+
+            },
+
+            recordingFileConfig: {
+              avFileType: ["hls",'mp4'],
+            },
+
+            storageConfig: {
+              vendor: 1, // Amazon S3
+              region: 8, // AP_SOUTHEAST_1
+              bucket: process.env.AWS_PUBLIC_BUCKET_NAME,
+              accessKey: process.env.AWS_ACCESS_KEY_ID,
+              secretKey: process.env.AWS_SECRET_ACCESS_KEY,
+              fileNamePrefix: [liveStream.shop.toString()],
+            },
+          },
+        },
+        { 
+          headers: { Authorization } 
+        }
+      ).toPromise()
+      
+      return  await this.liveStreamModel.findByIdAndUpdate( liveStream.id, {
+        agoraSid: response.data.sid
+      })
+    }catch(e){
+      return e;
+    }
+
+  }
+
+  async stopRecordVideo(liveStream:LiveStreamEntityDocument): Promise<any>{
+    try{
+      const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+      const response = await this.httpService.post(`https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/resourceid/${liveStream.agoraResourceId}/sid/${liveStream.agoraSid}/mode/mix/stop`,
+        {
+          cname: liveStream.channelName,
+          uid: liveStream.streamerUid.toString(),
+          clientRequest: {
+            async_stop: true
+          }
+        },
+        { 
+          headers: { Authorization }
+        }
+      ).toPromise();
+
+      return  await this.liveStreamModel.findByIdAndUpdate( liveStream.id, {
+        agoraFileList: response.data.serverResponse
+      });
+
+    }catch(e){
+      return e;
+    }
+  }
+
+  async getRecordStatus(liveStream:LiveStreamEntityDocument){
+    try{
+      const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+      const response = await this.httpService.get(`https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/resourceid/${liveStream.agoraResourceId}/sid/${liveStream.agoraSid}/mode/mix/query`,
+        { 
+          headers: { Authorization }
+        }
+      ).toPromise();
+      return  response;
+
+    }catch(e){
+      return e;
+     }
+  }
+
+  async startRecordIndividualVideo(liveStream: LiveStreamEntityDocument, agoraResourceId, agoraRecordUid  ): Promise<any>{
+    const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+ 
+
+    const tokenStart = await this.agoraService.generateAgoraToken( liveStream.channelName , agoraRecordUid );
+    const requestData = {
+      cname: liveStream.channelName ,
+      uid: agoraRecordUid.toString() ,
+
+      clientRequest: {
+        token: tokenStart,
+        appsCollection: {
+          combinationPolicy: "postpone_transcoding"
+        },
+        recordingConfig: {
+          channelType: 1, // 0: (Default) Communication profile. 1: Live broadcast profile.
+          streamTypes: 2, // 2: (Default) Subscribes to both audio and video streams. 1: Subscribes to video streams only.
+          videoStreamType: 1,  // 0: (Default) Subscribes to the high-quality stream. 1: Subscribes to the low-quality stream.
+          maxIdleTime: 30, // Cloud recording automatically stops recording and leaves the channel when there is no user in the channel after a period (in seconds) set by this parameter. The value range is from 5 to 2^32-1
+          // audioProfile: 1,
+          subscribeVideoUids: [liveStream.streamerUid.toString()],
+          subscribeAudioUids: [liveStream.streamerUid.toString()],
+          subscribeUidGroup: 0
+        },
+
+        recordingFileConfig: {
+          avFileType: ["hls"],
+        },
+
+        storageConfig: {
+          vendor: 1, // Amazon S3
+          region: 8, // AP_SOUTHEAST_1
+          bucket: process.env.AWS_PUBLIC_BUCKET_NAME,
+          accessKey: process.env.AWS_ACCESS_KEY_ID,
+          secretKey: process.env.AWS_SECRET_ACCESS_KEY,
+          fileNamePrefix: [ liveStream.shop.toString(), liveStream.streamerUid.toString() ],
+        },
+
+      },
+    };
+
+    try{
+      const response = await this.httpService.post(`https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/resourceid/${agoraResourceId}/mode/individual/start`,
+        requestData,
+        { 
+          headers: { Authorization } 
+        }
+      ).toPromise()
+      
+      return  await this.liveStreamModel.findByIdAndUpdate( liveStream.id, {
+        agoraSid: response.data.sid
+      })
+    }catch(e){
+      return e;
+    }
+  }
+
+  async getRecordIndividualStatus(liveStream:LiveStreamEntityDocument): Promise<any>{
+    try{
+      const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+      const url = `https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/resourceid/${liveStream.agoraResourceId}/sid/${liveStream.agoraSid}/mode/individual/query`;
+      console.log(url);
+      const response = await this.httpService.get(
+        url,
+        { 
+          headers: { Authorization }
+        }
+      ).toPromise();
+
+      return  response;
+
+    }catch(e){
+      return e;
+    }
+  }
+
+  async stopRecordIndividualVideo(liveStream:LiveStreamEntityDocument): Promise<any>{
+    try{
+      const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
+      const response = await this.httpService.post(`https://api.agora.io/v1/apps/${process.env.AGORA_APP_ID}/cloud_recording/resourceid/${liveStream.agoraResourceId}/sid/${liveStream.agoraSid}/mode/individual/stop`,
+        {
+          cname: liveStream.channelName,
+          uid: liveStream.streamerUid.toString(),
+          clientRequest: {
+            async_stop: true
+          }
+        },
+        { 
+          headers: { Authorization }
+        }
+      ).toPromise();
+
+      return  await this.liveStreamModel.findByIdAndUpdate( liveStream.id, {
+        agoraFileList: response.data.serverResponse
+      });
+
+    }catch(e){
+      return e;
+    }
+  }
+
+
+
 
 }
