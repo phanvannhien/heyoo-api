@@ -22,8 +22,9 @@ export class ImageUploadService {
                 if (error) {
                     return res.status(404).json(`Failed to upload image file: ${error}`);
                 }
+                console.log(req.files)
                 return res.status(201).json({
-                    fileUrl: req.files[0].location
+                    fileUrl: `${process.env.CLOUD_FRONT_VIDEO_URL}/${req.files[0].key}`
                 });
             });
         } catch (error) {

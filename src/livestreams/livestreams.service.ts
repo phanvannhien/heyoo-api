@@ -288,7 +288,7 @@ export class LivestreamsService {
       ).toPromise();
 
       return  await this.liveStreamModel.findByIdAndUpdate( liveStream.id, {
-        videoUrl: `${process.env.CLOUD_FRONT_VIDEO_URL}${liveStream.shop}/${liveStream.streamerUid}/${liveStream.agoraSid}_${liveStream.channelName}.m3u8`
+        videoUrl: `${process.env.CLOUD_FRONT_VIDEO_URL}/videos/${liveStream.shop}/${liveStream.streamerUid}/${liveStream.agoraSid}_${liveStream.channelName}.m3u8`
       });
 
     }catch(e){

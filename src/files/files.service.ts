@@ -17,7 +17,8 @@ export class FilesService {
         Key: `${uuid()}`,
         ContentType: "image/jpeg"
     }).promise();
-    return uploadResult.Location;
+    
+    return `${process.env.CLOUD_FRONT_VIDEO_URL}/${uploadResult.Key}`;
   }
 
   async deletePublicFile(fileKey: string): Promise<Boolean> {
