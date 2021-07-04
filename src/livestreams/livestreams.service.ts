@@ -82,7 +82,9 @@ export class LivestreamsService {
   
 
   async findAll(): Promise<LiveStreamEntityDocument[]> {
-    return await this.liveStreamModel.find({ endLiveAt: null })
+    return await this.liveStreamModel.find(
+        { endLiveAt: null, shop: null }
+      )
       .sort({ "_id": -1 })
       .populate(['categories','streamer']).exec();
   }
