@@ -7,6 +7,7 @@ import { UpdateVideosDto } from './dto/update-videos.dto';
 import { GetVideosDto } from './dto/get-videos.dto';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import * as mongoose from 'mongoose';
+import { GetAdminVideosDto } from './dto/get-videos-admin.dto';
 
 @Injectable()
 export class VideosService {
@@ -24,6 +25,54 @@ export class VideosService {
         return await this.videoModel.findById(id)
             .populate('category')
             .exec();
+    }
+
+    
+    async getForAdmin(query: GetAdminVideosDto): Promise<VideosEntityDocument[]> {
+
+        let matchQuery = {};
+
+        if( query.isHot ){
+            matchQuery['isHot'] = query.isHot.toString() == 'true' ? true: false ;
+        }
+
+        if( query.title ){
+            matchQuery['title'] = { $regex: new RegExp( query.title, 'i' ) };
+        }
+    
+        if( query.category ){
+            matchQuery['category'] = new mongoose.Types.ObjectId(query.category);
+        }
+
+        console.log(matchQuery)
+
+        return await this.videoModel.aggregate([
+            { 
+              $match: matchQuery
+            },
+            {
+              $lookup: {
+                  from: "video-categories",
+                  localField: "category",
+                  foreignField: "_id",
+                  as: "category"
+              }
+            },
+           
+            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            { $sort: { "_id": -1 } },
+            {
+                $facet: {
+                    items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+                    total: [
+                        {
+                            $count: 'count'
+                        }
+                    ]
+                }
+            }
+        ]).exec(); 
+        
     }
 
     async findAll(query: GetVideosDto): Promise<VideosEntityDocument[]> {
@@ -68,6 +117,15 @@ export class VideosService {
     async update(id: string, updateDto: object ): Promise<VideosEntityDocument>  {
         await this.videoModel.findByIdAndUpdate( id, updateDto );
         return await this.videoModel.findById(id)
+            .populate('category')
+            .exec();
+    }
+
+    async updateHot( video: VideosEntityDocument ): Promise<VideosEntityDocument>  {
+        await this.videoModel.findByIdAndUpdate( video.id, {
+            isHot: !video.isHot
+        });
+        return await this.videoModel.findById(video.id)
             .populate('category')
             .exec();
     }

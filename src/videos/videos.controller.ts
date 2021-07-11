@@ -50,6 +50,15 @@ export class VideosController {
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 
+    @Get('admin/get')
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        type: VideosItemsPaginateResponse
+    })
+    async getForAdmin( @Query() query: GetVideosDto ): Promise<IResponse>{
+        const d = await this.videoService.getForAdmin(query);
+        return new ResponseSuccess(new VideosItemsPaginateResponse(d[0] ));
+    }
 
     @Get()
     @ApiBearerAuth()
@@ -99,6 +108,19 @@ export class VideosController {
         const find = await this.videoService.findById(id);
         if( !find ) throw new BadRequestException('videos not found');
         const data = await this.videoService.update( id,  body);
+        return new ResponseSuccess(new VideosItemResponse(data));
+    }
+
+    @ApiOkResponse({ type: VideosItemResponse })
+    @ApiBearerAuth()
+    @Put(':id/set-hot')
+    async setHot(
+            @Param('id', new MongoIdValidationPipe() ) id: string
+        ): Promise<IResponse> {
+        const find = await this.videoService.findById(id);
+        if( !find ) throw new BadRequestException('videos not found');
+        
+        const data = await this.videoService.updateHot( find );
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 

@@ -17,6 +17,7 @@ import { NewsCategoriesService } from 'src/news-categories/news-categories.servi
 import { NewsEntityDocument } from './entities/news.entity';
 import { NewsListItemsResponse } from './responses/news-items.response';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
+import { GetForAdminDto } from './dto/get-for-admin.dto';
 
 
 @ApiTags('news')
@@ -134,6 +135,30 @@ export class NewsController {
       return await this.newsService.remove(id);
     }
 
+
+    @Get('admin/get')
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        type: NewsItemsResponse
+    })
+    async getForAdmin( @Query() query: GetForAdminDto ): Promise<IResponse>{
+        const d = await this.newsService.getForAdmin(query);
+        return new ResponseSuccess(new NewsItemsResponse(d[0] ));
+    }
+
+
+    @ApiOkResponse({ type: NewsItemResponse })
+    @ApiBearerAuth()
+    @Put(':id/set-hot')
+    async setHot(
+            @Param('id', new MongoIdValidationPipe() ) id: string
+        ): Promise<IResponse> {
+        const find = await this.newsService.findById(id);
+        if( !find ) throw new BadRequestException('News not found');
+        
+        const data = await this.newsService.updateHot( find );
+        return new ResponseSuccess(new NewsItemResponse(data));
+    }
 
 
 }

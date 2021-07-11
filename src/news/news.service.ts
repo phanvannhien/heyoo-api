@@ -7,6 +7,7 @@ import { UpdateNewsDto } from './dto/update-news.dto';
 import { GetNewsDto } from './dto/get-news.dto';
 import * as mongoose from 'mongoose';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
+import { GetForAdminDto } from './dto/get-for-admin.dto';
 
 @Injectable()
 export class NewsService {
@@ -98,5 +99,60 @@ export class NewsService {
     
     async remove(id: string): Promise<any> {
         return await this.newsModel.findByIdAndRemove( id );
+    }
+
+
+    async updateHot( video: NewsEntityDocument ): Promise<NewsEntityDocument>  {
+        await this.newsModel.findByIdAndUpdate( video.id, {
+            isHot: !video.isHot
+        });
+        return await this.newsModel.findById(video.id)
+            .populate('category')
+            .exec();
+    }
+
+    async getForAdmin(query: GetForAdminDto): Promise<NewsEntityDocument[]> {
+
+        let matchQuery = {};
+
+        if( query.isHot ){
+            matchQuery['isHot'] = query.isHot.toString() == 'true' ? true: false ;
+        }
+
+        if( query.title ){
+            matchQuery['title'] = { $regex: new RegExp( query.title, 'i' ) };
+        }
+    
+        if( query.category ){
+            matchQuery['category'] = new mongoose.Types.ObjectId(query.category);
+        }
+ 
+        return await this.newsModel.aggregate([
+            { 
+              $match: matchQuery
+            },
+            {
+              $lookup: {
+                  from: "news-categories",
+                  localField: "category",
+                  foreignField: "_id",
+                  as: "category"
+              }
+            },
+           
+            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            { $sort: { "_id": -1 } },
+            {
+                $facet: {
+                    items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+                    total: [
+                        {
+                            $count: 'count'
+                        }
+                    ]
+                }
+            }
+        ]).exec(); 
+        
     }
 }
