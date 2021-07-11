@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
 import * as mongoose from 'mongoose';
 
+import * as admin from 'firebase-admin';
+import { ServiceAccount } from "firebase-admin";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,6 +26,11 @@ async function bootstrap() {
       accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
       secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
       region: configService.get('AWS_REGION'),
+  });
+
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    databaseURL: 'https://heyoolive.firebaseio.com'
   });
 
   app.enableCors();

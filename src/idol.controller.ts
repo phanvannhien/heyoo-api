@@ -43,7 +43,7 @@ export class IdolController {
   async getTopStreamers( @Query() query: QueryPaginateDto ): Promise<IResponse>{
     const data = await this.userService.getTopStreamers(query);
 
-    return new ResponseSuccess(new UsersProfileResponse(data));
+    return new ResponseSuccess(new UsersProfileResponse(data[0] ));
   }
 
   @ApiBearerAuth()
@@ -55,7 +55,7 @@ export class IdolController {
   })
   async getIsFollowing( @Request() req, @Query() query: QueryPaginateDto ): Promise<IResponse>{
     const data = await this.userService.getIsFollowing(req.user.id, query);
-    return new ResponseSuccess(new UsersProfileResponse(data));
+    return new ResponseSuccess(new UsersProfileResponse( data[0] ));
   }
 
 }

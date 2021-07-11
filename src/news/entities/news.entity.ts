@@ -16,4 +16,5 @@ export interface NewsEntityDocument extends Document {
     readonly createdAt: Date;
     readonly updatedAt: Date;
     readonly status: number;
+    readonly isHot: boolean;
 }

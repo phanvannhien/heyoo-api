@@ -30,6 +30,7 @@ import { ShopCategoriesModule } from './shop-categories/shop-categories.module';
 import { ShopModule } from './shop/shop.module';
 import { IdolController } from './idol.controller';
 import { UserWallsModule } from './user-walls/user-walls.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 
 @Module({
@@ -63,7 +64,8 @@ import { UserWallsModule } from './user-walls/user-walls.module';
     VideosModule,
     ShopCategoriesModule,
     ShopModule,
-    UserWallsModule
+    UserWallsModule,
+    NotificationsModule
   ],
   controllers: [
     AppController,

@@ -45,4 +45,10 @@ export class UpdateVideosDto {
     })
     @IsNotEmpty()
     status: Number;
+
+    @ApiProperty({
+        type: Boolean, default: false 
+    })
+    @IsNotEmpty()
+    isHot: boolean;
 }

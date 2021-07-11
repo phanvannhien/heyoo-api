@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { CategoriesResponse } from "src/categories/responses/categories.response";
 import { UserResponse } from "src/users/responses/user.response";
 import * as moment from 'moment';
+import { ShopCategoriesResponse } from "src/shop-categories/responses/shop-categories.response";
 
 export class ShopVideoItemResponse{
   
@@ -13,7 +13,12 @@ export class ShopVideoItemResponse{
         this.startLiveAt = moment(object.startLiveAt).valueOf().toString();
         this.endLiveAt = object.endLiveAt;
         this.streamer = new UserResponse(object.streamer);
+        this.category = {
+            id: object.category.id ?? object.category._id,
+            categoryName: object.category.categoryName
+        };
         this.viewCount = object.viewCount ?? 0;
+        this.streamerUid = object.streamerUid;
         this.shop = object.shop ?? '';
         this.videoUrl = object.videoUrl ?? '';
     }
@@ -38,6 +43,11 @@ export class ShopVideoItemResponse{
     @ApiProperty()
     streamer: UserResponse;
 
+    @ApiProperty()
+    category: ShopCategoriesResponse;
+
+    @ApiProperty()
+    streamerUid: number;
 
     @ApiProperty()
     viewCount: number;

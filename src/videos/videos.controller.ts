@@ -13,14 +13,18 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FilesService } from 'src/files/files.service';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { VideosEntityDocument } from './entities/videos.entity';
+import { VideosItemsPaginateResponse } from './responses/videos-items-paginate.response';
+import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
+import { VideoCategoriesService } from 'src/video-categories/video-categories.service';
 
 @ApiTags('videos')
 @Controller('videos')
 export class VideosController {
 
     constructor(
-        private readonly newsService: VideosService,
-        private readonly fileService: FilesService
+        private readonly videoService: VideosService,
+        private readonly fileService: FilesService,
+        private readonly videCategryService: VideoCategoriesService,
     ) {}
 
     @ApiOkResponse({ type: VideosItemResponse })
@@ -33,12 +37,16 @@ export class VideosController {
         @Body() body: CreateVideosDto,
     ): Promise<IResponse>
     {
+
+        const video = await this.videCategryService.findOne( body.category );
+        if(!video) throw new BadRequestException('Category not found');
+
         const createData = { 
             ...body,
             createdBy: req.user.id,
         };
         
-        const data = await this.newsService.create(createData);
+        const data = await this.videoService.create(createData);
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 
@@ -46,23 +54,23 @@ export class VideosController {
     @Get()
     @ApiBearerAuth()
     @ApiOkResponse({
-        type: VideosItemsResponse
+        type: VideosItemsPaginateResponse
     })
     async find( @Query() query: GetVideosDto ): Promise<IResponse>{
-        const d = await this.newsService.findAll(query);
-        return new ResponseSuccess(new VideosItemsResponse(d));
+        const d = await this.videoService.findAll(query);
+        return new ResponseSuccess(new VideosItemsPaginateResponse(d[0] ));
     }
 
     @ApiOkResponse({ type: VideosItemResponse  })
     @ApiBearerAuth()
     @Get(':id')
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
-        const find: VideosEntityDocument = await this.newsService.findById(id);
+        const find: VideosEntityDocument = await this.videoService.findById(id);
         if( !find ) throw new BadRequestException('videos not found');
         const updateView = {
             viewCount: find.viewCount + 1
         }
-        await this.newsService.update( id, updateView );
+        await this.videoService.update( id, updateView );
         return new ResponseSuccess(new VideosItemResponse(find));
     }
 
@@ -70,13 +78,13 @@ export class VideosController {
     @ApiBearerAuth()
     @Post(':id/share-count')
     async postShare(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
-        const find: VideosEntityDocument = await this.newsService.findById(id);
+        const find: VideosEntityDocument = await this.videoService.findById(id);
         if( !find ) throw new BadRequestException('News not found');
         // update share count
         const update = {
             shareCount: find.shareCount + 1
         }
-        await this.newsService.update( id, update );
+        await this.videoService.update( id, update );
         return new ResponseSuccess(new VideosItemResponse(find));
     }
 
@@ -88,18 +96,41 @@ export class VideosController {
             @Param('id', new MongoIdValidationPipe() ) id: string,
             @Body() body: UpdateVideosDto
         ): Promise<IResponse> {
-        const find = await this.newsService.findById(id);
+        const find = await this.videoService.findById(id);
         if( !find ) throw new BadRequestException('videos not found');
-        const data = await this.newsService.update( id,  body);
+        const data = await this.videoService.update( id,  body);
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 
     @ApiBearerAuth()
     @Delete(':id')
     async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
-      return await this.newsService.remove(id);
+      return await this.videoService.remove(id);
     }
 
 
+    @Get('type/hot')
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        type: VideosItemsResponse
+    })
+    async getHot(): Promise<IResponse>{
+        const d = await this.videoService.getHot();
+       
+        return new ResponseSuccess(new VideosItemsResponse(d));
+    }
+
+    @Get(':id/relation')
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        type: VideosItemsResponse
+    })
+    async relation( @Param('id', new MongoIdValidationPipe() ) id: string, @Query() paginate: QueryPaginateDto ): Promise<IResponse>{
+        const find: VideosEntityDocument = await this.videoService.findById(id);
+        if( !find ) throw new BadRequestException('Video not found');
+
+        const d = await this.videoService.relation(find, paginate);
+        return new ResponseSuccess(new VideosItemsResponse(d));
+    }
 
 }

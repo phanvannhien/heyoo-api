@@ -15,6 +15,8 @@ import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { CategoriesService } from 'src/categories/categories.service';
 import { NewsCategoriesService } from 'src/news-categories/news-categories.service';
 import { NewsEntityDocument } from './entities/news.entity';
+import { NewsListItemsResponse } from './responses/news-items.response';
+import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 
 
 @ApiTags('news')
@@ -53,7 +55,30 @@ export class NewsController {
     })
     async find( @Query() query: GetNewsDto ): Promise<IResponse>{
         const d = await this.newsService.findAll(query);
-        return new ResponseSuccess(new NewsItemsResponse(d));
+        return new ResponseSuccess(new NewsItemsResponse(d[0] ));
+    }
+
+    @Get('type/hot')
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        type: NewsListItemsResponse
+    })
+    async getHotNews(): Promise<IResponse>{
+        const d = await this.newsService.getHotNews();
+        return new ResponseSuccess(new NewsListItemsResponse(d));
+    }
+
+    @Get(':id/relation')
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        type: NewsListItemsResponse
+    })
+    async relation( @Param('id', new MongoIdValidationPipe() ) id: string, @Query() paginate: QueryPaginateDto ): Promise<IResponse>{
+        const find: NewsEntityDocument = await this.newsService.findById(id);
+        if( !find ) throw new BadRequestException('News not found');
+
+        const d = await this.newsService.relation(find, paginate);
+        return new ResponseSuccess(new NewsListItemsResponse(d));
     }
 
     @ApiOkResponse({ type: NewsItemResponse  })
@@ -70,6 +95,8 @@ export class NewsController {
     
         return new ResponseSuccess(new NewsItemResponse(find));
     }
+
+   
 
 
     @ApiOkResponse({ type: NewsItemResponse  })

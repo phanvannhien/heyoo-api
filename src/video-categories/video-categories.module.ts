@@ -9,6 +9,9 @@ import { VideoCategoriesSchema } from './schemas/video-categories.schema';
     MongooseModule.forFeature([{ name: 'VideoCategories', schema: VideoCategoriesSchema }])
   ],
   controllers: [VideoCategoriesController],
-  providers: [VideoCategoriesService]
+  providers: [VideoCategoriesService],
+  exports:[
+    VideoCategoriesService
+  ]
 })
 export class VideoCategoriesModule {}

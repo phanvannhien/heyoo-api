@@ -23,5 +23,6 @@ export class GetNewsDto{
 
     @ApiProperty({ type: String, required: false })
     @IsOptional()
-    title?: String;
+    category?: string;
+
 }

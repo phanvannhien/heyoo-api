@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 
-export const NewsSchema = new mongoose.Schema({
+export const NotificationSchema = new mongoose.Schema({
     title: { type: String, require: true },
     image: String,
     viewCount: { type: Number, default: 0 },
@@ -19,8 +19,7 @@ export const NewsSchema = new mongoose.Schema({
     },
     excerpt: String,
     description: String,
-    status: { type: Number, default: 0 },
-    isHot: { type: Boolean, default: 0 },
+    status: { type: Number, default: 0 }
 }, {
     timestamps: true,
     collection: 'news'

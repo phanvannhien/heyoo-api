@@ -67,7 +67,7 @@ export class ShopController {
     @UseGuards( JwtAuthGuard )
     async find( @Query() query: GetShopDto ): Promise<IResponse>{
         const d = await this.shopService.findAll(query);
-        return new ResponseSuccess(new ShopsResponse(d));
+        return new ResponseSuccess(new ShopsResponse( d[0] ));
     }
 
     @ApiOkResponse({ type: ShopItemResponse  })

@@ -8,7 +8,7 @@ import * as moment from 'moment';
 export class NewsItemResponse{
   
     constructor( object: any ){
-        this.id = object.id;
+        this.id = object.id ?? object._id;
         this.title = object.title;
         this.image = object.image;
         this.category = new NewsCategoriesResponse(object.category);
@@ -18,16 +18,17 @@ export class NewsItemResponse{
         this.status = object.status;
         this.viewCount = object.viewCount;
         this.shareCount = object.shareCount;
+        this.isHot = object.isHot;
 
     }
     @ApiProperty()
-    id: String;
+    id: string;
 
     @ApiProperty()
-    title: String;
+    title: string;
 
     @ApiProperty()
-    image: String;
+    image: string;
 
     @ApiProperty()
     category: NewsCategoriesResponse;
@@ -36,17 +37,20 @@ export class NewsItemResponse{
     createdAt: string;
     
     @ApiProperty()
-    excerpt: String;
+    excerpt: string;
 
     @ApiProperty()
-    description: String;
+    description: string;
 
     @ApiProperty()
-    status: Number;
+    status: number;
 
     @ApiProperty()
-    viewCount: Number;
+    viewCount: number;
 
     @ApiProperty()
-    shareCount: Number;
+    shareCount: number;
+
+    @ApiProperty()
+    isHot: boolean;
 }

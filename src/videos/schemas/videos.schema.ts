@@ -20,7 +20,8 @@ export const VideosSchema = new mongoose.Schema({
     },
     excerpt: String,
     description: String,
-    status: { type: Number, default: 0 }
+    status: { type: Number, default: 0 },
+    isHot: { type: Boolean, default: false }
 }, {
     timestamps: true,
     collection: 'videos'

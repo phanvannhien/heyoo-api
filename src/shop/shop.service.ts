@@ -191,8 +191,15 @@ export class ShopService {
               }
             },
             {
-              $unwind: {  path: "$streamer", preserveNullAndEmptyArrays: true }
+                $lookup: {
+                    from: "categories",
+                    localField: "categories",
+                    foreignField: "_id",
+                    as: "category"
+                }
             },
+            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            { $unwind: {  path: "$streamer", preserveNullAndEmptyArrays: true } },
             { $sort: { "_id": -1 } },
             {
                 $facet: {
@@ -266,8 +273,18 @@ export class ShopService {
                 }
             },
             { $sort: { "_id" : -1 } },
-            { $limit: Number(query.limit) },
-            { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+            // { $limit: Number(query.limit) },
+            // { $skip:  Number(query.limit) * (Number(query.page) - 1) },
+            {
+                $facet: {
+                    items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+                    total: [
+                        {
+                            $count: 'count'
+                        }
+                    ]
+                }
+            }
 
         ]).exec()
 

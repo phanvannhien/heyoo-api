@@ -8,12 +8,12 @@ export class CreateNewsDto {
     title: string;
 
     @IsNotEmpty()
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: String, default: 'https://picsum.photos/400/300' })
     image: string;
 
     @ApiProperty({
         type: String,
-        default: '60a4cb1bb76a9f089c8d281d'
+        default: '60acc36d3ac8061f2bf6d302'
     })
     @IsNotEmpty()
     @IsMongoId()
@@ -36,4 +36,10 @@ export class CreateNewsDto {
     })
     @IsNotEmpty()
     status: Number;
+
+    @ApiProperty({
+        type: Boolean, default: false 
+    })
+    @IsNotEmpty()
+    isHot: boolean;
 }

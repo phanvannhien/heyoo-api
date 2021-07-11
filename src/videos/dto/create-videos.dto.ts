@@ -7,11 +7,11 @@ export class CreateVideosDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: String, default: 'https://picsum.photos/400/300' })
     @IsNotEmpty()
     image: string;
     
-    @ApiProperty({ type: String })
+    @ApiProperty({ type: String, default: 'https://heyoo-public.s3.ap-southeast-1.amazonaws.com/file_example_MP4_1280_10MG.mp4' })
     @IsNotEmpty()
     videoUrl: string;
 
@@ -39,5 +39,11 @@ export class CreateVideosDto {
         type: Number, 
     })
     @IsNotEmpty()
-    status: Number;
+    status: number;
+
+    @ApiProperty({
+        type: Boolean, default: false 
+    })
+    @IsNotEmpty()
+    isHot: boolean;
 }
