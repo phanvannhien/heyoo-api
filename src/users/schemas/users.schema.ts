@@ -21,5 +21,6 @@ export const UserSchema = new mongoose.Schema({
     dob: String,
     country: String,
     address: String,
-    bio: String
+    bio: String,
+    fcmToken: String
 });

@@ -8,6 +8,9 @@ export interface User extends Document {
     readonly gender: number;
     readonly avatar: string;
     readonly isVerified: boolean;
-    readonly otp: string;
-    readonly otpCreatedAt: Date;
+    readonly dob: string;
+    readonly country: string;
+    readonly address: string;
+    readonly bio: string;
+    readonly fcmToken: string;
 }

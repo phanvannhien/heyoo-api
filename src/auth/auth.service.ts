@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     getJWTPayload(user){
-        return { phone: user.phone, sub: user._id };
+        return { phone: user.phone, sub: user._id, fullName: user.fullname };
     }
 
     async validateUser( phone: string, password: string ): Promise<User>{

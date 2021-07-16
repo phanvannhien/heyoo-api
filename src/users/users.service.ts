@@ -15,6 +15,10 @@ import { GetFollowingDto } from './dto/getfollowing.dto';
 import * as mongoose from 'mongoose';
 import { SearchIdoDto } from './dto/search-ido.dto';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
+import { LoginSocialDto } from 'src/auth/dto/login-social.dto';
+import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
+import { USER_FCMTOKEN_MODEL } from 'src/mongo-model.constance';
+import { UserFcmTokenEntityDocument } from './interfaces/fcm-token.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +27,7 @@ export class UsersService {
     constructor(
         @InjectModel('User') private readonly userModel: Model<User>,
         @InjectModel('Follow') private readonly followModel: Model<FollowEntityDocument>,
+        @InjectModel( USER_FCMTOKEN_MODEL ) private readonly fcmTokenModel: Model<UserFcmTokenEntityDocument>,
         private readonly filesService: FilesService,
         private readonly liveStreamService: LivestreamsService,
     ){
@@ -73,7 +78,11 @@ export class UsersService {
         return await this.userModel.findById(id).exec()
     }
 
-
+    /**
+     * @deprecated
+     * @param socialProfile 
+     * @returns 
+     */
     async findOrCreateFacebookId( socialProfile: any ) : Promise<User>{
 
         const user = await this.userModel.findOne({ 'facebook.id': socialProfile.id }).exec();
@@ -90,6 +99,11 @@ export class UsersService {
         return await createUser.save();
     } 
 
+    /**
+     * @deprecated
+     * @param socialProfile 
+     * @returns 
+     */
     async findOrCreateGoogleId( socialProfile: any ) : Promise<User>{
 
         const user = await this.userModel.findOne({ 'google.id': socialProfile.sub }).exec();
@@ -107,6 +121,11 @@ export class UsersService {
         return await createUser.save();
     }
     
+    /**
+     * @deprecated
+     * @param socialProfile 
+     * @returns 
+     */
     async findOrCreateAppleId( socialProfile: any ) : Promise<User>{
 
         const user = await this.userModel.findOne({ 'apple.id': socialProfile.sub }).exec();
@@ -125,6 +144,23 @@ export class UsersService {
         
     }
  
+    async findOrCreateSocialUser( body: LoginSocialDto , socialProfile: any ){
+        const key =  `${body.provider}.id`;
+        const user = await this.userModel.findOne({ key : socialProfile.sub }).exec();
+        if( user ) return user;
+        const createUser = new this.userModel({
+            fullname: 'No name',
+            email: socialProfile.email,
+            avatar: '',
+            isVerified: true,
+            apple: {
+                id: socialProfile.sub,
+            }
+        });
+    
+        return await createUser.save();
+    }
+
     async createUser( registerDto: RegisterDto ) : Promise<User>{
         const createdUser = new this.userModel(registerDto);
         return await createdUser.save();
@@ -177,6 +213,7 @@ export class UsersService {
         return true
     }
 
+    // Lấy danh sách user đang theo dõi của userId 
     async getFollower(userId, query: GetFollowerDto): Promise<any>{
         const findFollowUser = await this.userModel.findById(userId);
         if (!findFollowUser) throw new BadRequestException('User not found');
@@ -192,6 +229,7 @@ export class UsersService {
             
     }
 
+    // Lấy danh sách user mà userId đang theo dõi
     async getFollowing(userId, query: GetFollowingDto): Promise<any>{
         const findFollowUser = await this.userModel.findById(userId);
         if (!findFollowUser) throw new BadRequestException('User not found');
@@ -665,5 +703,40 @@ export class UsersService {
             follow: 1, _id: 0
         })
         .exec()
+    }
+
+    async registerFcmToken( userId: string, body: RegisterFcmTokenDto ): Promise<UserFcmTokenEntityDocument>{
+        const find = await this.fcmTokenModel.findOne({
+            user: userId,
+            fcmToken: body.fcmToken
+        }).exec()
+        if( find ) return find;
+        const updated = new this.fcmTokenModel({
+            user: userId,
+            fcmToken: body.fcmToken
+        });
+        await updated.save();
+        return updated;
+    }
+
+    async getUserFollowerFcmToken( userId ): Promise<string[]>{
+        const users = await this.followModel.find({
+            follow: userId
+        }).select('user').distinct('user').exec()
+
+        const fcms = await this.fcmTokenModel.where(
+            { user : { $in : users } }
+        ).select('fcmToken').distinct('fcmToken').exec()
+
+        return fcms;
+    }
+
+    async getAllUserFcmtokens(): Promise<string[]>{
+        const fcms = await this.fcmTokenModel.find().select('fcmToken').distinct('fcmToken').exec()
+        return fcms;
+    }
+
+    async getAllUserActive(): Promise<string[]>{
+        return await this.userModel.find({ isVerified: true }).select('_id').distinct('_id').exec()
     }
 }

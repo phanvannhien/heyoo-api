@@ -16,6 +16,10 @@ import { VideosEntityDocument } from './entities/videos.entity';
 import { VideosItemsPaginateResponse } from './responses/videos-items-paginate.response';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import { VideoCategoriesService } from 'src/video-categories/video-categories.service';
+import { UsersService } from 'src/users/users.service';
+import { FirebaseCloudMessageService } from 'src/firebase/firebase.service';
+import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @ApiTags('videos')
 @Controller('videos')
@@ -25,6 +29,9 @@ export class VideosController {
         private readonly videoService: VideosService,
         private readonly fileService: FilesService,
         private readonly videCategryService: VideoCategoriesService,
+        private readonly userService: UsersService,
+        private readonly fcmService: FirebaseCloudMessageService,
+        private readonly notifyService: NotificationsService,
     ) {}
 
     @ApiOkResponse({ type: VideosItemResponse })
@@ -47,6 +54,31 @@ export class VideosController {
         };
         
         const data = await this.videoService.create(createData);
+
+        const notifyData = {
+            title: `New Video`,
+            body: data.title,
+            imageUrl: data.image,
+            metaData: {
+              videoId: data.id
+            },
+            clickAction: 'VIEW_VIDEOS'
+        }
+        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
+        if(fcmTokens.length>0){
+          this.fcmService.sendMessage( fcmTokens, notifyData );
+        }
+
+        const allUser = await this.userService.getAllUserActive();
+        const notifyDataCreate =  allUser.map( i => {
+           return {
+            ...notifyData,
+            user: i
+           }
+        })
+        
+        await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
+    
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 

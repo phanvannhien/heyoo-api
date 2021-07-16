@@ -20,6 +20,11 @@ import { UserWallsService } from 'src/user-walls/user-walls.service';
 import { LiveStreamPaginationResponse } from './responses/livestream-pagination.response';
 import { CategoriesService } from 'src/categories/categories.service';
 import { ShopService } from 'src/shop/shop.service';
+import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service';
+import { ShopEntityDocument } from 'src/shop/entities/shop.entity';
+import { UsersService } from 'src/users/users.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 const crypto = require('crypto');
 
 
@@ -33,6 +38,9 @@ export class LivestreamsController {
     private readonly wallService: UserWallsService,
     private readonly categoryService: CategoriesService,
     private readonly shopService: ShopService,
+    private readonly fcmService: FirebaseCloudMessageService,
+    private readonly userService: UsersService,
+    private readonly notifyService: NotificationsService,
     ) {}
 
 
@@ -49,12 +57,14 @@ export class LivestreamsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('coverPicture'))
   async create(@Req() request, @Body() body: CreateLivestreamDto, @UploadedFile() coverPicture): Promise<IResponse> {
+    let shop: ShopEntityDocument;
+    let notifyData: INotifyMessageBody;
 
     const category = await this.categoryService.findOne( body.categories );
     if( !category ) throw new BadRequestException('Category not found');
 
     if( body.shop ){
-      const shop = await this.shopService.findById(body.shop);
+      shop = await this.shopService.findById(body.shop);
       if( !shop ) throw new BadRequestException('Shop not found');
     }
 
@@ -76,9 +86,46 @@ export class LivestreamsController {
       shop: body.shop,
       agoraToken: agoraToken,
       agoraRtmToken: agoraRtmToken,
-
     };
+    
     const liveStream = await this.livestreamsService.create(createData);
+
+    // notify
+    if( body.shop ){
+      notifyData = {
+        title: `${shop.shopName} is livestreaming now`,
+        body: 'Watch it now!',
+        imageUrl: shop.image,
+        metaData: {
+          shopId: shop.id,
+          liveStreamId: liveStream.id
+        },
+        clickAction: 'JOIN_LIVESTREAM'
+      }
+    }else{
+    
+      notifyData = {
+        title: `${request.user.fullName} is livestreaming now`,
+        body: 'Watch it now!',
+        imageUrl: liveStream.streamer.avatar,
+        metaData: {
+          streamerId: liveStream.streamer.id,
+          liveStreamId: liveStream.id
+        },
+        clickAction: 'JOIN_LIVESTREAM'
+      }
+
+    }
+
+    const fcmTokens: string[] = await this.userService.getUserFollowerFcmToken( request.user.id );
+    if(fcmTokens.length>0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data
+    await this.notifyService.create({
+      ...notifyData,
+      user: request.user.id
+    } as CreateNotificationDto )
 
     if( body.shop ){
       await this.livestreamsService.acquireRecordVideo( liveStream );

@@ -14,6 +14,7 @@ import { GetFollowerDto } from './dto/getfollower.dto';
 import { GetFollowingDto } from './dto/getfollowing.dto';
 import { UserProfileResponse } from 'src/auth/responses/profile.response';
 import { request } from 'http';
+import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 
 
 @ApiTags('users')
@@ -59,6 +60,17 @@ export class UsersController {
         })
     }
 
+
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @Post('do/register-fcm-token')
+    @HttpCode( HttpStatus.OK )
+    @UseGuards(JwtAuthGuard)
+    async registerFcmToken( @Req() request, @Body() body: RegisterFcmTokenDto ): Promise<IResponse> {
+
+        const data = await this.userService.registerFcmToken(request.user.id, body );
+        return new ResponseSuccess( { fcmToken: data.fcmToken } )
+    }
 
     @ApiResponse({
         type: FollowResponse
@@ -125,5 +137,14 @@ export class UsersController {
         return new ResponseSuccess({ isFollowing: false }) 
     }
 
+    @Get('do/fcm-token-follower')
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async getFcmToken(  @Req() request ): Promise<any>{
+        console.log(request.user);
+        return await this.userService.getUserFollowerFcmToken( request.user.id );
+    }
 
 }

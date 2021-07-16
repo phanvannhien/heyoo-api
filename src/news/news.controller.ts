@@ -18,6 +18,10 @@ import { NewsEntityDocument } from './entities/news.entity';
 import { NewsListItemsResponse } from './responses/news-items.response';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import { GetForAdminDto } from './dto/get-for-admin.dto';
+import { UsersService } from 'src/users/users.service';
+import { FirebaseCloudMessageService } from 'src/firebase/firebase.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 
 
 @ApiTags('news')
@@ -26,7 +30,10 @@ export class NewsController {
 
     constructor(
         private readonly newsService: NewsService,
-        private readonly fileService: FilesService
+        private readonly fileService: FilesService,
+        private readonly userService: UsersService,
+        private readonly fcmService: FirebaseCloudMessageService,
+        private readonly notifyService: NotificationsService,
     ) {}
 
     @ApiOkResponse({ type: NewsItemResponse })
@@ -45,6 +52,31 @@ export class NewsController {
         };
         
         const data = await this.newsService.create(createData);
+
+        const notifyData = {
+            title: `New Post`,
+            body: data.title,
+            imageUrl: data.image,
+            metaData: {
+              newsId: data.id
+            },
+            clickAction: 'VIEW_NEWS'
+        }
+        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
+        if(fcmTokens.length>0){
+          this.fcmService.sendMessage( fcmTokens, notifyData );
+        }
+
+        const allUser = await this.userService.getAllUserActive();
+        const notifyDataCreate =  allUser.map( i => {
+           return {
+            ...notifyData,
+            user: i
+           }
+        })
+        
+        await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
+    
         return new ResponseSuccess(new NewsItemResponse(data));
     }
 

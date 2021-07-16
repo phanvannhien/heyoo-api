@@ -9,6 +9,9 @@ import { UserWallsModule } from 'src/user-walls/user-walls.module';
 import { ShopService } from 'src/shop/shop.service';
 import { ShopModule } from 'src/shop/shop.module';
 import { CategoriesModule } from 'src/categories/categories.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
+import { FirebaseCloudMessageModule } from 'src/firebase/firebase.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -20,10 +23,12 @@ import { CategoriesModule } from 'src/categories/categories.module';
     FilesModule,
     AgoraModule,
     UserWallsModule,
-    LivestreamsModule,
+    // LivestreamsModule,
     CategoriesModule,
     ShopModule,
-    HttpModule
+    HttpModule,
+    NotificationsModule,
+    FirebaseCloudMessageModule,
   ],
   controllers: [LivestreamsController],
   providers: [LivestreamsService],

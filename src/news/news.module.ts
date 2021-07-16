@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { NewsSchema } from './schemas/news.schema';
 import { FilesModule } from 'src/files/files.module';
 import { NewsCategoriesModule } from 'src/news-categories/news-categories.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 
 @Module({
@@ -15,6 +16,7 @@ import { NewsCategoriesModule } from 'src/news-categories/news-categories.module
     ]),
     FilesModule,
     NewsCategoriesModule,
+    NotificationsModule
   ],
   controllers: [NewsController],
   providers: [NewsService],

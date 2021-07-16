@@ -111,16 +111,10 @@ export class AuthController{
 
             }else{
                 socialUser = this.parseJwt( body.access_token ) ;
-            }      
-              
-            if( body.provider == 'facebook' ){
-                user = await this.userService.findOrCreateFacebookId( socialUser );
-            }else if( body.provider == 'google' ){
-                user = await this.userService.findOrCreateGoogleId( socialUser );
-            }else if( body.provider == 'apple' ){
-                user = await this.userService.findOrCreateAppleId( socialUser );
-            }
-            
+            }     
+
+            user = await this.userService.findOrCreateSocialUser( body, socialUser );
+
             return new ResponseSuccess( new AuthResponse({
                 accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
                 user: user
@@ -129,46 +123,6 @@ export class AuthController{
             throw new BadRequestException( err )
         }
     }
-
-
-    @ApiOkResponse({
-        type: AuthResponse,
-    })
-    @UseGuards(AuthGuard('facebook-token'))  
-    @Post('login-facebook')
-    async getTokenAfterFacebookSignIn(@Request() req, @Body() loginFacebookDto: LoginFacebookDto ) {
-        try{
-            if( !req.user ) throw new BadRequestException('Token is invalid');
-            const socialUser = req.user;
-           
-            const user = await this.userService.findOrCreateFacebookId( socialUser );
-            return new ResponseSuccess( new AuthResponse({
-                accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
-                user: user
-            }));
-        }catch(err){
-            throw new BadRequestException( err )
-        }
-    }
-
-    @ApiOkResponse({
-        type: AuthResponse,
-    })
-    // @UseGuards(AuthGuard('google-verify-token'))  
-    @Post('login-google')
-    @HttpCode(HttpStatus.OK)
-    async getTokenAfterGoogleSignIn( @Body() body: LoginGoogleDto ): Promise<IResponse> {
-
-        const socialUser = this.parseJwt( body.access_token ) ;
-        const user = await this.userService.findOrCreateGoogleId( socialUser );
-
-        return new ResponseSuccess( new AuthResponse({
-            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
-            user: user
-        }));
-
-    }
-
 
     parseJwt(token) {
         const base64Payload = token.split('.')[1];
@@ -176,22 +130,63 @@ export class AuthController{
         return JSON.parse(payload.toString());
     }
 
-    @ApiOkResponse({
-        type: AuthResponse,
-    })
-    // @UseGuards(AuthGuard('apple-verify-token'))
-    @Post('login-apple')
-    @HttpCode(HttpStatus.OK)
-    async loginWithApple(@Req() req, @Body() body: LoginAppleDto ): Promise<IResponse> {
-        // const socialUser = req.user;
-        const socialUser = this.parseJwt( body.access_token ) ;
-        const user = await this.userService.findOrCreateAppleId( socialUser );
-        return new ResponseSuccess( new AuthResponse({
-            accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
-            user: user
-        }));
 
-    }
+    // @ApiOkResponse({
+    //     type: AuthResponse,
+    // })
+    // @UseGuards(AuthGuard('facebook-token'))  
+    // @Post('login-facebook')
+    // async getTokenAfterFacebookSignIn(@Request() req, @Body() loginFacebookDto: LoginFacebookDto ) {
+    //     try{
+    //         if( !req.user ) throw new BadRequestException('Token is invalid');
+    //         const socialUser = req.user;
+           
+    //         const user = await this.userService.findOrCreateFacebookId( socialUser );
+    //         return new ResponseSuccess( new AuthResponse({
+    //             accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
+    //             user: user
+    //         }));
+    //     }catch(err){
+    //         throw new BadRequestException( err )
+    //     }
+    // }
+
+    // @ApiOkResponse({
+    //     type: AuthResponse,
+    // })
+    // // @UseGuards(AuthGuard('google-verify-token'))  
+    // @Post('login-google')
+    // @HttpCode(HttpStatus.OK)
+    // async getTokenAfterGoogleSignIn( @Body() body: LoginGoogleDto ): Promise<IResponse> {
+
+    //     const socialUser = this.parseJwt( body.access_token ) ;
+    //     const user = await this.userService.findOrCreateGoogleId( socialUser );
+
+    //     return new ResponseSuccess( new AuthResponse({
+    //         accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
+    //         user: user
+    //     }));
+
+    // }
+
+
+
+    // @ApiOkResponse({
+    //     type: AuthResponse,
+    // })
+    // // @UseGuards(AuthGuard('apple-verify-token'))
+    // @Post('login-apple')
+    // @HttpCode(HttpStatus.OK)
+    // async loginWithApple(@Req() req, @Body() body: LoginAppleDto ): Promise<IResponse> {
+    //     // const socialUser = req.user;
+    //     const socialUser = this.parseJwt( body.access_token ) ;
+    //     const user = await this.userService.findOrCreateAppleId( socialUser );
+    //     return new ResponseSuccess( new AuthResponse({
+    //         accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
+    //         user: user
+    //     }));
+
+    // }
 
 
 
