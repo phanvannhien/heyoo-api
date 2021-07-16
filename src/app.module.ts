@@ -31,6 +31,7 @@ import { ShopModule } from './shop/shop.module';
 import { IdolController } from './idol.controller';
 import { UserWallsModule } from './user-walls/user-walls.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ConfigurationModule } from './configuration/configuration.module';
 
 
 @Module({
@@ -65,7 +66,8 @@ import { NotificationsModule } from './notifications/notifications.module';
     ShopCategoriesModule,
     ShopModule,
     UserWallsModule,
-    NotificationsModule
+    NotificationsModule,
+    ConfigurationModule
   ],
   controllers: [
     AppController,

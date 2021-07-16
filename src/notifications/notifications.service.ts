@@ -6,6 +6,7 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationEntityDocument } from './entities/notification.entity';
 import * as mongoose from 'mongoose';
+import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -23,11 +24,28 @@ export class NotificationsService {
     return await this.notyModel.insertMany(createNotificationDto)
   }
 
-  async findAll(id: string): Promise<Array<NotificationEntityDocument>>  {
-    return await this.notyModel.find({
-      isRead: false,
-      user: id
-    }).exec();
+  async findAll(id: string, query: QueryPaginateDto ): Promise<Array<NotificationEntityDocument>>  {
+
+    return await this.notyModel.aggregate([
+      { 
+        $match: {
+          isRead: false,
+          user: mongoose.Types.ObjectId(id)
+        }
+      },
+      { $sort: { "_id": -1 } },
+      {
+          $facet: {
+              items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+              total: [
+                  {
+                      $count: 'count'
+                  }
+              ]
+          }
+      }
+    ]).exec();  
+
   }
 
   async remove(id: string) {
