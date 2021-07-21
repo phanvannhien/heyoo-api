@@ -54,10 +54,12 @@ export class NewsService {
     
     async findAll(query: GetNewsDto): Promise<NewsEntityDocument[]> {
 
-        let matchQuery = {
-            isHot: false
-        };
+        let matchQuery = {};
     
+        if( query.isHot ){
+            matchQuery['isHot'] = query.isHot.toString() == 'true' ? true: false ;
+        }
+
         if( query.category ){
             matchQuery['category'] = new mongoose.Types.ObjectId(query.category);
         }

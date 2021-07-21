@@ -24,23 +24,40 @@ const s3 = new AWS.S3({
 export class ImageUploadController {
     constructor(private readonly imageUploadService: ImageUploadService) {}
 
+    // @ApiBody({
+    //     type: UploadFileDto
+    // })
+    // @ApiBearerAuth()
+    // @ApiConsumes('multipart/form-data')
+    // @Post()
+    // @UseGuards( JwtAuthGuard )
+    // async create(@Req() request, @Res() response) {
+       
+    //     // try {
+    //     //     await this.imageUploadService.fileupload(request, response);
+    //     // } catch (error) {
+    //     //     return response
+    //     //         .status(500)
+    //     //         .json(`Failed to upload image file: ${error.message}`);
+    //     // }
+    // }
+
+
+    @Post()
     @ApiBody({
         type: UploadFileDto
     })
     @ApiBearerAuth()
     @ApiConsumes('multipart/form-data')
-    @Post()
     @UseGuards( JwtAuthGuard )
-    async create(@Req() request, @Res() response) {
-       
-        try {
-            await this.imageUploadService.fileupload(request, response);
-        } catch (error) {
-            return response
-                .status(500)
-                .json(`Failed to upload image file: ${error.message}`);
-        }
+    @UseInterceptors(FileInterceptor('file'))
+    async create( @UploadedFile() file, @Res() response ): Promise<object> {
+        const fileUploaded = await this.imageUploadService.uploadImage(file.buffer, file.originalname);
+        return response
+            .status(201)
+            .json({ fileUrl: fileUploaded });
     }
+
 
     
     @Post('video')

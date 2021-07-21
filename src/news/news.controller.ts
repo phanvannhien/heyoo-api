@@ -62,11 +62,7 @@ export class NewsController {
             },
             clickAction: 'VIEW_NEWS'
         }
-        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
-        if(fcmTokens.length>0){
-          this.fcmService.sendMessage( fcmTokens, notifyData );
-        }
-
+        // create notify
         const allUser = await this.userService.getAllUserActive();
         const notifyDataCreate =  allUser.map( i => {
            return {
@@ -74,8 +70,14 @@ export class NewsController {
             user: i
            }
         })
-        
         await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
+
+        // send notify
+        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
+        if(fcmTokens.length>0){
+          this.fcmService.sendMessage( fcmTokens, notifyData );
+        }
+
     
         return new ResponseSuccess(new NewsItemResponse(data));
     }

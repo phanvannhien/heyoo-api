@@ -7,8 +7,12 @@ import { LiveStreamEntityDocument, LiveStreamMemberEntityDocument } from './enti
 import * as mongoose from 'mongoose';
 import { GetLiveStreamDto } from './dto/get-livestream.dto';
 import { AgoraService } from 'src/agora/agora.service';
+import { AdminGetLiveStreamDto } from './dto/admin-get-livestream.dto';
+import * as moment from 'moment';
+
 var ObjectId = mongoose.Types.ObjectId;
 const crypto = require('crypto');
+
 
 
 @Injectable()
@@ -79,7 +83,6 @@ export class LivestreamsService {
     ]).exec();
   }
 
-  
 
   async findAll(): Promise<LiveStreamEntityDocument[]> {
     return await this.liveStreamModel.find(
@@ -172,7 +175,6 @@ export class LivestreamsService {
     }
     return false;  
   }
-
 
   async acquireRecordVideo( liveStream: LiveStreamEntityDocument ): Promise<any>{
     const Authorization =  `Basic ${Buffer.from(`${process.env.AGORA_CUSTOMER_ID}:${process.env.AGORA_CUSTOMER_SECRET}`).toString("base64")}`;
@@ -416,6 +418,62 @@ export class LivestreamsService {
     }
   }
 
+  /**
+   * ADMIN API
+   */
+
+  async findAdminPaginate(query: AdminGetLiveStreamDto): Promise<any>{
+    let match = {};
+    if(query.title){
+      match['channelTitle'] = { $regex: new RegExp( query.title, 'i' ) };
+    }
+
+    if(query.isLiveNow){
+      match['endLiveAt'] = { $exists: false };
+    }
+
+    return await this.liveStreamModel.aggregate([
+        { 
+          $match: match
+        },
+        {
+          $lookup: {
+              from: "users",
+              localField: "streamer",
+              foreignField: "_id",
+              as: "streamer"
+          }
+        },
+        {
+          $unwind: {  path: "$streamer", preserveNullAndEmptyArrays: true }
+        },
+        {
+            $lookup: {
+                from: "categories",
+                localField: "categories",
+                foreignField: "_id",
+                as: "categories"
+            }
+        },
+        { $sort: { "_id": -1 } },
+        {
+            $facet: {
+                items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+                total: [
+                    {
+                        $count: 'count'
+                    }
+                ]
+            }
+        }
+    ]).exec();
+  }
+
+  async forceEndLiveStream( id: string ): Promise<LiveStreamEntityDocument>{
+    return await this.liveStreamModel.findByIdAndUpdate(id, {
+      endLiveAt: new Date()
+    }, { new: true });
+  }
 
 
 }

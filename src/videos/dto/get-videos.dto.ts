@@ -24,4 +24,8 @@ export class GetVideosDto{
     @ApiProperty({ type: String, required: false })
     @IsOptional()
     category?: string;
+
+    @ApiProperty({ type: Boolean, required: false })
+    @IsOptional()
+    isHot?: boolean;
 }

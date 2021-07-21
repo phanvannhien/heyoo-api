@@ -25,4 +25,8 @@ export class GetNewsDto{
     @IsOptional()
     category?: string;
 
+    @ApiProperty({ type: Boolean, required: false })
+    @IsOptional()
+    isHot?: boolean;
+
 }

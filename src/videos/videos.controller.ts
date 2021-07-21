@@ -64,11 +64,8 @@ export class VideosController {
             },
             clickAction: 'VIEW_VIDEOS'
         }
-        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
-        if(fcmTokens.length>0){
-          this.fcmService.sendMessage( fcmTokens, notifyData );
-        }
 
+        // create user notify
         const allUser = await this.userService.getAllUserActive();
         const notifyDataCreate =  allUser.map( i => {
            return {
@@ -76,9 +73,15 @@ export class VideosController {
             user: i
            }
         })
-        
         await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
-    
+
+        // send notify
+        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
+        if(fcmTokens.length>0){
+          this.fcmService.sendMessage( fcmTokens, notifyData );
+        }
+
+        
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 

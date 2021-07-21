@@ -57,6 +57,22 @@ export class ImageUploadService {
             ContentType: "video/mp4"
         }, options).promise();
 
-        return uploadResult.Location;
-      }
+        return `${process.env.CLOUD_FRONT_VIDEO_URL}/${uploadResult.Key}`
+    }
+
+
+    async uploadImage(dataBuffer: Buffer, filename: string): Promise<string> {
+        const s3 = new AWS.S3({ 
+            httpOptions: { timeout: 20 * 60 * 1000 }
+        });
+       
+        const uploadResult = await s3.upload({
+            Bucket: AWS_S3_BUCKET_NAME,
+            Body: dataBuffer,
+            Key: `${uuid()}`,
+            ContentType: "image/jpg"
+        }).promise();
+
+        return `${process.env.CLOUD_FRONT_VIDEO_URL}/${uploadResult.Key}`
+    }
 }

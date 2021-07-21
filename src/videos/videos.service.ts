@@ -44,7 +44,6 @@ export class VideosService {
             matchQuery['category'] = new mongoose.Types.ObjectId(query.category);
         }
 
-        console.log(matchQuery)
 
         return await this.videoModel.aggregate([
             { 
@@ -77,9 +76,11 @@ export class VideosService {
 
     async findAll(query: GetVideosDto): Promise<VideosEntityDocument[]> {
 
-        let matchQuery = {
-            isHot: false
-        };
+        let matchQuery = {};
+
+        if( query.isHot ){
+            matchQuery['isHot'] = query.isHot.toString() == 'true' ? true: false ;
+        }
     
         if( query.category ){
             matchQuery['category'] = new mongoose.Types.ObjectId(query.category);

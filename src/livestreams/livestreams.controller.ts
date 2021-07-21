@@ -25,6 +25,8 @@ import { ShopEntityDocument } from 'src/shop/entities/shop.entity';
 import { UsersService } from 'src/users/users.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
+import { AdminGetLiveStreamDto } from './dto/admin-get-livestream.dto';
+import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 const crypto = require('crypto');
 
 
@@ -57,6 +59,8 @@ export class LivestreamsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('coverPicture'))
   async create(@Req() request, @Body() body: CreateLivestreamDto, @UploadedFile() coverPicture): Promise<IResponse> {
+
+
     let shop: ShopEntityDocument;
     let notifyData: INotifyMessageBody;
 
@@ -115,6 +119,18 @@ export class LivestreamsController {
         clickAction: 'JOIN_LIVESTREAM'
       }
 
+      // create wall
+      await this.wallService.create({
+        caption: liveStream.channelTitle,
+        images: [
+          liveStream.coverPicture
+        ],
+        postType: 'livestream',
+        liveStreamId: liveStream.id,
+        liveStreamStatus: true,
+        user: request.user.id
+      });
+
     }
 
     const fcmTokens: string[] = await this.userService.getUserFollowerFcmToken( request.user.id );
@@ -131,19 +147,6 @@ export class LivestreamsController {
       await this.livestreamsService.acquireRecordVideo( liveStream );
     }
    
-    // create wall post
-    if( !body.shop && body.shop == '' ){
-      await this.wallService.create({
-        caption: liveStream.channelTitle,
-        images: [
-          liveStream.coverPicture
-        ],
-        postType: 'livestream',
-        liveStreamId: liveStream.id,
-        liveStreamStatus: true,
-        user: request.user.id
-      });
-    }
     
     const responseObj = {
       stream: liveStream ,
@@ -180,7 +183,7 @@ export class LivestreamsController {
   })
   @Post(':id/end')
   @UseGuards(JwtAuthGuard)
-  async endLiveStream(@Param('id') id: string, @Req() request): Promise<IResponse> {
+  async endLiveStream(@Param('id', new MongoIdValidationPipe() ) id: string, @Req() request): Promise<IResponse> {
     // end live
     const d = await this.livestreamsService.endLiveStream( id, request.user.id );
     // update status post wall
@@ -219,7 +222,7 @@ export class LivestreamsController {
     description: 'Get a livestream info success'
   })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<IResponse> {
+  async findOne( @Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse> {
     const d = await this.livestreamsService.findOne(id);
     if( !d ) throw new BadRequestException('Not found');
     // update count view
@@ -239,7 +242,7 @@ export class LivestreamsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post(':id/join')
-  async joinLive(@Param('id') id: string, @Req() request ): Promise<IResponse>{
+  async joinLive( @Param('id', new MongoIdValidationPipe() ) id: string, @Req() request ): Promise<IResponse>{
     const uid = crypto.randomBytes(4).readUInt32BE(0, true);
     const d = await this.livestreamsService.joinMember( id, request.user.id, uid );
     const responseObj = {
@@ -258,7 +261,7 @@ export class LivestreamsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post(':id/leave')
-  async leaveLive(@Param('id') id: string, @Req() request ): Promise<IResponse>{
+  async leaveLive( @Param('id', new MongoIdValidationPipe() ) id: string, @Req() request ): Promise<IResponse>{
     const d = await this.livestreamsService.leaveMember( id, request.user.id );
     const responseObj = {
       stream: d.liveStream,
@@ -278,7 +281,7 @@ export class LivestreamsController {
   @ApiOkResponse({
     description: 'Deleted a livestream'
   })
-  async remove(@Param('id') liveStreamId: string): Promise<any>{
+  async remove(@Param('id', new MongoIdValidationPipe() ) liveStreamId: string): Promise<any>{
     return await this.livestreamsService.remove(liveStreamId);
   }
 
@@ -309,6 +312,38 @@ export class LivestreamsController {
     const live = await this.livestreamsService.findOne(id);
     const data =  await this.livestreamsService.stopRecordIndividualVideo( live );
     return new ResponseSuccess({ data: data }); 
+  }
+  /**
+   * FOR ADMIN API
+   */
+
+  @Get('admin/all')
+  @ApiOkResponse({
+    type: [LiveStreamPaginationResponse],
+    description: 'Find all livestreams with pagination'
+  })
+  async findAllForAdmin( @Query() query: AdminGetLiveStreamDto ): Promise<IResponse>{
+    const d = await this.livestreamsService.findAdminPaginate(query);
+    return new ResponseSuccess( new LiveStreamPaginationResponse(d[0]) );
+  }
+ 
+  @Put(':id/admin/force-end')
+  async forceEndLiveStream( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse>{
+
+    const d = await this.livestreamsService.findOne(id);
+    if( !d ) throw new BadRequestException('Not found');
+
+    // update status post wall
+    await this.wallService.endWallLive( id );
+
+    // stop record
+    if( d.shop && d.shop != '' ){
+      await this.livestreamsService.stopRecordVideo( d );
+    }
+
+    const data = await this.livestreamsService.forceEndLiveStream(id);
+
+    return new ResponseSuccess( data );
   }
 
 }
