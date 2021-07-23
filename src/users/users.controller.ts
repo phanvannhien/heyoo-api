@@ -13,7 +13,6 @@ import { FollowsResponse } from './responses/follows.response';
 import { GetFollowerDto } from './dto/getfollower.dto';
 import { GetFollowingDto } from './dto/getfollowing.dto';
 import { UserProfileResponse } from 'src/auth/responses/profile.response';
-import { request } from 'http';
 import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 
 
@@ -143,7 +142,6 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     async getFcmToken(  @Req() request ): Promise<any>{
-        console.log(request.user);
         return await this.userService.getUserFollowerFcmToken( request.user.id );
     }
 

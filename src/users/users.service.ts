@@ -19,6 +19,7 @@ import { LoginSocialDto } from 'src/auth/dto/login-social.dto';
 import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 import { USER_FCMTOKEN_MODEL } from 'src/mongo-model.constance';
 import { UserFcmTokenEntityDocument } from './interfaces/fcm-token.entity';
+import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,7 @@ export class UsersService {
         @InjectModel( USER_FCMTOKEN_MODEL ) private readonly fcmTokenModel: Model<UserFcmTokenEntityDocument>,
         private readonly filesService: FilesService,
         private readonly liveStreamService: LivestreamsService,
+        private readonly firebaseService: FirebaseCloudMessageService,
     ){
 
     }
@@ -134,6 +136,7 @@ export class UsersService {
     }
 
     async createUser( registerDto: RegisterDto ) : Promise<User>{
+        registerDto.isVerified =  true;
         const createdUser = new this.userModel(registerDto);
         return await createdUser.save();
     }
@@ -710,5 +713,19 @@ export class UsersService {
 
     async getAllUserActive(): Promise<string[]>{
         return await this.userModel.find({ isVerified: true }).select('_id').distinct('_id').exec()
+    }
+
+    async getUserFcmToken(userId: string): Promise<string[]>{
+        const fcms = await this.fcmTokenModel.find({
+            user: userId
+        }).select('fcmToken').distinct('fcmToken').exec();
+        return fcms;
+    }
+
+    async sendFcmCloudMessage( userId: string, messageData: INotifyMessageBody ): Promise<any>{
+        const fcms = await this.getUserFcmToken(userId);
+        if(fcms.length > 0)
+            return await this.firebaseService.sendMessage( fcms, messageData );
+        return false;
     }
 }

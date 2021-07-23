@@ -46,6 +46,7 @@ export const LiveStreamSchema = new mongoose.Schema({
     agoraResourceId: String,
     agoraSid: String,
     agoraFileList: String,
+    liveMode: { type: String, default: 'single' }, // single / shop / duet
 
 }, {
     timestamps: true

@@ -44,10 +44,11 @@ export class FirebaseCloudMessageService {
         };
 
         admin.messaging().sendMulticast(message)
-            .then( response => { console.log('Send Successfully') })
+            .then( response => { 
+                console.log('Send Successfully');
+                console.log(response);
+            })
             .catch( err => { console.log(err) } );
                
     }
-
-
 }

@@ -28,4 +28,5 @@ export interface LiveStreamEntityDocument extends Document {
     readonly agoraResourceId: string;
     readonly agoraSid: string;
     readonly agoraFileList: string;
+    readonly liveMode: string;
 }

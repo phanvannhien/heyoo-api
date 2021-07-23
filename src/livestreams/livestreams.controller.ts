@@ -27,6 +27,11 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 import { AdminGetLiveStreamDto } from './dto/admin-get-livestream.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
+import { InviteDuetDto } from './dto/invite-duet.dto';
+import { RejectIntiveDuetDto } from './dto/reject-duet.dto';
+import { AcceptedIntiveDuetDto } from './dto/accept-duet.dto';
+import { KickOffGuestDuetDto } from './dto/kick-off-duet.dto';
+import { LeaveDuetDto } from './dto/leave-duet.dto';
 const crypto = require('crypto');
 
 
@@ -104,7 +109,7 @@ export class LivestreamsController {
           shopId: shop.id,
           liveStreamId: liveStream.id
         },
-        clickAction: 'JOIN_LIVESTREAM'
+        clickAction: 'JOIN_SINGLE_LIVESTREAM'
       }
     }else{
     
@@ -116,7 +121,7 @@ export class LivestreamsController {
           streamerId: liveStream.streamer.id,
           liveStreamId: liveStream.id
         },
-        clickAction: 'JOIN_LIVESTREAM'
+        clickAction: 'JOIN_SHOP_LIVESTREAM'
       }
 
       // create wall
@@ -343,7 +348,230 @@ export class LivestreamsController {
 
     const data = await this.livestreamsService.forceEndLiveStream(id);
 
+    // notify force end
+    const notifyData = {
+      title: `Your livestream has been force end`,
+      body: 'Admin has been force end your livestream ',
+      imageUrl: d.streamer.avatar,
+      metaData: {
+        streamerId: d.streamer.id,
+        liveStreamId: d.id
+      },
+      clickAction: 'FORCE_END_LIVESTREAM'
+    } as INotifyMessageBody
+
+    // notify to user
+    const fcmTokens: string[] = await this.userService.getUserFcmToken( d.streamer.id.toString() );
+    if(fcmTokens.length > 0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data to host user
+    await this.notifyService.create({
+      ...notifyData,
+      user: d.streamer.id.toString()
+    } as CreateNotificationDto )
+
     return new ResponseSuccess( data );
+  }
+
+  // duet
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/duet/invite')
+  async inviteDuet( 
+      @Param('id', new MongoIdValidationPipe() ) id: string, 
+      @Body() body: InviteDuetDto, 
+      @Req() request 
+    ): Promise<IResponse>{
+
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const notifyData = {
+      title: `You got an invitation!`,
+      body: 'You have received an invitation to livestream with host.',
+      imageUrl: liveStream.streamer.avatar,
+      metaData: {
+        streamerId: liveStream.streamer.id,
+        liveStreamId: liveStream.id
+      },
+      clickAction: 'INVITE_DUET'
+    } as INotifyMessageBody
+
+    const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdGuest );
+    if(fcmTokens.length > 0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data
+    await this.notifyService.create({
+      ...notifyData,
+      user: body.userIdGuest
+    } as CreateNotificationDto )
+
+    return new ResponseSuccess( notifyData );
+  }
+
+
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/duet/reject')
+  async rejectDuet( 
+      @Param('id', new MongoIdValidationPipe() ) id: string, 
+      @Body() body: RejectIntiveDuetDto,
+      @Req() request 
+    ): Promise<IResponse>{
+      
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const guestUser = await this.userService.findById(request.user.id);
+
+    const notifyData = {
+      title: `Invitation Rejected`,
+      body: 'The guest has rejected your invitation. Invite another guest.',
+      imageUrl: guestUser.avatar,
+      metaData: {
+        streamerId: liveStream.streamer.id,
+        liveStreamId: liveStream.id
+      },
+      clickAction: 'REJECT_DUET'
+    } as INotifyMessageBody
+
+    const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdHost );
+    if(fcmTokens.length > 0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data
+    await this.notifyService.create({
+      ...notifyData,
+      user: body.userIdHost
+    } as CreateNotificationDto )
+
+    return new ResponseSuccess( notifyData );
+  }
+
+
+
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/duet/accepted')
+  async acceptedDuet( 
+      @Param('id', new MongoIdValidationPipe() ) id: string, 
+      @Body() body: AcceptedIntiveDuetDto,
+      @Req() request 
+    ): Promise<IResponse>{
+      
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const guestUser = await this.userService.findById(request.user.id);
+
+    const notifyData = {
+      title: `Invitation Accepted`,
+      body: 'The '+guestUser.fullname+' has accepted your invitation.',
+      imageUrl: guestUser.avatar,
+      metaData: {
+        streamerId: liveStream.streamer.id,
+        liveStreamId: liveStream.id
+      },
+      clickAction: 'ACCEPTED_DUET'
+    } as INotifyMessageBody
+
+    const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdHost );
+    if(fcmTokens.length > 0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data
+    await this.notifyService.create({
+      ...notifyData,
+      user: body.userIdHost
+    } as CreateNotificationDto )
+
+    return new ResponseSuccess( notifyData );
+  }
+
+
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/duet/kick-off-guest')
+  async kickOffGuest( 
+      @Param('id', new MongoIdValidationPipe() ) id: string, 
+      @Body() body: KickOffGuestDuetDto,
+      @Req() request 
+    ): Promise<IResponse>{
+      
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const hostUser = await this.userService.findById(request.user.id);
+
+    const notifyData = {
+      title: `You are kick off by ${hostUser.fullname}`,
+      body: 'You be kick off livestream duet.',
+      imageUrl: hostUser.avatar,
+      metaData: {
+        streamerId: liveStream.streamer.id,
+        liveStreamId: liveStream.id
+      },
+      clickAction: 'KICKOFF_DUET'
+    } as INotifyMessageBody
+
+    // notify to guest user
+    const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdGuest );
+    if(fcmTokens.length > 0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data to guest user
+    await this.notifyService.create({
+      ...notifyData,
+      user: body.userIdGuest
+    } as CreateNotificationDto )
+
+    return new ResponseSuccess( notifyData );
+  }
+
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/duet/leave-duet')
+  async leaveDuet( 
+      @Param('id', new MongoIdValidationPipe() ) id: string, 
+      @Body() body: LeaveDuetDto,
+      @Req() request 
+    ): Promise<IResponse>{
+      
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const guestUser = await this.userService.findById(request.user.id);
+
+    const notifyData = {
+      title: `${guestUser.fullname} are leave duet`,
+      body: '',
+      imageUrl: guestUser.avatar,
+      metaData: {
+        streamerId: liveStream.streamer.id,
+        liveStreamId: liveStream.id
+      },
+      clickAction: 'LEAVE_DUET'
+    } as INotifyMessageBody
+
+    // notify to host user
+    const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdHost );
+    if(fcmTokens.length > 0){
+      this.fcmService.sendMessage( fcmTokens, notifyData );
+    }
+    // create notify data to host user
+    await this.notifyService.create({
+      ...notifyData,
+      user: body.userIdHost
+    } as CreateNotificationDto )
+
+    return new ResponseSuccess( notifyData );
   }
 
 }
