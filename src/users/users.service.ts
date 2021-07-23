@@ -70,6 +70,10 @@ export class UsersService {
         return this.userModel.findOne(findUser).exec();
     }
 
+    async findSocialUser( findUser ):  Promise<User> {
+        return this.userModel.findOne(findUser).exec();
+    }
+
     async findByPhone( phone: string) : Promise<User>{
         return await this.userModel.findOne({ phone: phone }).exec()
     }
@@ -78,36 +82,27 @@ export class UsersService {
         return await this.userModel.findById(id).exec()
     }
 
-    /**
-     * @deprecated
-     * @param socialProfile 
-     * @returns 
-     */
     async findOrCreateFacebookId( socialProfile: any ) : Promise<User>{
-
         const user = await this.userModel.findOne({ 'facebook.id': socialProfile.id }).exec();
         if( user ) return user;
+
         const createUser = new this.userModel({
-            fullname: socialProfile.displayName,
-            email: socialProfile.emails[0].value,
-            avatar: socialProfile.photos[0].value,
+            fullname: socialProfile.name || 'No name',
+            email: socialProfile.email,
+            avatar: socialProfile.picture.data.url || '',
             isVerified: true,
             facebook: {
-                id: socialProfile.id,
+                id: socialProfile.id
             }
         });
         return await createUser.save();
     } 
 
-    /**
-     * @deprecated
-     * @param socialProfile 
-     * @returns 
-     */
-    async findOrCreateGoogleId( socialProfile: any ) : Promise<User>{
 
+    async findOrCreateGoogleId( socialProfile: any ) : Promise<User>{
         const user = await this.userModel.findOne({ 'google.id': socialProfile.sub }).exec();
         if( user ) return user;
+
         const createUser = new this.userModel({
             fullname: socialProfile.name || '',
             email: socialProfile.email,
@@ -120,16 +115,11 @@ export class UsersService {
     
         return await createUser.save();
     }
-    
-    /**
-     * @deprecated
-     * @param socialProfile 
-     * @returns 
-     */
-    async findOrCreateAppleId( socialProfile: any ) : Promise<User>{
 
+    async findOrCreateAppleId( socialProfile: any ) : Promise<User>{
         const user = await this.userModel.findOne({ 'apple.id': socialProfile.sub }).exec();
         if( user ) return user;
+
         const createUser = new this.userModel({
             fullname: 'No name',
             email: socialProfile.email,
@@ -139,26 +129,8 @@ export class UsersService {
                 id: socialProfile.sub,
             }
         });
-    
         return await createUser.save();
-        
-    }
- 
-    async findOrCreateSocialUser( body: LoginSocialDto , socialProfile: any ){
-        const key =  `${body.provider}.id`;
-        const user = await this.userModel.findOne({ key : socialProfile.sub }).exec();
-        if( user ) return user;
-        const createUser = new this.userModel({
-            fullname: 'No name',
-            email: socialProfile.email,
-            avatar: '',
-            isVerified: true,
-            apple: {
-                id: socialProfile.sub,
-            }
-        });
-    
-        return await createUser.save();
+
     }
 
     async createUser( registerDto: RegisterDto ) : Promise<User>{

@@ -32,6 +32,7 @@ import { IdolController } from './idol.controller';
 import { UserWallsModule } from './user-walls/user-walls.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigurationModule } from './configuration/configuration.module';
+import { ChatModule } from './chat/chat.module';
 
 
 @Module({
@@ -67,7 +68,8 @@ import { ConfigurationModule } from './configuration/configuration.module';
     ShopModule,
     UserWallsModule,
     NotificationsModule,
-    ConfigurationModule
+    ConfigurationModule,
+    ChatModule
   ],
   controllers: [
     AppController,

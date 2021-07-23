@@ -20,23 +20,23 @@ export class AdminUsersService {
     return await adminUser.save();
   }
 
-  async findAll(): Promise<any> {
+  async findAll(): Promise<AdminUser[]> {
     return await this.adminUserModel.find().exec();
   }
 
-  async findById(id: string): Promise<any> {
+  async findById(id: string): Promise<AdminUser> {
     return await this.adminUserModel.findById( id ).exec();
   }
 
-  async findOneByEmail(email: string): Promise<any> {
-    return await this.adminUserModel.findOne({ email:email}).exec();
+  async findOneByEmail(email: string): Promise<AdminUser> {
+    return await this.adminUserModel.findOne({ email:email }).exec();
   }
 
-  update(id: number, updateAdminUserDto: UpdateAdminUserDto) {
-    return `This action updates a #${id} adminUser`;
+  async update(id: string, updateAdminUserDto: UpdateAdminUserDto): Promise<AdminUser> {
+    return await this.adminUserModel.findByIdAndUpdate( id, updateAdminUserDto )
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} adminUser`;
+  async remove(id: string): Promise<AdminUser> {
+    return await this.adminUserModel.findByIdAndDelete( id );
   }
 }

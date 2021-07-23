@@ -6,41 +6,56 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { LoginAdminDto } from './dto/login-admin-dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AdminUserResponse } from './responses/admin-user.response';
+import { IResponse } from 'src/common/interfaces/response.interface';
+import { ResponseSuccess } from 'src/common/dto/response.dto';
+import { AdminUserPaginateResponse } from './responses/admin-user-paginate.response';
+import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
+import { RolesService } from 'src/roles/roles.service';
 
 @ApiTags('admin-users')
 @Controller('admin-users')
 export class AdminUsersController {
   constructor(
     private readonly adminUsersService: AdminUsersService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly roleService: RolesService,
     ) {}
 
   @Post()
-  async create(@Body() createAdminUserDto: CreateAdminUserDto): Promise<any> {
-    return await this.adminUsersService.create(createAdminUserDto);
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async create(@Body() createAdminUserDto: CreateAdminUserDto): Promise<IResponse> {
+    const data = await this.adminUsersService.create(createAdminUserDto);
+    return new ResponseSuccess( new AdminUserResponse(data) )
   }
 
   @Get()
-  findAll() {
-    return this.adminUsersService.findAll();
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async findAll(): Promise<IResponse> {
+    const data = await this.adminUsersService.findAll();
+    return new ResponseSuccess( new AdminUserPaginateResponse(data) )
   }
 
-  
-
+  @Get(':id/info')
   @ApiBearerAuth()
-  @Get('info')
   @UseGuards(JwtAuthGuard)
-  async getInfo(@Req() req) {
+  async getById( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse> {
+    const data = await this.adminUsersService.findById(id);
+    return new ResponseSuccess( new AdminUserResponse(data) );
+  }
+
+  @Get('info')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getInfo(@Req() req): Promise<IResponse> {
     const user = await this.adminUsersService.findById(req.user.id);
-    return {
-      code: 200,
-      data: {
-        roles: 'admin',
-        name: 'Administration',
-        avatar: '',
-        introduction: 'This is supper admin'
-      }
-    } 
+    const role = await this.roleService.findByRoleName( user.role );
+    return new ResponseSuccess( new AdminUserResponse({
+      ...user.toJSON(),
+      perrmissions: role.permissions
+    }));
   }
 
   @Post('login')
@@ -62,6 +77,7 @@ export class AdminUsersController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
   async logout(){
     return {
       code: 200
@@ -69,12 +85,18 @@ export class AdminUsersController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateAdminUserDto: UpdateAdminUserDto) {
-    return this.adminUsersService.update(+id, updateAdminUserDto);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async update( @Param('id', new MongoIdValidationPipe() ) id: string, @Body() updateAdminUserDto: UpdateAdminUserDto): Promise<IResponse> {
+    const data = await this.adminUsersService.update(id, updateAdminUserDto);
+    return new ResponseSuccess( new AdminUserResponse(data) );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adminUsersService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async remove( @Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse> {
+    const data = await this.adminUsersService.remove(id);
+    return new ResponseSuccess( data );
   }
 }

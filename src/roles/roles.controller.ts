@@ -3,6 +3,9 @@ import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { IResponse } from 'src/common/interfaces/response.interface';
+import { ResponseSuccess } from 'src/common/dto/response.dto';
+import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 
 @Controller('roles')
 @ApiTags('roles')
@@ -10,27 +13,32 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
-  create(@Body() createRoleDto: CreateRoleDto) {
-    return this.rolesService.create(createRoleDto);
+  async create(@Body() createRoleDto: CreateRoleDto): Promise<IResponse> {
+    const role = await this.rolesService.create(createRoleDto);
+    return new ResponseSuccess( role );
   }
 
   @Get()
-  findAll() {
-    return this.rolesService.findAll();
+  async findAll(): Promise<IResponse> {
+    const data = await this.rolesService.findAll();
+    return new ResponseSuccess( data );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.rolesService.findOne(+id);
+  async findOne( @Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse> {
+    const data = await this.rolesService.findById(id);
+    return new ResponseSuccess( data );
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.rolesService.update(+id, updateRoleDto);
+  async update( @Param('id', new MongoIdValidationPipe() ) id: string, @Body() updateRoleDto: UpdateRoleDto): Promise<IResponse> {
+    const data = this.rolesService.update(id, updateRoleDto);
+    return new ResponseSuccess( data );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.rolesService.remove(+id);
+  async remove(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>  {
+    const data = await this.rolesService.remove(id);
+    return new ResponseSuccess( data );
   }
 }

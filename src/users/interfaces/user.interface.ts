@@ -12,5 +12,5 @@ export interface User extends Document {
     readonly country: string;
     readonly address: string;
     readonly bio: string;
-    readonly fcmToken: string;
+    readonly sendBirdToken: string;
 }

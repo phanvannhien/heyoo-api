@@ -1,10 +1,11 @@
 import { Document } from 'mongoose';
 export interface AdminUser extends Document {
-    fullname: String;
-    email: String;
-    password: String;
-    avatar: String;
-    activated: Boolean;
-    language: String;
+    fullname: string;
+    email: string;
+    password: string;
+    avatar: string;
+    activated: boolean;
+    language: string;
+    role: string;
     createdAt: Date
 }

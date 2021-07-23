@@ -72,10 +72,8 @@ export class AuthController{
     @Post('social')
     async socialLogin(@Request() req, @Body() body: LoginSocialDto ) {
         try{
-            
-            let socialUser = null;
+  
             let user = null;
-
             if( body.provider == 'facebook' ){
                 const check = await this.httpService.get('https://graph.facebook.com/debug_token', {
                     params:{
@@ -95,30 +93,24 @@ export class AuthController{
                     }
                 }).toPromise();
 
-                
                 if(fbProfile){
-                    socialUser = {
-                        displayName: fbProfile.data.name,
-                        emails: [{
-                            value: fbProfile.data.email
-                        }],
-                        photos: [{
-                            value: fbProfile.data.picture.data.url
-                        }],
-                        id: fbProfile.data.id
-                    };
+                    user = await this.userService.findOrCreateFacebookId( fbProfile.data );
                 }
 
-            }else{
-                socialUser = this.parseJwt( body.access_token ) ;
-            }     
+            }else if( body.provider == 'google' ){
+                const googleProfile = this.parseJwt( body.access_token ) ;
+                user = await this.userService.findOrCreateGoogleId( googleProfile );
 
-            user = await this.userService.findOrCreateSocialUser( body, socialUser );
+            }else if( body.provider == 'apple' ){
+                const appleProfile = this.parseJwt( body.access_token );
+                user = await this.userService.findOrCreateAppleId( appleProfile );
+            }
 
             return new ResponseSuccess( new AuthResponse({
                 accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
                 user: user
             }));
+
         }catch(err){
             throw new BadRequestException( err )
         }
@@ -129,66 +121,6 @@ export class AuthController{
         const payload = Buffer.from(base64Payload, 'base64');
         return JSON.parse(payload.toString());
     }
-
-
-    // @ApiOkResponse({
-    //     type: AuthResponse,
-    // })
-    // @UseGuards(AuthGuard('facebook-token'))  
-    // @Post('login-facebook')
-    // async getTokenAfterFacebookSignIn(@Request() req, @Body() loginFacebookDto: LoginFacebookDto ) {
-    //     try{
-    //         if( !req.user ) throw new BadRequestException('Token is invalid');
-    //         const socialUser = req.user;
-           
-    //         const user = await this.userService.findOrCreateFacebookId( socialUser );
-    //         return new ResponseSuccess( new AuthResponse({
-    //             accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
-    //             user: user
-    //         }));
-    //     }catch(err){
-    //         throw new BadRequestException( err )
-    //     }
-    // }
-
-    // @ApiOkResponse({
-    //     type: AuthResponse,
-    // })
-    // // @UseGuards(AuthGuard('google-verify-token'))  
-    // @Post('login-google')
-    // @HttpCode(HttpStatus.OK)
-    // async getTokenAfterGoogleSignIn( @Body() body: LoginGoogleDto ): Promise<IResponse> {
-
-    //     const socialUser = this.parseJwt( body.access_token ) ;
-    //     const user = await this.userService.findOrCreateGoogleId( socialUser );
-
-    //     return new ResponseSuccess( new AuthResponse({
-    //         accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
-    //         user: user
-    //     }));
-
-    // }
-
-
-
-    // @ApiOkResponse({
-    //     type: AuthResponse,
-    // })
-    // // @UseGuards(AuthGuard('apple-verify-token'))
-    // @Post('login-apple')
-    // @HttpCode(HttpStatus.OK)
-    // async loginWithApple(@Req() req, @Body() body: LoginAppleDto ): Promise<IResponse> {
-    //     // const socialUser = req.user;
-    //     const socialUser = this.parseJwt( body.access_token ) ;
-    //     const user = await this.userService.findOrCreateAppleId( socialUser );
-    //     return new ResponseSuccess( new AuthResponse({
-    //         accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
-    //         user: user
-    //     }));
-
-    // }
-
-
 
     @ApiCreatedResponse({
         type: AuthResponse
