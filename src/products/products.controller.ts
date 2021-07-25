@@ -29,22 +29,20 @@ export class ProductsController {
         type: CreateProductDto
     })
     @ApiBearerAuth()
-    @ApiConsumes('multipart/form-data')
     @Post()
-    @UseInterceptors(FileInterceptor('image'))
-    async create(@Body() body: CreateProductDto, @UploadedFile() image): Promise<IResponse> {
-        const imageUploaded = await this.fileService.uploadPublicFile(image.buffer, image.originalname);
-
-        const createData = {
-            productName: body.productName,
-            price: body.price,
-            image: imageUploaded
-        };
-
-        const data = await this.productService.create(createData);
+    async create(@Body() body: CreateProductDto): Promise<IResponse> {
+        const data = await this.productService.create(body);
         return new ResponseSuccess(new ProductItemResponse(data));
     }
 
+    @Get('get/all')
+    @ApiOkResponse({
+        type: ProductItemsResponse
+    })
+    async getAll(): Promise<IResponse>{
+        const d = await this.productService.getAll();
+        return new ResponseSuccess(new ProductItemsResponse(d));
+    }
 
     @Get()
     @ApiOkResponse({
@@ -71,18 +69,10 @@ export class ProductsController {
     @ApiBody({
         type: UpdateProductDto
     })
-    @ApiConsumes('multipart/form-data')
-    @UseInterceptors(FileInterceptor('image'))
     @Put(':id')
-    async update(@Param('id', new MongoIdValidationPipe() ) id: string, @Body() body: UpdateProductDto, @UploadedFile() image): Promise<IResponse> {
+    async update(@Param('id', new MongoIdValidationPipe() ) id: string, @Body() body: UpdateProductDto): Promise<IResponse> {
         const find = await this.productService.findById(id);
         if( !find ) throw new BadRequestException('Product not found');
-      
-        if( image ){
-            
-            const imageUploaded = await this.fileService.uploadPublicFile(image.buffer, image.originalname);
-            body.image = imageUploaded;
-        }
         const data = await this.productService.update( id,  body);
         return new ResponseSuccess(new ProductItemResponse(data));
     }

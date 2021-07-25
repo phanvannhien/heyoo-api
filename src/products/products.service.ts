@@ -21,6 +21,12 @@ export class ProductsService {
         return await this.productModel.findById(id).exec();
     }
 
+    async getAll(): Promise<ProductEntityDocument[]> {
+        return await this.productModel.find()
+            .sort({ price: -1 })
+            .exec();
+    }
+
     async findAll(query: GetProductDto): Promise<ProductEntityDocument[]> {
         return await this.productModel.find()
             .sort({ productName: 1 })

@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { FilesService } from 'src/files/files.service';
+import { LevelService } from 'src/level/level.service';
 import { LivestreamsService } from 'src/livestreams/livestreams.service';
 import { FindUserDto } from './dto/find-user.dto';
 import { User } from './interfaces/user.interface';
@@ -32,6 +33,7 @@ export class UsersService {
         private readonly filesService: FilesService,
         private readonly liveStreamService: LivestreamsService,
         private readonly firebaseService: FirebaseCloudMessageService,
+        private readonly levelService: LevelService,
     ){
 
     }
@@ -88,6 +90,8 @@ export class UsersService {
         const user = await this.userModel.findOne({ 'facebook.id': socialProfile.id }).exec();
         if( user ) return user;
 
+        const defaultLevel = await this.levelService.getMinLevel();
+
         const createUser = new this.userModel({
             fullname: socialProfile.name || 'No name',
             email: socialProfile.email,
@@ -95,8 +99,10 @@ export class UsersService {
             isVerified: true,
             facebook: {
                 id: socialProfile.id
-            }
+            },
+            userLevel: defaultLevel? defaultLevel.id : ''
         });
+
         return await createUser.save();
     } 
 
@@ -105,6 +111,7 @@ export class UsersService {
         const user = await this.userModel.findOne({ 'google.id': socialProfile.sub }).exec();
         if( user ) return user;
 
+        const defaultLevel = await this.levelService.getMinLevel();
         const createUser = new this.userModel({
             fullname: socialProfile.name || '',
             email: socialProfile.email,
@@ -112,7 +119,8 @@ export class UsersService {
             isVerified: true,
             google: {
                 id: socialProfile.sub,
-            }
+            },
+            userLevel: defaultLevel? defaultLevel.id : ''
         });
     
         return await createUser.save();
@@ -122,6 +130,7 @@ export class UsersService {
         const user = await this.userModel.findOne({ 'apple.id': socialProfile.sub }).exec();
         if( user ) return user;
 
+        const defaultLevel = await this.levelService.getMinLevel();
         const createUser = new this.userModel({
             fullname: 'No name',
             email: socialProfile.email,
@@ -129,7 +138,8 @@ export class UsersService {
             isVerified: true,
             apple: {
                 id: socialProfile.sub,
-            }
+            },
+            userLevel: defaultLevel? defaultLevel.id : ''
         });
         return await createUser.save();
 
@@ -137,7 +147,10 @@ export class UsersService {
 
     async createUser( registerDto: RegisterDto ) : Promise<User>{
         registerDto.isVerified =  true;
+        const defaultLevel = await this.levelService.getMinLevel();
+        registerDto.userLevel = defaultLevel? defaultLevel.id : '';
         const createdUser = new this.userModel(registerDto);
+        
         return await createdUser.save();
     }
     
@@ -313,6 +326,19 @@ export class UsersService {
                         foreignField: "user",
                         as: "following"
                     }
+                },
+
+                {
+                    $lookup: {
+                        from: "levels",
+                        localField: "userLevel",
+                        foreignField: "_id",
+                        as: "userLevel"
+                    }
+                },
+
+                {
+                    $unwind: {  path: "$userLevel", preserveNullAndEmptyArrays: true }
                 },
 
                 {

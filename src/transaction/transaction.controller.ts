@@ -35,17 +35,28 @@ export class TransactionController {
         @Body() body: CreateTransactionDto
     ): Promise<IResponse>
     {
-        const create = {
-            user: request.user.id,
-            rate: 1,
-            quantity: body.quantity,
-            total: body.quantity * 1,
-            paymentMethod: body.paymentMethod,
-            status: 'success',
+        try{
+            const create = {
+                user: request.user.id,
+                rate: 1,
+                quantity: body.quantity,
+                total: body.quantity * 1,
+                paymentMethod: body.paymentMethod,
+                status: 'success',
+            }
+            const d = await this.transactionService.create(create);
+            
+            await this.transactionService.upgradeLevelUser( request.user.id );
+
+            return new ResponseSuccess( new TransactionItemResponse(d));
+
+        }catch(e){
+
         }
-        const d = await this.transactionService.create(create);
-        return new ResponseSuccess( new TransactionItemResponse(d));
+        
     }
+
+
 
 
     @Get()

@@ -29,5 +29,7 @@ export class CreateUserDto{
     otp: number;
 
     otpCreatedAt: Date;
+    
+    userLevel: Date;
 
 }

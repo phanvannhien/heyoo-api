@@ -33,6 +33,7 @@ import { UserWallsModule } from './user-walls/user-walls.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { ChatModule } from './chat/chat.module';
+import { LevelModule } from './level/level.module';
 
 
 @Module({
@@ -69,7 +70,8 @@ import { ChatModule } from './chat/chat.module';
     UserWallsModule,
     NotificationsModule,
     ConfigurationModule,
-    ChatModule
+    ChatModule,
+    LevelModule
   ],
   controllers: [
     AppController,

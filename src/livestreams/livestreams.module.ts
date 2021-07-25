@@ -12,12 +12,15 @@ import { CategoriesModule } from 'src/categories/categories.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { FirebaseCloudMessageModule } from 'src/firebase/firebase.module';
 import { UsersModule } from 'src/users/users.module';
+import { DuetLivestreamSchema } from './schemas/duet.schema';
+import { DuetService } from './duet.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: 'LiveStreams', schema: LiveStreamSchema },
       { name: 'LiveStreamMembers', schema: LiveStreamMemberSchema },
+      { name: 'Duet', schema: DuetLivestreamSchema },
 
     ]),
     FilesModule,
@@ -31,7 +34,7 @@ import { UsersModule } from 'src/users/users.module';
     FirebaseCloudMessageModule,
   ],
   controllers: [LivestreamsController],
-  providers: [LivestreamsService],
+  providers: [LivestreamsService, DuetService],
   exports: [
     LivestreamsService
   ]

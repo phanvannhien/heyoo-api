@@ -22,6 +22,10 @@ export const UserSchema = new mongoose.Schema({
     country: String,
     address: String,
     bio: String,
-    sendBirdToken: String
+    sendBirdToken: String,
+    userLevel: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Level'
+    }
 
 });

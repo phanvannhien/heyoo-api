@@ -6,16 +6,20 @@ export class ProductItemResponse{
         this.id = object.id;
         this.productName = object.productName;
         this.image = object.image;
+        this.imageAnimation = object.imageAnimation ?? '';
         this.price = object.price;
     }
     @ApiProperty()
-    id: String;
+    id: string;
 
     @ApiProperty()
-    image: String;
+    image: string;
 
     @ApiProperty()
-    productName: String;
+    imageAnimation: string;
+
+    @ApiProperty()
+    productName: string;
 
     @ApiProperty()
     price: Number;

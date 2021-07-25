@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { LevelItemResponse } from "src/level/responses/level.response";
 import { LiveStreamItemResponse } from "src/livestreams/responses/live-item.response";
 import { ShopItemPlainResponse } from "src/shop/responses/shop-plain.response";
 
@@ -22,6 +23,7 @@ export class UserProfileResponse{
         this.follower = object.follower || 0;
         this.following = object.following || 0;
         this.level = object.level ?? 0;
+        this.userLevel = object.userLevel ? new LevelItemResponse( object.userLevel ) : null;
         this.isLiveStreamNow = object.isLiveStreamNow ?? false;
         this.livestream = object.livestream ? new LiveStreamItemResponse(object.livestream) : null ;
         this.shop = object.shop ? new ShopItemPlainResponse(object.shop) : null;
@@ -81,6 +83,9 @@ export class UserProfileResponse{
 
     @ApiProperty()
     readonly livestream: object;
+
+    @ApiProperty()
+    readonly userLevel: object;
 
     @ApiProperty()
     readonly shop: object;

@@ -13,4 +13,5 @@ export interface User extends Document {
     readonly address: string;
     readonly bio: string;
     readonly sendBirdToken: string;
+    readonly userLevel: string;
 }

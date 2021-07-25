@@ -2,13 +2,13 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class UpdateProductDto {
-    @ApiProperty({ 
-        type: 'string', 
-        format: 'binary',
-        required: false
-    })
+    @ApiProperty()
     @IsOptional()
     image?: string;
+
+    @ApiProperty()
+    @IsOptional()
+    imageAnimation?: string;
 
     @ApiProperty({
         required: false
@@ -21,4 +21,6 @@ export class UpdateProductDto {
     })
     @IsOptional()
     price?: number;
+
+
 }

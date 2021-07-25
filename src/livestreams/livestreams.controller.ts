@@ -32,6 +32,7 @@ import { RejectIntiveDuetDto } from './dto/reject-duet.dto';
 import { AcceptedIntiveDuetDto } from './dto/accept-duet.dto';
 import { KickOffGuestDuetDto } from './dto/kick-off-duet.dto';
 import { LeaveDuetDto } from './dto/leave-duet.dto';
+import { DuetService } from './duet.service';
 const crypto = require('crypto');
 
 
@@ -48,6 +49,7 @@ export class LivestreamsController {
     private readonly fcmService: FirebaseCloudMessageService,
     private readonly userService: UsersService,
     private readonly notifyService: NotificationsService,
+    private readonly duetService: DuetService,
     ) {}
 
 
@@ -99,6 +101,17 @@ export class LivestreamsController {
     
     const liveStream = await this.livestreamsService.create(createData);
 
+    const metadataBody = {
+      streamerId: request.user.id,
+      streamerUid: liveStream.streamerUid,
+      liveStreamId: liveStream.id,
+      coverPicture: liveStream.coverPicture,
+      channelName: liveStream.channelName,
+      channelTitle: liveStream.channelTitle,
+      agoraToken: liveStream.agoraToken,
+      agoraRtmToken: liveStream.agoraRtmToken
+    }
+
     // notify
     if( body.shop ){
       notifyData = {
@@ -107,9 +120,9 @@ export class LivestreamsController {
         imageUrl: shop.image,
         metaData: {
           shopId: shop.id,
-          liveStreamId: liveStream.id
+          ...metadataBody
         },
-        clickAction: 'JOIN_SINGLE_LIVESTREAM'
+        clickAction: 'JOIN_SHOP_LIVESTREAM'
       }
     }else{
     
@@ -117,11 +130,8 @@ export class LivestreamsController {
         title: `${request.user.fullName} is livestreaming now`,
         body: 'Watch it now!',
         imageUrl: liveStream.streamer.avatar,
-        metaData: {
-          streamerId: liveStream.streamer.id,
-          liveStreamId: liveStream.id
-        },
-        clickAction: 'JOIN_SHOP_LIVESTREAM'
+        metaData: metadataBody,
+        clickAction: 'JOIN_SINGLE_LIVESTREAM'
       }
 
       // create wall
@@ -332,6 +342,18 @@ export class LivestreamsController {
     return new ResponseSuccess( new LiveStreamPaginationResponse(d[0]) );
   }
  
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('force-end-all-livestream')
+  async userForceEndAllLivestream( @Req() request ): Promise<IResponse>{
+    const user = await this.userService.findById(request.user.id);
+    if( !user ) throw new BadRequestException('User not found');
+    const allLive = await this.livestreamsService.forceEndUserLiveStream(user);
+    return new ResponseSuccess( { success: true } );
+
+  }
+
   @Put(':id/admin/force-end')
   async forceEndLiveStream( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse>{
 
@@ -349,14 +371,23 @@ export class LivestreamsController {
     const data = await this.livestreamsService.forceEndLiveStream(id);
 
     // notify force end
+    const metadataBody = {
+      streamerId: d.streamer.id,
+      streamerUid: d.streamerUid,
+      liveStreamId: d.id,
+      coverPicture: d.coverPicture,
+      channelName: d.channelName,
+      channelTitle: d.channelTitle,
+      agoraToken: d.agoraToken,
+      agoraRtmToken: d.agoraRtmToken
+    }
+
+
     const notifyData = {
       title: `Your livestream has been force end`,
       body: 'Admin has been force end your livestream ',
       imageUrl: d.streamer.avatar,
-      metaData: {
-        streamerId: d.streamer.id,
-        liveStreamId: d.id
-      },
+      metaData: metadataBody,
       clickAction: 'FORCE_END_LIVESTREAM'
     } as INotifyMessageBody
 
@@ -388,14 +419,27 @@ export class LivestreamsController {
     const liveStream = await this.livestreamsService.findOne(id);
     if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    const userGuest = await this.userService.findById( body.userIdGuest )
+    if( !userGuest ) throw new BadRequestException('User guest Not found');
+
+    if( userGuest.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
+
+    const metadataBody = {
+      streamerId: request.user.id,
+      streamerUid: liveStream.streamerUid,
+      liveStreamId: liveStream.id,
+      coverPicture: liveStream.coverPicture,
+      channelName: liveStream.channelName,
+      channelTitle: liveStream.channelTitle,
+      agoraToken: liveStream.agoraToken,
+      agoraRtmToken: liveStream.agoraRtmToken
+    }
+
     const notifyData = {
       title: `You got an invitation!`,
       body: 'You have received an invitation to livestream with host.',
       imageUrl: liveStream.streamer.avatar,
-      metaData: {
-        streamerId: liveStream.streamer.id,
-        liveStreamId: liveStream.id
-      },
+      metaData: metadataBody,
       clickAction: 'INVITE_DUET'
     } as INotifyMessageBody
 
@@ -408,6 +452,14 @@ export class LivestreamsController {
       ...notifyData,
       user: body.userIdGuest
     } as CreateNotificationDto )
+
+    await this.duetService.create({
+      liveStream: liveStream.id,
+      hostUser: request.user.id,
+      guestUser: body.userIdGuest,
+      status: 'INVITE_DUET',
+      fcmTokens: fcmTokens
+    })
 
     return new ResponseSuccess( notifyData );
   }
@@ -426,16 +478,27 @@ export class LivestreamsController {
     const liveStream = await this.livestreamsService.findOne(id);
     if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    const userHost = await this.userService.findById( body.userIdHost )
+    if( !userHost ) throw new BadRequestException('User host Not found');
+    if( userHost.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
+
     const guestUser = await this.userService.findById(request.user.id);
 
+    const metadataBody = {
+      streamerId: request.user.id,
+      streamerUid: liveStream.streamerUid,
+      liveStreamId: liveStream.id,
+      coverPicture: liveStream.coverPicture,
+      channelName: liveStream.channelName,
+      channelTitle: liveStream.channelTitle,
+      agoraToken: liveStream.agoraToken,
+      agoraRtmToken: liveStream.agoraRtmToken
+    }
     const notifyData = {
       title: `Invitation Rejected`,
       body: 'The guest has rejected your invitation. Invite another guest.',
       imageUrl: guestUser.avatar,
-      metaData: {
-        streamerId: liveStream.streamer.id,
-        liveStreamId: liveStream.id
-      },
+      metaData: metadataBody,
       clickAction: 'REJECT_DUET'
     } as INotifyMessageBody
 
@@ -448,6 +511,14 @@ export class LivestreamsController {
       ...notifyData,
       user: body.userIdHost
     } as CreateNotificationDto )
+
+    await this.duetService.create({
+      liveStream: liveStream.id,
+      hostUser: body.userIdHost ,
+      guestUser: request.user.id,
+      status: 'REJECT_DUET',
+      fcmTokens: fcmTokens
+    })
 
     return new ResponseSuccess( notifyData );
   }
@@ -467,16 +538,27 @@ export class LivestreamsController {
     const liveStream = await this.livestreamsService.findOne(id);
     if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    const userHost = await this.userService.findById( body.userIdHost )
+    if( !userHost ) throw new BadRequestException('User host Not found');
+    if( userHost.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
+
     const guestUser = await this.userService.findById(request.user.id);
 
+    const metadataBody = {
+      streamerId: request.user.id,
+      streamerUid: liveStream.streamerUid,
+      liveStreamId: liveStream.id,
+      coverPicture: liveStream.coverPicture,
+      channelName: liveStream.channelName,
+      channelTitle: liveStream.channelTitle,
+      agoraToken: liveStream.agoraToken,
+      agoraRtmToken: liveStream.agoraRtmToken
+    }
     const notifyData = {
       title: `Invitation Accepted`,
       body: 'The '+guestUser.fullname+' has accepted your invitation.',
       imageUrl: guestUser.avatar,
-      metaData: {
-        streamerId: liveStream.streamer.id,
-        liveStreamId: liveStream.id
-      },
+      metaData: metadataBody,
       clickAction: 'ACCEPTED_DUET'
     } as INotifyMessageBody
 
@@ -489,6 +571,14 @@ export class LivestreamsController {
       ...notifyData,
       user: body.userIdHost
     } as CreateNotificationDto )
+
+    await this.duetService.create({
+      liveStream: liveStream.id,
+      hostUser: body.userIdHost ,
+      guestUser: request.user.id,
+      status: 'ACCEPTED_DUET',
+      fcmTokens: fcmTokens
+    })
 
     return new ResponseSuccess( notifyData );
   }
@@ -507,16 +597,28 @@ export class LivestreamsController {
     const liveStream = await this.livestreamsService.findOne(id);
     if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    const userGuest = await this.userService.findById( body.userIdGuest )
+    if( !userGuest ) throw new BadRequestException('User guest Not found');
+    if( userGuest.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
+
+
     const hostUser = await this.userService.findById(request.user.id);
 
+    const metadataBody = {
+      streamerId: request.user.id,
+      streamerUid: liveStream.streamerUid,
+      liveStreamId: liveStream.id,
+      coverPicture: liveStream.coverPicture,
+      channelName: liveStream.channelName,
+      channelTitle: liveStream.channelTitle,
+      agoraToken: liveStream.agoraToken,
+      agoraRtmToken: liveStream.agoraRtmToken
+    }
     const notifyData = {
       title: `You are kick off by ${hostUser.fullname}`,
       body: 'You be kick off livestream duet.',
       imageUrl: hostUser.avatar,
-      metaData: {
-        streamerId: liveStream.streamer.id,
-        liveStreamId: liveStream.id
-      },
+      metaData: metadataBody,
       clickAction: 'KICKOFF_DUET'
     } as INotifyMessageBody
 
@@ -530,6 +632,14 @@ export class LivestreamsController {
       ...notifyData,
       user: body.userIdGuest
     } as CreateNotificationDto )
+
+    await this.duetService.create({
+      liveStream: liveStream.id,
+      hostUser: request.user.id,
+      guestUser: body.userIdGuest ,
+      status: 'KICKOFF_DUET',
+      fcmTokens: fcmTokens
+    })
 
     return new ResponseSuccess( notifyData );
   }
@@ -547,16 +657,27 @@ export class LivestreamsController {
     const liveStream = await this.livestreamsService.findOne(id);
     if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    const userHost = await this.userService.findById( body.userIdHost )
+    if( !userHost ) throw new BadRequestException('User host Not found');
+    if( userHost.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
+
     const guestUser = await this.userService.findById(request.user.id);
 
+    const metadataBody = {
+      streamerId: request.user.id,
+      streamerUid: liveStream.streamerUid,
+      liveStreamId: liveStream.id,
+      coverPicture: liveStream.coverPicture,
+      channelName: liveStream.channelName,
+      channelTitle: liveStream.channelTitle,
+      agoraToken: liveStream.agoraToken,
+      agoraRtmToken: liveStream.agoraRtmToken
+    }
     const notifyData = {
       title: `${guestUser.fullname} are leave duet`,
       body: '',
       imageUrl: guestUser.avatar,
-      metaData: {
-        streamerId: liveStream.streamer.id,
-        liveStreamId: liveStream.id
-      },
+      metaData: metadataBody,
       clickAction: 'LEAVE_DUET'
     } as INotifyMessageBody
 
@@ -570,6 +691,14 @@ export class LivestreamsController {
       ...notifyData,
       user: body.userIdHost
     } as CreateNotificationDto )
+
+    await this.duetService.create({
+      liveStream: liveStream.id,
+      hostUser: body.userIdHost,
+      guestUser: request.user.id ,
+      status: 'LEAVE_DUET',
+      fcmTokens: fcmTokens
+    })
 
     return new ResponseSuccess( notifyData );
   }

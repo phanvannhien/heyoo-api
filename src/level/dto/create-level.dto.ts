@@ -1,21 +1,18 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsInt, IsNotEmpty, Min } from "class-validator";
 
-export class CreateProductDto {
+export class CreateLevelDto {
     @ApiProperty()
     @IsNotEmpty()
-    image: string;
+    levelName: string;
 
     @ApiProperty()
     @IsNotEmpty()
-    imageAnimation: string;
-
-    @ApiProperty()
-    @IsNotEmpty()
-    productName: string;
+    levelImage: string;
 
     @ApiProperty()
     @IsNotEmpty()
     @IsInt()
-    price: number;
+    minTarget: number;
+
 }

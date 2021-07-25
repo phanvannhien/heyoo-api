@@ -9,6 +9,7 @@ import { GetLiveStreamDto } from './dto/get-livestream.dto';
 import { AgoraService } from 'src/agora/agora.service';
 import { AdminGetLiveStreamDto } from './dto/admin-get-livestream.dto';
 import * as moment from 'moment';
+import { DuetLiveStreamEntityDocument } from './entities/duet.entity';
 
 var ObjectId = mongoose.Types.ObjectId;
 const crypto = require('crypto');
@@ -21,6 +22,7 @@ export class LivestreamsService {
   constructor(
     @InjectModel('LiveStreams') private readonly liveStreamModel: Model<LiveStreamEntityDocument>,
     @InjectModel('LiveStreamMembers') private readonly liveStreamMemberModel: Model<LiveStreamMemberEntityDocument>,
+    @InjectModel('Duet') private readonly duetModel: Model<DuetLiveStreamEntityDocument>,
     private httpService: HttpService,
     private readonly agoraService: AgoraService,
   ){}
@@ -416,6 +418,29 @@ export class LivestreamsService {
     }catch(e){
       return e;
     }
+  }
+
+  async forceEndUserLiveStream( user ): Promise<any>{
+
+    const allLive = await this.liveStreamModel.find({
+      streamer: user,
+      endLiveAt: { $exists: false }
+    })
+
+    // stop all shop record video
+    allLive.forEach( async live => {
+      if( live.shop && live.shop != '' ){
+        await this.stopRecordVideo( live );
+      }
+    })
+
+    return await this.liveStreamModel.updateMany({
+      streamer: user,
+      endLiveAt: { $exists: false }
+    },{
+      endLiveAt: new Date()
+    });
+
   }
 
   /**
