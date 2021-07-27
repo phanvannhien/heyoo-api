@@ -14,6 +14,7 @@ import { FirebaseCloudMessageModule } from 'src/firebase/firebase.module';
 import { UsersModule } from 'src/users/users.module';
 import { DuetLivestreamSchema } from './schemas/duet.schema';
 import { DuetService } from './duet.service';
+import { ProductsModule } from 'src/products/products.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DuetService } from './duet.service';
     HttpModule,
     NotificationsModule,
     FirebaseCloudMessageModule,
+    ProductsModule
   ],
   controllers: [LivestreamsController],
   providers: [LivestreamsService, DuetService],

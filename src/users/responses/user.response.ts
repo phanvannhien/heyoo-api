@@ -10,33 +10,26 @@ export class UserResponse{
         this.gender     = object.gender;
         this.avatar     = object.avatar;
         this.isVerified = object.isVerified;
-        this.otp        = object.opt;
-        this.otpCreatedAt = object.otpCreatedAt;
     }
     @ApiProperty()
     readonly id: string;
 
     @ApiProperty()
     readonly fullname: string;
+
     @ApiProperty()
     readonly phone: string;
-    @ApiProperty({
-        required: false
-    })
+
+    @ApiProperty()
     readonly email: string;
-    @ApiProperty({
-        required: false
-    })
+
+    @ApiProperty()
     readonly gender: number;
-    @ApiProperty({
-        required: false
-    })
+
+    @ApiProperty()
     readonly avatar: string;
+
     @ApiProperty()
     readonly isVerified: boolean;
     
-    readonly otp: string;
-    @ApiProperty()
-    readonly otpCreatedAt: Date;
-
 }

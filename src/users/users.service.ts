@@ -708,16 +708,28 @@ export class UsersService {
 
     async registerFcmToken( userId: string, body: RegisterFcmTokenDto ): Promise<UserFcmTokenEntityDocument>{
         const find = await this.fcmTokenModel.findOne({
-            user: userId,
             fcmToken: body.fcmToken
-        }).exec()
-        if( find ) return find;
-        const updated = new this.fcmTokenModel({
-            user: userId,
-            fcmToken: body.fcmToken
-        });
-        await updated.save();
-        return updated;
+        }).exec();
+
+        if( find ){
+
+            if(find.user == userId){
+                return find;
+            }else{
+                await this.fcmTokenModel.updateOne({
+                    fcmToken: body.fcmToken
+                },{
+                    user: userId
+                })
+            }
+            
+        }else{
+            const createNew = new this.fcmTokenModel({
+                user: userId,
+                fcmToken: body.fcmToken
+            });
+            return await createNew.save();
+        }  
     }
 
     async getUserFollowerFcmToken( userId ): Promise<string[]>{
@@ -744,6 +756,18 @@ export class UsersService {
     async getUserFcmToken(userId: string): Promise<string[]>{
         const fcms = await this.fcmTokenModel.find({
             user: userId
+        }).select('fcmToken').distinct('fcmToken').exec();
+        return fcms;
+    }
+
+    /**
+     * 
+     * @param userId string[]
+     * @returns string[]
+     */
+    async getManyUserFcmToken(userId: string[] ): Promise<string[]>{
+        const fcms = await this.fcmTokenModel.find({
+            user: { $in: userId }
         }).select('fcmToken').distinct('fcmToken').exec();
         return fcms;
     }

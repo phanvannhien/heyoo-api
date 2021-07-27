@@ -4,6 +4,7 @@ import { WalletEntityDocument } from './entities/wallet.entity';
 import { Model } from 'mongoose';
 import { GetWalletsDto } from './dto/get-wallets.dto';
 import * as mongoose from 'mongoose';
+import { LiveStreamEntityDocument } from 'src/livestreams/entities/livestream.entity';
 
 @Injectable()
 export class WalletsService {
@@ -112,6 +113,53 @@ export class WalletsService {
             ])
         
         .exec()
+    }
+
+    async getUserProductLiveStreamDonate( liveStream: LiveStreamEntityDocument, userId ){
+        
+        const products = await this.walletModel
+            .aggregate([
+                { 
+                    $match: { 
+                        toUser: new mongoose.Types.ObjectId(userId),
+                        liveStream: new mongoose.Types.ObjectId(liveStream.id),
+                        donateUid: liveStream.donateUid
+                    }
+                },
+                {
+                    $group: { _id: "$product" , total: { $sum: "$total" }}
+                },
+
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "product"
+                    }
+                },
+                { $unwind: "$product" },
+
+                // { 
+                //     $project: {
+                //         _id: 1,
+                //         total: 1,
+                //         image: "$product.image",
+                //         productName: "$product.productName",
+                //         imageAnimation: "$product.imageAnimation",
+                //     }
+                // },
+
+            ])
+        
+        .exec()
+
+        const total = products.reduce((a, b) => a + (b['total'] || 0), 0);
+
+        return {
+            total: total,
+            products: products
+        }
     }
 
 }

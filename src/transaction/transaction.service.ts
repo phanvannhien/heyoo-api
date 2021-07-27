@@ -47,9 +47,11 @@ export class TransactionService {
     async getTotalByUser( userId: string ){
       
         return await this.transactionModel.aggregate([
-            { $match: { 
-                user: new mongoose.Types.ObjectId(userId) },
-                status: "success"
+            { 
+                $match: { 
+                    user: new mongoose.Types.ObjectId(userId),
+                    status: "success"
+                },
             },
             { $group: { _id: "$user" , total: { $sum: "$total" }} },
             { $project: { _id: 0, total: 1, } }

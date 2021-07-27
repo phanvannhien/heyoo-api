@@ -11,6 +11,7 @@ import { WalletItemResponse } from './responses/wallet.response';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateWalletDto } from './dto/create-wallet.dto';
+import { LivestreamsService } from 'src/livestreams/livestreams.service';
 
 @ApiTags('wallets')
 @Controller('wallets')
@@ -19,6 +20,7 @@ export class WalletsController {
         private readonly walletService: WalletsService,
         private readonly productService: ProductsService,
         private readonly userService: UsersService,
+        private readonly liveStreamService: LivestreamsService,
     ){}
 
     @ApiBearerAuth()
@@ -32,11 +34,14 @@ export class WalletsController {
         @Body() body: CreateWalletDto
     ): Promise<IResponse>
     {
-        const productFind = await this.productService.findById(body.product)
-        if(!productFind) throw new BadRequestException('Product not found')
+        const productFind = await this.productService.findById(body.product);
+        if(!productFind) throw new BadRequestException('Product not found');
 
-        const toUser = await this.userService.findById(body.toUser)
-        if(!toUser) throw new BadRequestException('Product not found')
+        const toUser = await this.userService.findById(body.toUser);
+        if(!toUser) throw new BadRequestException('User donate not found');
+
+        const liveStream = await this.liveStreamService.findOne( body.liveStream );
+        if(!liveStream) throw new BadRequestException('LiveStream not found')
 
         const d = await this.walletService.create({
             user: request.user.id,
@@ -45,6 +50,8 @@ export class WalletsController {
             price: productFind.price,
             quantity: body.quantity,
             total: productFind.price * body.quantity,
+            liveStream: liveStream.id,
+            donateUid: liveStream.donateUid
         })
 
         return new ResponseSuccess( new WalletItemResponse(d));

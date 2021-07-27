@@ -18,6 +18,10 @@ export class LiveStreamItemResponse{
         this.viewCount = object.viewCount ?? 0;
         this.shop = object.shop ?? '';
         this.videoUrl = object.videoUrl ?? '';
+        this.liveMode = object.liveMode ?? '';
+        this.duetGuestUid = object.duetGuestUid ?? '';
+        this.duetGuestId = object.duetGuestId ?? '';
+        this.donateUid = object.donateUid ?? '';
     }
     @ApiProperty()
     id: string;
@@ -54,4 +58,16 @@ export class LiveStreamItemResponse{
 
     @ApiProperty()
     videoUrl: string;
+
+    @ApiProperty()
+    liveMode: string;
+
+    @ApiProperty()
+    duetGuestId: string;
+
+    @ApiProperty()
+    duetGuestUid: string;
+
+    @ApiProperty()
+    donateUid: string;
 }

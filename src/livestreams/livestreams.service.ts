@@ -443,6 +443,13 @@ export class LivestreamsService {
 
   }
 
+  async resetDuetLiveStreamData( liveStreamId: string ): Promise<LiveStreamEntityDocument> {
+    return await this.liveStreamModel.findByIdAndUpdate(liveStreamId, {
+      duetGuestId: '',
+      duetGuestUid: ''
+    });
+  }
+
   /**
    * ADMIN API
    */

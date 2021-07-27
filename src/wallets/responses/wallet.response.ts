@@ -15,6 +15,8 @@ export class WalletItemResponse{
         this.total = object.total;
         this.resource = object.resource;
         this.createdAt = object.createdAt;
+        this.liveStream = object.liveStream;
+        this.donateUid = object.donateUid;
     }
 
     @ApiProperty()
@@ -43,4 +45,10 @@ export class WalletItemResponse{
 
     @ApiProperty()
     createdAt: Date;
+
+    @ApiProperty()
+    liveStream: string;
+
+    @ApiProperty()
+    donateUid: string;
 }

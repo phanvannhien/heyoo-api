@@ -33,6 +33,10 @@ import { AcceptedIntiveDuetDto } from './dto/accept-duet.dto';
 import { KickOffGuestDuetDto } from './dto/kick-off-duet.dto';
 import { LeaveDuetDto } from './dto/leave-duet.dto';
 import { DuetService } from './duet.service';
+import { WalletsService } from 'src/wallets/wallets.service';
+import { DonateDto } from './dto/donate.dto';
+import { ProductsService } from 'src/products/products.service';
+import { DonateUserResponse } from './responses/donate-user.response';
 const crypto = require('crypto');
 
 
@@ -50,6 +54,8 @@ export class LivestreamsController {
     private readonly userService: UsersService,
     private readonly notifyService: NotificationsService,
     private readonly duetService: DuetService,
+    private readonly walletService: WalletsService,
+    private readonly productService: ProductsService,
     ) {}
 
 
@@ -97,6 +103,8 @@ export class LivestreamsController {
       shop: body.shop,
       agoraToken: agoraToken,
       agoraRtmToken: agoraRtmToken,
+      liveMode: body.liveMode,
+      donateUid: new Date().getTime()
     };
     
     const liveStream = await this.livestreamsService.create(createData);
@@ -162,7 +170,6 @@ export class LivestreamsController {
       await this.livestreamsService.acquireRecordVideo( liveStream );
     }
    
-    
     const responseObj = {
       stream: liveStream ,
       agoraToken: agoraToken,
@@ -256,18 +263,61 @@ export class LivestreamsController {
   })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @Post(':id/join')
-  async joinLive( @Param('id', new MongoIdValidationPipe() ) id: string, @Req() request ): Promise<IResponse>{
+  @Post(':id/duet/guest-join')
+  async duetJoinLive( 
+      @Param('id', new MongoIdValidationPipe() ) id: string,
+      @Req() request
+    ): Promise<IResponse>{
     const uid = crypto.randomBytes(4).readUInt32BE(0, true);
     const d = await this.livestreamsService.joinMember( id, request.user.id, uid );
+    if( !d ) throw new BadRequestException('Livestream Not found');
+
+    // update livestream
+    const donateUid = new Date().getTime();
+    await this.livestreamsService.update( id, {
+      duetGuestId: request.user.id,
+      duetGuestUid: uid,
+      donateUid: donateUid
+    });
+
+    const newLiveStream = await this.livestreamsService.findOne(id);
+
+    const responseObj = {
+      stream: newLiveStream,
+      agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
+      rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString(), 1 ),
+      joinInfo: d
+    };
+
+    return new ResponseSuccess(new LiveMemerResponse(responseObj));
+  }
+
+
+  @ApiOkResponse({
+    type: LiveMemerResponse,
+    description: 'Member join to a livestream success'
+  })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/join')
+  async joinLive( 
+      @Param('id', new MongoIdValidationPipe() ) id: string,
+      @Req() request
+    ): Promise<IResponse>{
+    const uid = crypto.randomBytes(4).readUInt32BE(0, true);
+    const d = await this.livestreamsService.joinMember( id, request.user.id, uid );
+    if( !d ) throw new BadRequestException('Livestream Not found');
+
     const responseObj = {
       stream: d.liveStream,
       agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
       rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString(), 2 ),
       joinInfo: d
     };
+
     return new ResponseSuccess(new LiveMemerResponse(responseObj));
   }
+
 
   @ApiOkResponse({
     type: LiveMemerLeaveResponse,
@@ -534,16 +584,18 @@ export class LivestreamsController {
       @Body() body: AcceptedIntiveDuetDto,
       @Req() request 
     ): Promise<IResponse>{
-      
+    // check livestream
     const liveStream = await this.livestreamsService.findOne(id);
     if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    // check user
     const userHost = await this.userService.findById( body.userIdHost )
     if( !userHost ) throw new BadRequestException('User host Not found');
     if( userHost.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
 
     const guestUser = await this.userService.findById(request.user.id);
 
+    
     const metadataBody = {
       streamerId: request.user.id,
       streamerUid: liveStream.streamerUid,
@@ -552,7 +604,8 @@ export class LivestreamsController {
       channelName: liveStream.channelName,
       channelTitle: liveStream.channelTitle,
       agoraToken: liveStream.agoraToken,
-      agoraRtmToken: liveStream.agoraRtmToken
+      agoraRtmToken: liveStream.agoraRtmToken,
+      liveMode: liveStream.liveMode
     }
     const notifyData = {
       title: `Invitation Accepted`,
@@ -562,7 +615,9 @@ export class LivestreamsController {
       clickAction: 'ACCEPTED_DUET'
     } as INotifyMessageBody
 
-    const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdHost );
+    // const fcmTokens: string[] = await this.userService.getUserFcmToken( body.userIdHost );
+    const fcmTokens: string[] = await this.userService.getManyUserFcmToken( [body.userIdHost, request.user.id] );
+
     if(fcmTokens.length > 0){
       this.fcmService.sendMessage( fcmTokens, notifyData );
     }
@@ -572,6 +627,7 @@ export class LivestreamsController {
       user: body.userIdHost
     } as CreateNotificationDto )
 
+    // save duet
     await this.duetService.create({
       liveStream: liveStream.id,
       hostUser: body.userIdHost ,
@@ -639,7 +695,10 @@ export class LivestreamsController {
       guestUser: body.userIdGuest ,
       status: 'KICKOFF_DUET',
       fcmTokens: fcmTokens
-    })
+    });
+
+    // reset livestream data
+    await this.livestreamsService.resetDuetLiveStreamData( liveStream.id );
 
     return new ResponseSuccess( notifyData );
   }
@@ -700,7 +759,80 @@ export class LivestreamsController {
       fcmTokens: fcmTokens
     })
 
+    // reset livestream data
+    await this.livestreamsService.resetDuetLiveStreamData( liveStream.id );
+
     return new ResponseSuccess( notifyData );
   }
+
+
+  @ApiOkResponse()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/donate')
+  async donate( 
+      @Param('id', new MongoIdValidationPipe() ) id: string, 
+      @Body() body: DonateDto,
+      @Req() request 
+    ): Promise<IResponse>{
+      
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const productFind = await this.productService.findById(body.product);
+    if(!productFind) throw new BadRequestException('Product not found');
+
+    const toUser = await this.userService.findById(body.toUser);
+    if(!toUser) throw new BadRequestException('User donate not found');
+
+
+
+    await this.walletService.create({
+      user: request.user.id,
+      toUser: body.toUser,
+      product: productFind.id,
+      price: productFind.price,
+      quantity: body.quantity,
+      total: productFind.price * body.quantity,
+      liveStream: liveStream.id,
+      donateUid: liveStream.donateUid
+    })
+
+    const productDonate = await this.walletService.getUserProductLiveStreamDonate( liveStream,  body.toUser );
+
+    return new ResponseSuccess( new DonateUserResponse({
+      user: toUser,
+      ...productDonate
+    }));
+
+  }
+
+  @ApiOkResponse({
+    type: DonateUserResponse
+  })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get(':id/donate/:userId')
+  async getDonate( 
+    @Param('id', new MongoIdValidationPipe() ) id: string, 
+    @Param('userId', new MongoIdValidationPipe() ) userId: string, 
+    @Req() request 
+  ): Promise<IResponse>{
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    const toUser = await this.userService.findById(userId);
+    if(!toUser) throw new BadRequestException('User donate not found');
+
+    const productDonate = await this.walletService.getUserProductLiveStreamDonate( liveStream, userId );
+
+    // return new ResponseSuccess(productDonate);
+
+    return new ResponseSuccess( new DonateUserResponse({
+      user: toUser,
+      ...productDonate
+    }));
+  }
+
 
 }

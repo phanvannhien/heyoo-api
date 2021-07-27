@@ -13,6 +13,11 @@ export const WalletSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product'
     },
+    liveStream: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LiveStreams'
+    },
+    donateUid: String,
     quantity: Number,
     price: Number,
     total: Number,

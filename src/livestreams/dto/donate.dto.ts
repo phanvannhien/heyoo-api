@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsMongoId, Min } from "class-validator";
 
-export class CreateWalletDto {
+export class DonateDto {
 
     @ApiProperty()
     @IsMongoId()
@@ -21,12 +21,4 @@ export class CreateWalletDto {
     @IsNumber()
     @Min(1)
     quantity: number;
-
-    @ApiProperty({
-        type: String
-    })
-    @IsNotEmpty()
-    @IsMongoId()
-    liveStream: string;
-
 }

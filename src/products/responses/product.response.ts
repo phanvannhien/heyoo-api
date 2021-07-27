@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export class ProductItemResponse{
   
     constructor( object: any ){
-        this.id = object.id;
+        this.id = object.id ?? object._id;
         this.productName = object.productName;
         this.image = object.image;
         this.imageAnimation = object.imageAnimation ?? '';

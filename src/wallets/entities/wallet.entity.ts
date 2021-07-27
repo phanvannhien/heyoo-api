@@ -11,4 +11,6 @@ export interface WalletEntityDocument extends Document {
     readonly total: number;
     readonly resource: string; // user | system
     readonly createdAt: Date;
+    readonly liveStream: string;
+    readonly donateUid: string;
 }

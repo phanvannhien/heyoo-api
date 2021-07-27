@@ -46,8 +46,10 @@ export const LiveStreamSchema = new mongoose.Schema({
     agoraResourceId: String,
     agoraSid: String,
     agoraFileList: String,
-    liveMode: { type: String, default: 'single' }, // single / shop / duet
-
+    liveMode: { type: String, default: '' }, // single / duet
+    donateUid: { type: String, default: '' }, // use for donate
+    duetGuestId: String, // for liveMode duet 
+    duetGuestUid: String, // for liveMode duet 
 }, {
     timestamps: true
 });

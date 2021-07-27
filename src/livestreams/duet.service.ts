@@ -14,4 +14,12 @@ export class DuetService {
         return await duet.save();
     }
 
+    async getCurrentLiveStreamDuetPlayGame( liveStreamId: string ): Promise<DuetLiveStreamEntityDocument>{
+        return await this.duetModel.findOne({ 
+                    status: "ACCEPTED_DUET",
+                    liveStream: liveStreamId
+                })
+                .sort({ _id: -1 }).limit(1)
+    }
+
 }
