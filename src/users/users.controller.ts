@@ -145,4 +145,16 @@ export class UsersController {
         return await this.userService.getUserFollowerFcmToken( request.user.id );
     }
 
+
+    @Get('do/get-user-fcmtokens')
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async getUserFcmTokens( @Req() request ): Promise<any>{
+        return await this.userService.getUserFcmToken( request.user.id );
+    }
+
+
+
 }

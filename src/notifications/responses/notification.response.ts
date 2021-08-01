@@ -11,6 +11,7 @@ export class NotificationItemResponse{
         this.metaData = object.metaData;
         this.clickAction = object.clickAction;
         this.isRead = object.isRead;
+        this.notifyId = object.notifyId;
         this.createdAt = moment(object.createdAt).valueOf().toString();
     }
     @ApiProperty()
@@ -30,6 +31,9 @@ export class NotificationItemResponse{
 
     @ApiProperty()
     clickAction: string;
+
+    @ApiProperty()
+    notifyId: string;
 
     @ApiProperty() 
     isRead: boolean; 

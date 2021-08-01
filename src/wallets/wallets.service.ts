@@ -158,7 +158,7 @@ export class WalletsService {
 
         return {
             total: total,
-            products: products
+            items: products
         }
     }
 

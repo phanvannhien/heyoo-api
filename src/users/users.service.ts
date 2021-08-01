@@ -201,6 +201,18 @@ export class UsersService {
         return true
     }
 
+     // Lấy danh sách user ids đang theo dõi của userId 
+
+    async getUserIdsFollower(userId): Promise<any>{
+        const findFollowUser = await this.userModel.findById(userId);
+        if (!findFollowUser) throw new BadRequestException('User not found');
+
+        return await this.followModel.find({
+            follow: userId
+        }).select('user').distinct('user').exec();
+    }
+
+    
     // Lấy danh sách user đang theo dõi của userId 
     async getFollower(userId, query: GetFollowerDto): Promise<any>{
         const findFollowUser = await this.userModel.findById(userId);
@@ -214,8 +226,9 @@ export class UsersService {
             .skip( Number( (query.page - 1)*query.limit ) )
             .limit( Number( query.limit ) )
             .exec()
-            
     }
+
+
 
     // Lấy danh sách user mà userId đang theo dõi
     async getFollowing(userId, query: GetFollowingDto): Promise<any>{
@@ -732,7 +745,7 @@ export class UsersService {
         }  
     }
 
-    async getUserFollowerFcmToken( userId ): Promise<string[]>{
+    async getUserFollowerFcmToken( userId ): Promise<any>{
         const users = await this.followModel.find({
             follow: userId
         }).select('user').distinct('user').exec()
@@ -741,7 +754,10 @@ export class UsersService {
             { user : { $in : users } }
         ).select('fcmToken').distinct('fcmToken').exec()
 
-        return fcms;
+        return {
+            users: users,
+            fcms: fcms
+        };
     }
 
     async getAllUserFcmtokens(): Promise<string[]>{

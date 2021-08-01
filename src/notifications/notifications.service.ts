@@ -20,13 +20,32 @@ export class NotificationsService {
     return await notify.save();
   }
 
+  async findById( id: string ): Promise<NotificationEntityDocument> {
+    return await this.notyModel.findById(id);
+  }
+
+  async findOne( userId, notifyId ): Promise<any> {
+    return await this.notyModel.findOne({
+      user: userId,
+      notifyId: notifyId
+    }).exec();
+  }
+
   async createMany(createNotificationDto: Array<CreateNotificationDto>): Promise<any> {
     return await this.notyModel.insertMany(createNotificationDto)
   }
 
+  async getCountMessageUnread(userId: string): Promise<number> {
+    return await this.notyModel.find({ isRead: false, user: userId }).count();
+  }
+
+  async updateReaded( filter: object ){
+    return await this.notyModel.findOneAndUpdate( filter, { isRead: true } );
+  }
+
   async findAll(id: string, query: QueryPaginateDto ): Promise<Array<NotificationEntityDocument>>  {
 
-    return await this.notyModel.aggregate([
+    const data = await this.notyModel.aggregate([
       { 
         $match: {
           isRead: false,
@@ -45,6 +64,8 @@ export class NotificationsService {
           }
       }
     ]).exec();  
+
+    return data[0];
 
   }
 

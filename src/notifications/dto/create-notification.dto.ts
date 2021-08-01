@@ -38,4 +38,8 @@ export class CreateNotificationDto {
     @IsNotEmpty()
     user: string;
 
+    @ApiProperty()
+    @IsNotEmpty()
+    notifyId: string;
+    
 }

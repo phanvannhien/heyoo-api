@@ -14,7 +14,7 @@ export class DonateUserResponse{
 
     constructor( object: any ){
         this.total = object.total;
-        this.products = object.products.map( i => {
+        this.items = object.items.map( i => {
             return {
                 total: i.total,
                 product: new ProductItemResponse( i.product )
@@ -27,7 +27,7 @@ export class DonateUserResponse{
     total: number;
 
     @ApiProperty()
-    products: [IDonateProduct];
+    items: [IDonateProduct];
 
     @ApiProperty()
     user: UserResponse

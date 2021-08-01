@@ -34,32 +34,32 @@ export class FirebaseCloudMessageService {
         const message: messaging.MulticastMessage = {
             data: metaData,
             tokens: deviceTokens,
-            notification: {
-                title: messageData.title,
-                body: messageData.body
-            },
-            android: {
-                notification: {
-                    imageUrl: messageData.imageUrl,
-                    clickAction: messageData.clickAction
-                }
-            },
-            apns: {
-                payload: {
-                    aps: {
-                        'mutable-content': 1,
-                        category: messageData.clickAction
-                    }
-                },
-                fcmOptions: {
-                    imageUrl: messageData.imageUrl
-                }
-            }
+            // notification: {
+            //     title: messageData.title,
+            //     body: messageData.body
+            // },
+            // android: {
+            //     notification: {
+            //         imageUrl: messageData.imageUrl,
+            //         clickAction: messageData.clickAction
+            //     }
+            // },
+            // apns: {
+            //     payload: {
+            //         aps: {
+            //             'mutable-content': 1,
+            //             category: messageData.clickAction
+            //         }
+            //     },
+            //     fcmOptions: {
+            //         imageUrl: messageData.imageUrl
+            //     }
+            // }
         };
 
         admin.messaging().sendMulticast(message)
             .then( response => { 
-                console.log('Send Successfully');
+                console.log('Notify Send status');
                 console.log(response);
             })
             .catch( err => { console.log(err) } );

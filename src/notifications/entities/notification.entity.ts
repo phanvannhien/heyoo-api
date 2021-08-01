@@ -10,4 +10,5 @@ export interface NotificationEntityDocument extends Document {
     readonly clickAction: string;
     readonly isRead: boolean; 
     readonly user: string;
+    readonly notifyId: string;
 }

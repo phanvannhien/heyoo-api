@@ -20,6 +20,7 @@ import { UsersService } from 'src/users/users.service';
 import { FirebaseCloudMessageService } from 'src/firebase/firebase.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @ApiTags('videos')
 @Controller('videos')
@@ -54,13 +55,14 @@ export class VideosController {
         };
         
         const data = await this.videoService.create(createData);
-
+        const notifyId = uuidv4();
         const notifyData = {
             title: `New Video`,
             body: data.title,
             imageUrl: data.image,
             metaData: {
-              videoId: data.id
+              videoId: data.id,
+              notifyId: notifyId
             },
             clickAction: 'VIEW_VIDEOS'
         }
@@ -70,7 +72,8 @@ export class VideosController {
         const notifyDataCreate =  allUser.map( i => {
            return {
             ...notifyData,
-            user: i
+            user: i,
+            notifyId: notifyId
            }
         })
         await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
@@ -81,7 +84,6 @@ export class VideosController {
           this.fcmService.sendMessage( fcmTokens, notifyData );
         }
 
-        
         return new ResponseSuccess(new VideosItemResponse(data));
     }
 

@@ -22,7 +22,7 @@ import { UsersService } from 'src/users/users.service';
 import { FirebaseCloudMessageService } from 'src/firebase/firebase.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
-
+import { v4 as uuidv4 } from 'uuid';
 
 @ApiTags('news')
 @Controller('news')
@@ -52,13 +52,14 @@ export class NewsController {
         };
         
         const data = await this.newsService.create(createData);
-
+        const notifyId = uuidv4();
         const notifyData = {
             title: `New Post`,
             body: data.title,
             imageUrl: data.image,
             metaData: {
-              newsId: data.id
+              newsId: data.id,
+              notifyId: notifyId
             },
             clickAction: 'VIEW_NEWS'
         }
@@ -67,7 +68,8 @@ export class NewsController {
         const notifyDataCreate =  allUser.map( i => {
            return {
             ...notifyData,
-            user: i
+            user: i,
+            notifyId: notifyId
            }
         })
         await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
@@ -78,7 +80,6 @@ export class NewsController {
           this.fcmService.sendMessage( fcmTokens, notifyData );
         }
 
-    
         return new ResponseSuccess(new NewsItemResponse(data));
     }
 

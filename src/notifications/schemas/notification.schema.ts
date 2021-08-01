@@ -10,7 +10,8 @@ export const NotificationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    isRead: { type: Boolean, default: 0 }
+    isRead: { type: Boolean, default: 0 },
+    notifyId: String
 }, {
     timestamps: true,
     collection: 'notifications'
