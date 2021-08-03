@@ -23,6 +23,7 @@ import { FirebaseCloudMessageService } from 'src/firebase/firebase.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 
 @ApiTags('news')
 @Controller('news')
@@ -36,59 +37,13 @@ export class NewsController {
         private readonly notifyService: NotificationsService,
     ) {}
 
-    @ApiOkResponse({ type: NewsItemResponse })
-    @ApiBody({ type: CreateNewsDto })
-    @ApiBearerAuth()
-    @UseGuards( JwtAuthGuard )
-    @Post()
-    async create( 
-        @Req() req, 
-        @Body() body: CreateNewsDto) : Promise<IResponse>
-    {
-       
-        const createData = { 
-            ...body,
-            createdBy: req.user.id,
-        };
-        
-        const data = await this.newsService.create(createData);
-        const notifyId = uuidv4();
-        const notifyData = {
-            title: `New Post`,
-            body: data.title,
-            imageUrl: data.image,
-            metaData: {
-              newsId: data.id,
-              notifyId: notifyId
-            },
-            clickAction: 'VIEW_NEWS'
-        }
-        // create notify
-        const allUser = await this.userService.getAllUserActive();
-        const notifyDataCreate =  allUser.map( i => {
-           return {
-            ...notifyData,
-            user: i,
-            notifyId: notifyId
-           }
-        })
-        await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
-
-        // send notify
-        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
-        if(fcmTokens.length>0){
-          this.fcmService.sendMessage( fcmTokens, notifyData );
-        }
-
-        return new ResponseSuccess(new NewsItemResponse(data));
-    }
-
 
     @Get()
     @ApiBearerAuth()
     @ApiOkResponse({
         type: NewsItemsResponse
     })
+    @UseGuards(JwtAuthGuard)
     async find( @Query() query: GetNewsDto ): Promise<IResponse>{
         const d = await this.newsService.findAll(query);
         return new ResponseSuccess(new NewsItemsResponse(d[0] ));
@@ -99,6 +54,7 @@ export class NewsController {
     @ApiOkResponse({
         type: NewsListItemsResponse
     })
+    @UseGuards(JwtAuthGuard)
     async getHotNews(): Promise<IResponse>{
         const d = await this.newsService.getHotNews();
         return new ResponseSuccess(new NewsListItemsResponse(d));
@@ -109,16 +65,17 @@ export class NewsController {
     @ApiOkResponse({
         type: NewsListItemsResponse
     })
+    @UseGuards(JwtAuthGuard)
     async relation( @Param('id', new MongoIdValidationPipe() ) id: string, @Query() paginate: QueryPaginateDto ): Promise<IResponse>{
         const find: NewsEntityDocument = await this.newsService.findById(id);
         if( !find ) throw new BadRequestException('News not found');
-
         const d = await this.newsService.relation(find, paginate);
         return new ResponseSuccess(new NewsListItemsResponse(d));
     }
 
     @ApiOkResponse({ type: NewsItemResponse  })
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
         const find: NewsEntityDocument = await this.newsService.findById(id);
@@ -132,11 +89,11 @@ export class NewsController {
         return new ResponseSuccess(new NewsItemResponse(find));
     }
 
-   
 
 
     @ApiOkResponse({ type: NewsItemResponse  })
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @Post(':id/share-count')
     async postShare(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
         const find: NewsEntityDocument = await this.newsService.findById(id);
@@ -147,52 +104,6 @@ export class NewsController {
         }
         await this.newsService.update( id, update );
         return new ResponseSuccess(new NewsItemResponse(find));
-    }
-
-    @ApiOkResponse({ type: NewsItemResponse })
-    @ApiBody({ type: UpdateNewsDto })
-    @ApiBearerAuth()
-    @Put(':id')
-    async update(
-            @Param('id', new MongoIdValidationPipe() ) id: string,
-            @Body() body: UpdateNewsDto
-        ): Promise<IResponse> {
-        const find = await this.newsService.findById(id);
-        if( !find ) throw new BadRequestException('News not found');
-        delete body['createdAt'];
-        const data = await this.newsService.update( id,  body);
-        return new ResponseSuccess(new NewsItemResponse(data));
-    }
-
-    @ApiBearerAuth()
-    @Delete(':id')
-    async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
-      return await this.newsService.remove(id);
-    }
-
-
-    @Get('admin/get')
-    @ApiBearerAuth()
-    @ApiOkResponse({
-        type: NewsItemsResponse
-    })
-    async getForAdmin( @Query() query: GetForAdminDto ): Promise<IResponse>{
-        const d = await this.newsService.getForAdmin(query);
-        return new ResponseSuccess(new NewsItemsResponse(d[0] ));
-    }
-
-
-    @ApiOkResponse({ type: NewsItemResponse })
-    @ApiBearerAuth()
-    @Put(':id/set-hot')
-    async setHot(
-            @Param('id', new MongoIdValidationPipe() ) id: string
-        ): Promise<IResponse> {
-        const find = await this.newsService.findById(id);
-        if( !find ) throw new BadRequestException('News not found');
-        
-        const data = await this.newsService.updateHot( find );
-        return new ResponseSuccess(new NewsItemResponse(data));
     }
 
 

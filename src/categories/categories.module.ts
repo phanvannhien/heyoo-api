@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CategoriesSchema } from './schemas/categories.schema';
 import { LivestreamsModule } from 'src/livestreams/livestreams.module';
 import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
+import { AdminCategoriesController } from './admin-categories.controller';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
       { name: 'LiveStreams', schema: LiveStreamSchema },
     ]),
   ],
-  controllers: [CategoriesController],
+  controllers: [CategoriesController, AdminCategoriesController],
   providers: [CategoriesService],
   exports:[
     CategoriesService

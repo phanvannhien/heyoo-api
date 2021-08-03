@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { USER_WALL_LIKE_MODEL, USER_WALL_MODEL } from 'src/mongo-model.constance';
 import { UserWallsSchema } from './schemas/user-walls.schema';
 import { UserWallLikesSchema } from './schemas/user-wall-likes.schema';
+import { AdminUserWallsController } from './admin-user-walls.controller';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { UserWallLikesSchema } from './schemas/user-wall-likes.schema';
       { name: USER_WALL_LIKE_MODEL, schema: UserWallLikesSchema },
     ]),
   ],
-  controllers: [UserWallsController],
+  controllers: [UserWallsController, AdminUserWallsController],
   providers: [UserWallsService],
   exports: [
     UserWallsService

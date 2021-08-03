@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 import { AdminUser } from './entities/admin-user.entity';
+import * as bcrypt from 'bcryptjs'; 
 
 @Injectable()
 export class AdminUsersService {
@@ -16,6 +17,9 @@ export class AdminUsersService {
   }
 
   async create(createAdminUserDto: CreateAdminUserDto): Promise<AdminUser>{
+    const find = await this.adminUserModel.findOne({ email: createAdminUserDto.email }).exec();
+    if( find ) return find;
+    createAdminUserDto.password = await bcrypt.hash(createAdminUserDto.password, 10 );
     const adminUser = new this.adminUserModel(createAdminUserDto);
     return await adminUser.save();
   }
@@ -33,6 +37,8 @@ export class AdminUsersService {
   }
 
   async update(id: string, updateAdminUserDto: UpdateAdminUserDto): Promise<AdminUser> {
+    if( updateAdminUserDto.password )
+      updateAdminUserDto.password = await bcrypt.hash(updateAdminUserDto.password, 10 );
     return await this.adminUserModel.findByIdAndUpdate( id, updateAdminUserDto )
   }
 

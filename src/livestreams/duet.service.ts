@@ -3,6 +3,19 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { DuetLiveStreamEntityDocument } from "./entities/duet.entity";
 
+const statusHostCycle = {
+    'INVITE' : [ "ACCEPT", "REJECT" ],
+    'CANCEL_INVITE' : ['JOIN_AS_VIEWER'],
+    'KICKOFF': ['JOIN_AS_VIEWER'],
+    'END' : [],
+}
+
+const statusGuestCycle = {
+    'ACCEPT' : [ "LEAVE" ],
+    'REJECT' : ['JOIN_AS_VIEWER'],
+    'LEAVE': ['JOIN_AS_VIEWER'],
+}
+
 @Injectable()
 export class DuetService {
     constructor(

@@ -25,7 +25,6 @@ import { ShopEntityDocument } from 'src/shop/entities/shop.entity';
 import { UsersService } from 'src/users/users.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
-import { AdminGetLiveStreamDto } from './dto/admin-get-livestream.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { InviteDuetDto } from './dto/invite-duet.dto';
 import { RejectIntiveDuetDto } from './dto/reject-duet.dto';
@@ -38,6 +37,7 @@ import { DonateDto } from './dto/donate.dto';
 import { ProductsService } from 'src/products/products.service';
 import { DonateUserResponse } from './responses/donate-user.response';
 import { WalletItemResponse } from 'src/wallets/responses/wallet.response';
+import { ConfigurationService } from 'src/configuration/configuration.service';
 const crypto = require('crypto');
 
 
@@ -57,6 +57,7 @@ export class LivestreamsController {
     private readonly duetService: DuetService,
     private readonly walletService: WalletsService,
     private readonly productService: ProductsService,
+    private readonly configurationService: ConfigurationService,
     ) {}
 
 
@@ -196,26 +197,6 @@ export class LivestreamsController {
   }
 
 
-  @ApiOkResponse({
-    description: 'Get status record livestream'
-  })
-  @Get(':id/record-video-status')
-  async getRecordVideoStatus(@Param('id') id: string): Promise<IResponse> {
-    const live = await this.livestreamsService.findOne(id);
-    const data =  await this.livestreamsService.getRecordStatus( live );
-    return new ResponseSuccess({ data: data }); 
-  }
-
-  @ApiOkResponse({
-    description: 'Stop record livestream'
-  })
-  @Post(':id/stop-record-video')
-  async stopRecordVideoStatus(@Param('id') id: string): Promise<IResponse> {
-    const live = await this.livestreamsService.findOne(id);
-    const data =  await this.livestreamsService.stopRecordVideo( live );
-    return new ResponseSuccess({ data: data }); 
-  }
-
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'End a livestream'
@@ -237,6 +218,8 @@ export class LivestreamsController {
   }
 
   @Get('all')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     type: [LiveStreamPaginationResponse],
     description: 'Find all livestreams with pagination'
@@ -248,6 +231,8 @@ export class LivestreamsController {
 
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     type: [LiveStreamItemResponse],
     description: 'Find all livestreams'
@@ -258,18 +243,15 @@ export class LivestreamsController {
   }
 
   @ApiOkResponse({
-    description: 'Get a livestream info success'
+    description: 'Get a livestream info'
   })
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async findOne( @Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse> {
     const d = await this.livestreamsService.findOne(id);
     if( !d ) throw new BadRequestException('Not found');
-    // update count view
-    const updateView = {
-      viewCount: d.viewCount + 1
-    }
-    await this.livestreamsService.update( id, updateView );
-
+  
     return new ResponseSuccess( new LiveStreamItemResponse( d ) ) ;
   }
 
@@ -285,10 +267,13 @@ export class LivestreamsController {
       @Param('id', new MongoIdValidationPipe() ) id: string,
       @Req() request
     ): Promise<IResponse>{
-    const uid = crypto.randomBytes(4).readUInt32BE(0, true);
-    const d = await this.livestreamsService.joinMember( id, request.user.id, uid );
-    if( !d ) throw new BadRequestException('Livestream Not found');
+    
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
 
+    const uid = crypto.randomBytes(4).readUInt32BE(0, true);
+    const d = await this.livestreamsService.joinMember( liveStream, request.user.id, uid );
+    
     // update livestream
     const donateUid = new Date().getTime();
     await this.livestreamsService.update( id, {
@@ -298,7 +283,6 @@ export class LivestreamsController {
     });
 
     const newLiveStream = await this.livestreamsService.findOne(id);
-
     const responseObj = {
       stream: newLiveStream,
       agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
@@ -321,15 +305,27 @@ export class LivestreamsController {
       @Param('id', new MongoIdValidationPipe() ) id: string,
       @Req() request
     ): Promise<IResponse>{
+    
+    const liveStream = await this.livestreamsService.findOne(id);
+    if(!liveStream) throw new BadRequestException("Live stream doest not exists");
+
     const uid = crypto.randomBytes(4).readUInt32BE(0, true);
-    const d = await this.livestreamsService.joinMember( id, request.user.id, uid );
-    if( !d ) throw new BadRequestException('Livestream Not found');
+    const joinInfo = await this.livestreamsService.joinMember( liveStream, request.user.id, uid );
+    
+    // update count view
+    const configViewStep = await this.configurationService.getFakeNumberViewStep();
+    const step: number = configViewStep ? Number(configViewStep.configValue) : 1;
+    const updateView = {
+      viewCount: liveStream.viewCount + step
+    }
+    await this.livestreamsService.update( id, updateView );
+    const newLiveStream = await this.livestreamsService.findOne(id);
 
     const responseObj = {
-      stream: d.liveStream,
-      agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
+      stream: newLiveStream,
+      agoraToken: await this.agoraService.generateAgoraToken( liveStream.channelName, uid ),
       rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString(), 2 ),
-      joinInfo: d
+      joinInfo: joinInfo
     };
 
     return new ResponseSuccess(new LiveMemerResponse(responseObj));
@@ -353,64 +349,8 @@ export class LivestreamsController {
   }
 
 
-
-  // @Put(':id')
-  // update(@Param('id') id: string, @Body() updateLivestreamDto: UpdateLivestreamDto) {
-  //   return this.livestreamsService.update(+id, updateLivestreamDto);
-  // }
-
-  @Delete(':id')
-  @ApiOkResponse({
-    description: 'Deleted a livestream'
-  })
-  async remove(@Param('id', new MongoIdValidationPipe() ) liveStreamId: string): Promise<any>{
-    return await this.livestreamsService.remove(liveStreamId);
-  }
-
-  @Delete()
-  @ApiOkResponse({
-    description: 'Deleted all livestreams'
-  })
-  async deleteAll(): Promise<any>{
-    return await this.livestreamsService.removeAll();
-  }
-
-
-  @ApiOkResponse({
-    description: 'Get status record livestream individual'
-  })
-  @Get(':id/record-individual/video-status')
-  async getVideoIndividualStatus(@Param('id') id: string): Promise<IResponse> {
-    const live = await this.livestreamsService.findOne(id);
-    const data =  await this.livestreamsService.getRecordIndividualStatus( live );
-    return new ResponseSuccess({ data: data }); 
-  }
-
-  @ApiOkResponse({
-    description: 'Stop record livestream individual'
-  })
-  @Post(':id/stop-record-individual-video')
-  async stopRecordVideoIndividualStatus(@Param('id') id: string): Promise<IResponse> {
-    const live = await this.livestreamsService.findOne(id);
-    const data =  await this.livestreamsService.stopRecordIndividualVideo( live );
-    return new ResponseSuccess({ data: data }); 
-  }
-  /**
-   * FOR ADMIN API
-   */
-
-  @Get('admin/all')
-  @ApiOkResponse({
-    type: [LiveStreamPaginationResponse],
-    description: 'Find all livestreams with pagination'
-  })
-  async findAllForAdmin( @Query() query: AdminGetLiveStreamDto ): Promise<IResponse>{
-    const d = await this.livestreamsService.findAdminPaginate(query);
-    return new ResponseSuccess( new LiveStreamPaginationResponse(d[0]) );
-  }
- 
   @ApiOkResponse()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards( JwtAuthGuard )
   @ApiBearerAuth()
   @Post('force-end-all-livestream')
   async userForceEndAllLivestream( @Req() request ): Promise<IResponse>{
@@ -418,61 +358,8 @@ export class LivestreamsController {
     if( !user ) throw new BadRequestException('User not found');
     const allLive = await this.livestreamsService.forceEndUserLiveStream(user);
     return new ResponseSuccess( { success: true } );
-
   }
 
-  @Put(':id/admin/force-end')
-  async forceEndLiveStream( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse>{
-
-    const d = await this.livestreamsService.findOne(id);
-    if( !d ) throw new BadRequestException('Not found');
-
-    // update status post wall
-    await this.wallService.endWallLive( id );
-
-    // stop record
-    if( d.shop && d.shop != '' ){
-      await this.livestreamsService.stopRecordVideo( d );
-    }
-
-    const data = await this.livestreamsService.forceEndLiveStream(id);
-    const notifyId = uuidv4();
-    // notify force end
-    const metadataBody = {
-      streamerId: d.streamer.id,
-      streamerUid: d.streamerUid,
-      liveStreamId: d.id,
-      coverPicture: d.coverPicture,
-      channelName: d.channelName,
-      channelTitle: d.channelTitle,
-      agoraToken: d.agoraToken,
-      agoraRtmToken: d.agoraRtmToken,
-      notifyId: notifyId
-    }
-
-
-    const notifyData = {
-      title: `Your livestream has been force end`,
-      body: 'Admin has been force end your livestream ',
-      imageUrl: d.streamer.avatar,
-      metaData: metadataBody,
-      clickAction: 'FORCE_END_LIVESTREAM'
-    } as INotifyMessageBody
-
-    // notify to user
-    const fcmTokens: string[] = await this.userService.getUserFcmToken( d.streamer.id.toString() );
-    if(fcmTokens.length > 0){
-      this.fcmService.sendMessage( fcmTokens, notifyData );
-    }
-    // create notify data to host user
-    await this.notifyService.create({
-      ...notifyData,
-      user: d.streamer.id.toString(),
-      notifyId: notifyId
-    } as CreateNotificationDto )
-
-    return new ResponseSuccess( data );
-  }
 
   // duet
   @ApiOkResponse()
@@ -598,7 +485,6 @@ export class LivestreamsController {
   }
 
 
-
   @ApiOkResponse()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -634,7 +520,7 @@ export class LivestreamsController {
     }
     const notifyData = {
       title: `Invitation Accepted`,
-      body: 'The '+guestUser.fullname+' has accepted your invitation.',
+      body: guestUser.fullname+' has accepted your invitation.',
       imageUrl: guestUser.avatar,
       metaData: metadataBody,
       clickAction: 'ACCEPTED_DUET'
@@ -754,7 +640,7 @@ export class LivestreamsController {
       notifyId: notifyId
     }
     const notifyData = {
-      title: `${guestUser.fullname} are leave duet`,
+      title: `${guestUser.fullname} has left duet`,
       body: '',
       imageUrl: guestUser.avatar,
       metaData: metadataBody,

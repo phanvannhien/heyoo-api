@@ -17,6 +17,7 @@ import { GetUserWallDto } from './dto/get-userwall.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { UserWallEntityDocument } from './entities/user-wall.entity';
 import { UserWallsPaginationResponse } from './responses/userwalls-pagination.response';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 
 @ApiTags('user-walls')
 @Controller('user-walls')
@@ -32,7 +33,6 @@ export class UserWallsController {
     return new ResponseSuccess( new UserWallsItemResponse( create ) );
   }
 
-  
   @Get()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -194,11 +194,5 @@ export class UserWallsController {
     return await this.userWallsService.remove(id);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Delete('post/reset-like-count')
-  async resetAllLikePost() {
-    return await this.userWallsService.resetAllLikeCount();
-  }
 
 }

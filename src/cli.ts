@@ -10,4 +10,5 @@ import { AppModule } from './app.module';
         .select(CommandModule)
         .get(CommandService)
         .exec();
+    console.log('Command running')
 })();

@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { ProductItemResponse } from './responses/product.response';
@@ -11,6 +11,8 @@ import { GetProductDto } from './dto/get-product.dto';
 import { ProductItemsResponse } from './responses/products.response';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('products')
 @Controller('products')
@@ -22,23 +24,12 @@ export class ProductsController {
     ) {}
 
 
-    @ApiOkResponse({
-        type: ProductItemResponse
-    })
-    @ApiBody({
-        type: CreateProductDto
-    })
-    @ApiBearerAuth()
-    @Post()
-    async create(@Body() body: CreateProductDto): Promise<IResponse> {
-        const data = await this.productService.create(body);
-        return new ResponseSuccess(new ProductItemResponse(data));
-    }
-
     @Get('get/all')
     @ApiOkResponse({
         type: ProductItemsResponse
     })
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     async getAll(): Promise<IResponse>{
         const d = await this.productService.getAll();
         return new ResponseSuccess(new ProductItemsResponse(d));
@@ -48,6 +39,8 @@ export class ProductsController {
     @ApiOkResponse({
         type: ProductItemsResponse
     })
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     async find( @Query() query: GetProductDto ): Promise<IResponse>{
         const d = await this.productService.findAll(query);
         return new ResponseSuccess(new ProductItemsResponse(d));
@@ -57,24 +50,13 @@ export class ProductsController {
         type: ProductItemResponse
     })
     @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
         const find = await this.productService.findById(id);
         if( !find ) throw new BadRequestException('Product not found');
         return new ResponseSuccess(new ProductItemResponse(find));
     }
 
-    @ApiOkResponse({
-        type: ProductItemResponse
-    })
-    @ApiBody({
-        type: UpdateProductDto
-    })
-    @Put(':id')
-    async update(@Param('id', new MongoIdValidationPipe() ) id: string, @Body() body: UpdateProductDto): Promise<IResponse> {
-        const find = await this.productService.findById(id);
-        if( !find ) throw new BadRequestException('Product not found');
-        const data = await this.productService.update( id,  body);
-        return new ResponseSuccess(new ProductItemResponse(data));
-    }
 
 }

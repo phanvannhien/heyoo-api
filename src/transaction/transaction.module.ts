@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { TransactionSchema } from './schemas/transaction.schema';
 import { UsersModule } from 'src/users/users.module';
 import { OrdersModule } from 'src/orders/orders.module';
+import { AdminTransactionController } from './admin-transaction.controller';
 
 
 @Module({
@@ -16,7 +17,7 @@ import { OrdersModule } from 'src/orders/orders.module';
     OrdersModule,
   ],
   providers: [TransactionService],
-  controllers: [TransactionController],
+  controllers: [TransactionController, AdminTransactionController ],
   exports: [
     TransactionService
   ]

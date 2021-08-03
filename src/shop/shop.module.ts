@@ -7,6 +7,7 @@ import { SHOP_MODEL,SHOP_FOLLOW_MODEL } from 'src/mongo-model.constance';
 import { ShopCategoriesModule } from 'src/shop-categories/shop-categories.module';
 import { ShopFollowSchema } from './schemas/follow.schema';
 import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
+import { AdminShopController } from './admin-shop.controller';
 
 
 @Module({
@@ -18,7 +19,7 @@ import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
     ]),
     ShopCategoriesModule
   ],
-  controllers: [ShopController],
+  controllers: [ShopController, AdminShopController],
   providers: [ShopService],
   exports:[
     ShopService

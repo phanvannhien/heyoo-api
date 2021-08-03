@@ -1,7 +1,4 @@
 export enum Permission {
-    ListUuser   = 'ListUser',
-    CreateUser  = 'CreateUser',
-    GetUser     = 'GetUser',
-    UpdateUser  = 'UpdateUser',
-    DeleteUser  = 'DeleteUser',
+    UpdateVideoCategory   = 'video_category.update',
+    EditVideoCategory   = 'video_category.edit',
 }

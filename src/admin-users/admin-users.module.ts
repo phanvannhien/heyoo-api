@@ -7,20 +7,22 @@ import { CreateAdminUserCommand } from './create-admin-users.command';
 import { CommandModule } from 'nestjs-command';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/constants';
+import { AdminJwtStrategy } from './admin-jwt.strategy';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'AdminUser', schema: AdminUserSchema }]),
     CommandModule,
     JwtModule.register({
-      secret: jwtConstants.secret,
+      secret: jwtConstants.adminSecret,
       signOptions: { expiresIn: '60s' },
     }),
   ],
   controllers: [AdminUsersController],
   providers: [
     CreateAdminUserCommand,
-    AdminUsersService 
+    AdminUsersService,
+    AdminJwtStrategy,
   ],
   exports: [
     AdminUsersService

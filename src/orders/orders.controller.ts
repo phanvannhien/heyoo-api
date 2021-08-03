@@ -47,29 +47,8 @@ export class OrdersController {
             status: 'success',
         }
 
-        const d = await this.orderService.create(create);
-
-        //     await this.walletService.create({
-        //         user: request.user.id,
-        //         product: productFind.id,
-        //         price: productFind.price,
-        //         quantity: -body.quantity,
-        //         total: productFind.price * body.quantity,
-        //         type: 'out'
-        //     })
-
-        // await this.walletService.create({
-        //     user: body.toUser,
-        //     product: productFind.id,
-        //     price: productFind.price,
-        //     quantity: body.quantity,
-        //     total: productFind.price * body.quantity,
-        //     type: 'in'
-        // })
-      
+        const d = await this.orderService.create(create);      
         return new ResponseSuccess( new OrderItemResponse(d));
-
-
     }
 
 
@@ -77,6 +56,8 @@ export class OrdersController {
     @ApiOkResponse({
         type: OrderItemsResponse
     })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     async find( @Query() query: GetOrderDto ): Promise<IResponse>{
         const d = await this.orderService.findAll(query);
         return new ResponseSuccess(new OrderItemsResponse(d));

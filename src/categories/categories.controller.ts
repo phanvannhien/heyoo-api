@@ -1,36 +1,28 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, HttpStatus, Query, Res, BadRequestException } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, HttpStatus, Query, Res, BadRequestException, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ResponseSuccess } from 'src/common/dto/response.dto';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { CategoriesService } from './categories.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesResponse } from './responses/categories.response';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import { CategoryLiveStreamResponse } from './responses/category-livestream.response';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
 
 @ApiTags('livestream-categories')
 @Controller('livestream-categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @Post()
-  @ApiOkResponse({
-    type: CategoriesResponse
-  })
-  @HttpCode( HttpStatus.OK )
-  async create(@Body() createCategoryDto: CreateCategoryDto): Promise<IResponse> {
-    const cate = await this.categoriesService.create(createCategoryDto);
-    return new ResponseSuccess( new CategoriesResponse(cate) ) ;
-  }
-
   @Get()
   @ApiOkResponse({
     type: [CategoriesResponse]
   })
   @HttpCode( HttpStatus.OK )
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async findAll(): Promise<IResponse> {
     const d = await this.categoriesService.findAll();
     const r = d.map( i => new CategoriesResponse(i) );
@@ -42,6 +34,8 @@ export class CategoriesController {
     type: [CategoriesResponse]
   })
   @HttpCode( HttpStatus.OK )
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async findAllCategories( @Res() res, @Query() query: GetCategoryDto ): Promise<IResponse> {
     const d = await this.categoriesService.findAllCategories(query);
     const r = d.map( i => new CategoriesResponse(i) );
@@ -57,11 +51,12 @@ export class CategoriesController {
     type: CategoriesResponse
   })
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async findOne(@Param('id', new MongoIdValidationPipe()) id: string): Promise<IResponse> {
     const data = await this.categoriesService.findOne(id)
     return new ResponseSuccess(new CategoriesResponse(data))
   }
-
 
   /**
    * 
@@ -71,6 +66,8 @@ export class CategoriesController {
   @ApiOkResponse({
     type: CategoryLiveStreamResponse
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get(':id/livestreams')
   async getLiveStreamByCategoryId(
       @Param('id', new MongoIdValidationPipe()) id: string,
@@ -96,6 +93,8 @@ export class CategoriesController {
       type: CategoryLiveStreamResponse
     })
     @Get('livestreams/all')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     async getAllLiveStream(
         @Query() query: QueryPaginateDto
       ): Promise<IResponse> {
@@ -110,17 +109,4 @@ export class CategoriesController {
     }
   
 
-  @ApiOkResponse({
-    type: CategoriesResponse
-  })
-  @Put(':id')
-  async update(@Param('id', new MongoIdValidationPipe()) id: string, @Body() updateCategoryDto: UpdateCategoryDto): Promise<IResponse> {
-    const data = await this.categoriesService.update(id, updateCategoryDto);
-    return new ResponseSuccess(new CategoriesResponse(data))
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(id);
-  }
 }

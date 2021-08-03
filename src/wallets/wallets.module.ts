@@ -6,6 +6,7 @@ import { ProductsModule } from 'src/products/products.module';
 import { UsersModule } from 'src/users/users.module';
 import { WalletSchema } from './schemas/wallet.schema';
 import { LivestreamsModule } from 'src/livestreams/livestreams.module';
+import { AdminWalletsController } from './admin-wallets.controller';
 
 @Global()
 @Module({
@@ -17,7 +18,7 @@ import { LivestreamsModule } from 'src/livestreams/livestreams.module';
     UsersModule,
     LivestreamsModule
 ],
-  controllers: [WalletsController],
+  controllers: [WalletsController, AdminWalletsController],
   providers: [WalletsService],
   exports:[
     WalletsService

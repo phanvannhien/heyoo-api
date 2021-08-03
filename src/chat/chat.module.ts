@@ -1,4 +1,5 @@
 import { HttpModule, Module } from '@nestjs/common';
+import { AdminChatController } from './admin-chat.controller';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 
@@ -7,7 +8,7 @@ import { ChatService } from './chat.service';
     imports: [
         HttpModule
     ],
-    controllers: [ChatController],
+    controllers: [ChatController, AdminChatController],
     providers: [ChatService],
     exports: [ChatService],
 })

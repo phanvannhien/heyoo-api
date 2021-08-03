@@ -4,6 +4,7 @@ import { ProductsService } from './products.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FilesModule } from 'src/files/files.module';
 import { ProductSchema } from './schemas/product.schema';
+import { AdminProductsController } from './admin-products.controller';
 
 @Module({
 
@@ -13,7 +14,7 @@ import { ProductSchema } from './schemas/product.schema';
     ]),
     FilesModule
   ],
-  controllers: [ProductsController],
+  controllers: [ProductsController, AdminProductsController],
   providers: [ProductsService],
   exports:[
     ProductsService

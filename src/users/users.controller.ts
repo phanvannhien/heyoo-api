@@ -1,11 +1,8 @@
 import { Controller, Get, Res, HttpCode, Param, BadRequestException, HttpStatus, Delete, Query, UseGuards, Req, Post, Body } from '@nestjs/common';
 import { UsersService } from './users.service'
 import { ApiResponse, ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { UserResponse } from './responses/user.response';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { ResponseSuccess } from 'src/common/dto/response.dto';
-import { FindIdUserDto } from './dto/find-id.dto';
-import { GetUserDto } from './dto/get-users.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FollowResponse } from './responses/follow.response';
@@ -24,20 +21,11 @@ export class UsersController {
         private userService: UsersService,
     ){}
 
-    @Get()
-    @HttpCode(HttpStatus.OK )
-    async getAll( @Res() res, @Query() queryParams: GetUserDto ){
-        const data = await this.userService.findPaginate(queryParams);
-        return res.json( {
-            data: { 
-                items: data[0].items,
-                total: data[0].total[0].count
-            }
-        });
-    }
 
     @ApiResponse({ type: UserProfileResponse })
     @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     @HttpCode( HttpStatus.OK )
     async getCustomer( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse> {
         const user = await this.userService.getProfile(id);
@@ -46,17 +34,6 @@ export class UsersController {
         }
 
         return new ResponseSuccess( new UserProfileResponse(user[0]) )
-    }
-
-
-    @Delete(':id')
-    @HttpCode( HttpStatus.OK )
-    async deleteCustomer(@Res() res, @Param() params: FindIdUserDto) {
-        const customer = await this.userService.delete( params.id )
-        if (!customer) throw new BadRequestException('User does not exist')
-        return res.json({
-            success: true
-        })
     }
 
 
@@ -87,9 +64,9 @@ export class UsersController {
 
     @ApiOkResponse()
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @Post(':userId/unfollow')
     @HttpCode( HttpStatus.OK )
-    @UseGuards(JwtAuthGuard)
     async unFollow( @Req() request, @Param('userId', new MongoIdValidationPipe() ) userId: string ): Promise<any> {
         const d = await this.userService.unFollow(request.user.id, userId);
         return new ResponseSuccess( d )
@@ -101,6 +78,7 @@ export class UsersController {
     })
     @Get(':userId/follower')
     @HttpCode( HttpStatus.OK )
+    @UseGuards(JwtAuthGuard)
     async followers( 
         @Param('userId', new MongoIdValidationPipe() ) userId: string, 
         @Query() requestBody: GetFollowerDto 
@@ -111,6 +89,7 @@ export class UsersController {
 
     @ApiOkResponse()
     @Get(':userId/following')
+    @UseGuards(JwtAuthGuard)
     @HttpCode( HttpStatus.OK )
     async following( 
         @Param('userId', new MongoIdValidationPipe() ) userId: string, 
@@ -135,26 +114,6 @@ export class UsersController {
         }
         return new ResponseSuccess({ isFollowing: false }) 
     }
-
-    @Get('do/fcm-token-follower')
-    @ApiOkResponse()
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async getFcmToken(  @Req() request ): Promise<any>{
-        return await this.userService.getUserFollowerFcmToken( request.user.id );
-    }
-
-
-    @Get('do/get-user-fcmtokens')
-    @ApiOkResponse()
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async getUserFcmTokens( @Req() request ): Promise<any>{
-        return await this.userService.getUserFcmToken( request.user.id );
-    }
-
 
 
 }

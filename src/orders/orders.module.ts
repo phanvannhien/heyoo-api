@@ -6,6 +6,7 @@ import { OrderSchema } from './schemas/order.schema';
 import { ProductsModule } from 'src/products/products.module';
 import { UsersModule } from 'src/users/users.module';
 import { WalletsModule } from 'src/wallets/wallets.module';
+import { AdminOrdersController } from './admin-orders.controller';
 
 @Module({
     imports: [
@@ -17,7 +18,7 @@ import { WalletsModule } from 'src/wallets/wallets.module';
         forwardRef(() => UsersModule)
     ],
     providers: [OrdersService],
-    controllers: [OrdersController],
+    controllers: [OrdersController,AdminOrdersController],
     exports: [
         OrdersService
     ]

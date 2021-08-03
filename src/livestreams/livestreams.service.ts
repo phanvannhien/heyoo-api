@@ -102,20 +102,15 @@ export class LivestreamsService {
       .exec();
   }
 
-  async joinMember( streamId: string, memberId: string, uid: number ): Promise<LiveStreamMemberEntityDocument>{
-    const d = await this.findOne(streamId)
-    if(!d) throw new BadRequestException("Live stream doest not exists")
-
+  async joinMember( liveStream: LiveStreamEntityDocument, memberId: string, uid: number ): Promise<LiveStreamMemberEntityDocument>{
+    
     const mem = new this.liveStreamMemberModel({
-      liveStream: streamId,
+      liveStream: liveStream.id,
       member: memberId,
       uid: uid
     })
-    await mem.save();
-    return mem.populate({
-      path: 'liveStream',
-      populate: [{ path: 'streamer' },{ path: 'categories' }]
-    }).execPopulate();
+    return await mem.save();
+   
   }
 
   async leaveMember( liveStreamId: string, memberId: string ){ 

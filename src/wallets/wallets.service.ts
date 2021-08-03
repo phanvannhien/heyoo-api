@@ -44,14 +44,7 @@ export class WalletsService {
                     $match: { toUser: new mongoose.Types.ObjectId(userId) }
                 },
                 {
-                    $group: { _id: "$product" , total: { $sum: "$quantity" }}
-                },
-                { 
-                    $project: {
-                        product: 1,
-                        image: 1,
-                        total: 1
-                    }
+                    $group: { _id: "$product" , quantity: { $sum: "$quantity" }}
                 },
                 {
                     $lookup: {
@@ -65,7 +58,7 @@ export class WalletsService {
                 { 
                     $project: {
                         _id: 0,
-                        total: 1,
+                        quantity: 1,
                         image: "$product_info.image",
                         productName: "$product_info.productName"
                     }

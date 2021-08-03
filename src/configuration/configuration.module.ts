@@ -13,6 +13,9 @@ import { ConfigurationSchema } from './schemas/configuration.schema';
     ]),
   ],
   controllers: [ConfigurationController],
-  providers: [ConfigurationService]
+  providers: [ConfigurationService],
+  exports:[
+    ConfigurationService
+  ]
 })
 export class ConfigurationModule {}

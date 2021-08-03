@@ -6,6 +6,7 @@ import { NewsSchema } from './schemas/news.schema';
 import { FilesModule } from 'src/files/files.module';
 import { NewsCategoriesModule } from 'src/news-categories/news-categories.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { AdminNewsController } from './admin-news.controller';
 
 
 @Module({
@@ -18,7 +19,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     NewsCategoriesModule,
     NotificationsModule
   ],
-  controllers: [NewsController],
+  controllers: [NewsController, AdminNewsController],
   providers: [NewsService],
   exports:[
     NewsService

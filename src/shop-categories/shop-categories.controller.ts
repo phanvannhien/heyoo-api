@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, HttpStatus, Query, Res } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, HttpStatus, Query, Res, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ResponseSuccess } from 'src/common/dto/response.dto';
 import { IResponse } from 'src/common/interfaces/response.interface';
 import { ShopCategoriesService } from './shop-categories.service';
@@ -8,27 +8,21 @@ import { UpdateShopCategoryDto } from './dto/update-shop.dto';
 import { ShopCategoriesResponse } from './responses/shop-categories.response';
 import { GetShopCategoryDto } from './dto/get-shop-category.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('shop-categories')
 @Controller('shop-categories')
 export class ShopCategoriesController {
   constructor(private readonly categoryService: ShopCategoriesService) {}
 
-  @Post()
-  @ApiOkResponse({
-    type: ShopCategoriesResponse
-  })
-  @HttpCode( HttpStatus.OK )
-  async create(@Body() createCategoryDto: CreateShopCategoryDto): Promise<IResponse> {
-    const cate = await this.categoryService.create(createCategoryDto);
-    return new ResponseSuccess( new ShopCategoriesResponse(cate) ) ;
-  }
-
   @Get()
   @ApiOkResponse({
     type: [ShopCategoriesResponse]
   })
+  @ApiBearerAuth()
   @HttpCode( HttpStatus.OK )
+  @UseGuards(JwtAuthGuard)
   async findAll(): Promise<IResponse> {
     const d = await this.categoryService.findAll();
     const r = d.map( i => new ShopCategoriesResponse(i) );
@@ -39,7 +33,9 @@ export class ShopCategoriesController {
   @ApiOkResponse({
     type: [ShopCategoriesResponse]
   })
+  @ApiBearerAuth()
   @HttpCode( HttpStatus.OK )
+  @UseGuards(JwtAuthGuard)
   async findAllCategories( @Res() res, @Query() query: GetShopCategoryDto ): Promise<IResponse> {
     const d = await this.categoryService.findAllCategories(query);
     const r = d.map( i => new ShopCategoriesResponse(i) );
@@ -55,25 +51,11 @@ export class ShopCategoriesController {
     type: ShopCategoriesResponse
   })
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async findOne(@Param('id', new MongoIdValidationPipe()) id: string): Promise<IResponse> {
     const data = await this.categoryService.findOne(id)
     return new ResponseSuccess(new ShopCategoriesResponse(data))
   }
 
-  @ApiOkResponse({
-    type: ShopCategoriesResponse
-  })
-  @Put(':id')
-  async update(
-      @Param('id', new MongoIdValidationPipe()) id: string, 
-      @Body() updateCategoryDto: UpdateShopCategoryDto
-    ): Promise<IResponse> {
-    const data = await this.categoryService.update(id, updateCategoryDto);
-    return new ResponseSuccess(new ShopCategoriesResponse(data))
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(id);
-  }
 }

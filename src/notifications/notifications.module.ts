@@ -4,6 +4,7 @@ import { NotificationsController } from './notifications.controller';
 import { NotificationSchema } from './schemas/notification.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NOTIFICATION_MODEL } from 'src/mongo-model.constance';
+import { AdminNotificationsController } from './admin-notifications.controller';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { NOTIFICATION_MODEL } from 'src/mongo-model.constance';
       { name: NOTIFICATION_MODEL, schema: NotificationSchema },
     ]),
   ],
-  controllers: [NotificationsController],
+  controllers: [NotificationsController, AdminNotificationsController],
   providers: [NotificationsService],
   exports:[
     NotificationsService

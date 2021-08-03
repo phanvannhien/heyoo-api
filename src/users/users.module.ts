@@ -8,6 +8,8 @@ import { LivestreamsModule } from 'src/livestreams/livestreams.module';
 import { FollowSchema } from './schemas/follow.schema';
 import { USER_FCMTOKEN_MODEL } from 'src/mongo-model.constance';
 import { FcmTokenSchema } from './schemas/fcm-token.schema';
+import { AdminUsersFrontController } from './admin-users.controller';
+
 
 @Global()
 @Module({
@@ -21,7 +23,7 @@ import { FcmTokenSchema } from './schemas/fcm-token.schema';
     LivestreamsModule,
   ],
   providers:    [UsersService],
-  controllers:  [UsersController],
+  controllers:  [UsersController, AdminUsersFrontController],
   exports:      [UsersService],
 })
 export class UsersModule {}

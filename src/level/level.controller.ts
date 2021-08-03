@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import { LevelService } from './level.service';
 import { LevelItemResponse } from './responses/level.response';
@@ -11,9 +11,10 @@ import { GetLevelDto } from './dto/get-level.dto';
 import { LevelItemsResponse } from './responses/level-paginate.response';
 import { UpdateLevelDto } from './dto/update-level.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 
-@ApiTags('level')
-@Controller('level')
+@ApiTags('admin')
+@Controller('admin-level')
 export class LevelController {
 
     constructor(
@@ -27,6 +28,7 @@ export class LevelController {
         type: CreateLevelDto
     })
     @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
     @Post()
     async create(@Body() body: CreateLevelDto): Promise<IResponse> {
         const data = await this.levelService.create(body);
@@ -38,6 +40,8 @@ export class LevelController {
     @ApiOkResponse({
         type: LevelItemsResponse
     })
+    @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
     async find( @Query() query: GetLevelDto ): Promise<IResponse>{
         const d = await this.levelService.findAll(query);
         return new ResponseSuccess(new LevelItemsResponse(d));
@@ -47,6 +51,8 @@ export class LevelController {
         type: LevelItemResponse
     })
     @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
         const find = await this.levelService.findById(id);
         if( !find ) throw new BadRequestException('Level not found');
@@ -60,6 +66,8 @@ export class LevelController {
         type: UpdateLevelDto
     })
     @Put(':id')
+    @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
     async update(@Param('id', new MongoIdValidationPipe() ) id: string, @Body() body: UpdateLevelDto): Promise<IResponse> {
         const find = await this.levelService.findById(id);
         if( !find ) throw new BadRequestException('Level not found');

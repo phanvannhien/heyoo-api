@@ -12,6 +12,8 @@ import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { LivestreamsService } from 'src/livestreams/livestreams.service';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { AdminJwtStrategy } from 'src/admin-users/admin-jwt.strategy';
 
 @ApiTags('wallets')
 @Controller('wallets')
@@ -23,10 +25,11 @@ export class WalletsController {
         private readonly liveStreamService: LivestreamsService,
     ){}
 
-    @ApiBearerAuth()
+    
     @ApiOkResponse({
         type: WalletItemResponse
     })
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Post()
     async create(
@@ -58,29 +61,11 @@ export class WalletsController {
 
     }
 
-  
-    @Get()
-    @ApiOkResponse({
-        type: WalletItemsResponse,
-        description: 'return all wallets with pagination'
-    })
-    async find( @Query() query: GetWalletsDto ): Promise<IResponse>{
-        const d = await this.walletService.findAll(query);
-        return new ResponseSuccess(new WalletItemsResponse(d));
-    }
-
-    @Get(':id')
-    @ApiOkResponse({
-        type: WalletItemResponse,
-        description: 'return wallets find by ID'
-    })
-    async getById( @Param('id', new MongoIdValidationPipe() ) id: string ): Promise<IResponse>{
-        const d = await this.walletService.findById(id);
-        return new ResponseSuccess(new WalletItemResponse(d));
-    }
 
     @Get(':userId/get-in')
     @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     async getUserWalletIn( @Param('userId', new MongoIdValidationPipe() ) userId: string): Promise<IResponse>{
 
         const userFind = await this.userService.findById(userId)
@@ -91,6 +76,8 @@ export class WalletsController {
 
     @Get(':userId/get-out')
     @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     async getUserWalletOut( @Param('userId', new MongoIdValidationPipe() ) userId: string): Promise<IResponse>{
 
         const userFind = await this.userService.findById(userId)

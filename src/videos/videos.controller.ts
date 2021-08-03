@@ -21,6 +21,7 @@ import { FirebaseCloudMessageService } from 'src/firebase/firebase.service';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { v4 as uuidv4 } from 'uuid';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 
 @ApiTags('videos')
 @Controller('videos')
@@ -35,70 +36,10 @@ export class VideosController {
         private readonly notifyService: NotificationsService,
     ) {}
 
-    @ApiOkResponse({ type: VideosItemResponse })
-    @ApiBody({ type: CreateVideosDto })
-    @ApiBearerAuth()
-    @UseGuards( JwtAuthGuard )
-    @Post()
-    async create( 
-        @Req() req, 
-        @Body() body: CreateVideosDto,
-    ): Promise<IResponse>
-    {
-
-        const video = await this.videCategryService.findOne( body.category );
-        if(!video) throw new BadRequestException('Category not found');
-
-        const createData = { 
-            ...body,
-            createdBy: req.user.id,
-        };
-        
-        const data = await this.videoService.create(createData);
-        const notifyId = uuidv4();
-        const notifyData = {
-            title: `New Video`,
-            body: data.title,
-            imageUrl: data.image,
-            metaData: {
-              videoId: data.id,
-              notifyId: notifyId
-            },
-            clickAction: 'VIEW_VIDEOS'
-        }
-
-        // create user notify
-        const allUser = await this.userService.getAllUserActive();
-        const notifyDataCreate =  allUser.map( i => {
-           return {
-            ...notifyData,
-            user: i,
-            notifyId: notifyId
-           }
-        })
-        await this.notifyService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
-
-        // send notify
-        const fcmTokens: string[] = await this.userService.getAllUserFcmtokens();
-        if(fcmTokens.length>0){
-          this.fcmService.sendMessage( fcmTokens, notifyData );
-        }
-
-        return new ResponseSuccess(new VideosItemResponse(data));
-    }
-
-    @Get('admin/get')
-    @ApiBearerAuth()
-    @ApiOkResponse({
-        type: VideosItemsPaginateResponse
-    })
-    async getForAdmin( @Query() query: GetVideosDto ): Promise<IResponse>{
-        const d = await this.videoService.getForAdmin(query);
-        return new ResponseSuccess(new VideosItemsPaginateResponse(d[0] ));
-    }
 
     @Get()
     @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     @ApiOkResponse({
         type: VideosItemsPaginateResponse
     })
@@ -110,6 +51,7 @@ export class VideosController {
     @ApiOkResponse({ type: VideosItemResponse  })
     @ApiBearerAuth()
     @Get(':id')
+    @UseGuards( JwtAuthGuard )
     async get(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
         const find: VideosEntityDocument = await this.videoService.findById(id);
         if( !find ) throw new BadRequestException('videos not found');
@@ -123,6 +65,7 @@ export class VideosController {
     @ApiOkResponse({ type: VideosItemResponse  })
     @ApiBearerAuth()
     @Post(':id/share-count')
+    @UseGuards( JwtAuthGuard )
     async postShare(@Param('id', new MongoIdValidationPipe() ) id: string): Promise<IResponse>{
         const find: VideosEntityDocument = await this.videoService.findById(id);
         if( !find ) throw new BadRequestException('News not found');
@@ -134,42 +77,10 @@ export class VideosController {
         return new ResponseSuccess(new VideosItemResponse(find));
     }
 
-    @ApiOkResponse({ type: VideosItemResponse })
-    @ApiBody({ type: UpdateVideosDto })
-    @ApiBearerAuth()
-    @Put(':id')
-    async update(
-            @Param('id', new MongoIdValidationPipe() ) id: string,
-            @Body() body: UpdateVideosDto
-        ): Promise<IResponse> {
-        const find = await this.videoService.findById(id);
-        if( !find ) throw new BadRequestException('videos not found');
-        const data = await this.videoService.update( id,  body);
-        return new ResponseSuccess(new VideosItemResponse(data));
-    }
-
-    @ApiOkResponse({ type: VideosItemResponse })
-    @ApiBearerAuth()
-    @Put(':id/set-hot')
-    async setHot(
-            @Param('id', new MongoIdValidationPipe() ) id: string
-        ): Promise<IResponse> {
-        const find = await this.videoService.findById(id);
-        if( !find ) throw new BadRequestException('videos not found');
-        
-        const data = await this.videoService.updateHot( find );
-        return new ResponseSuccess(new VideosItemResponse(data));
-    }
-
-    @ApiBearerAuth()
-    @Delete(':id')
-    async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
-      return await this.videoService.remove(id);
-    }
-
 
     @Get('type/hot')
     @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     @ApiOkResponse({
         type: VideosItemsResponse
     })
@@ -181,6 +92,7 @@ export class VideosController {
 
     @Get(':id/relation')
     @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
     @ApiOkResponse({
         type: VideosItemsResponse
     })

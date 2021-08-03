@@ -8,6 +8,7 @@ import * as AWS from 'aws-sdk';
 const AWS_S3_BUCKET_NAME = process.env.AWS_PUBLIC_BUCKET_NAME;
 import { v4 as uuid } from 'uuid';
 import { UploadFileDto } from './dto/upload.dto';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -23,24 +24,6 @@ const s3 = new AWS.S3({
 @Controller('fileupload')
 export class ImageUploadController {
     constructor(private readonly imageUploadService: ImageUploadService) {}
-
-    // @ApiBody({
-    //     type: UploadFileDto
-    // })
-    // @ApiBearerAuth()
-    // @ApiConsumes('multipart/form-data')
-    // @Post()
-    // @UseGuards( JwtAuthGuard )
-    // async create(@Req() request, @Res() response) {
-       
-    //     // try {
-    //     //     await this.imageUploadService.fileupload(request, response);
-    //     // } catch (error) {
-    //     //     return response
-    //     //         .status(500)
-    //     //         .json(`Failed to upload image file: ${error.message}`);
-    //     // }
-    // }
 
 
     @Post()
@@ -61,6 +44,7 @@ export class ImageUploadController {
 
     
     @Post('video')
+    @UseGuards( AdminJWTAuthGuard )
     @UseInterceptors(FileInterceptor('file'))
     async uploadVideo( @UploadedFile() file, @Res() response ): Promise<object> {
         const fileUploaded = await this.imageUploadService.uploadVideo(file.buffer, file.originalname);
@@ -69,7 +53,7 @@ export class ImageUploadController {
             .json({ fileUrl: fileUploaded });
     }
 
-    @UseGuards( JwtAuthGuard )
+    @UseGuards( AdminJWTAuthGuard )
     @Get('startUpload')
     async startUpload(@Req() req, @Res() res ): Promise<object>{
         try {
@@ -87,7 +71,7 @@ export class ImageUploadController {
         }
     }
 
-    @UseGuards( JwtAuthGuard )
+    @UseGuards( AdminJWTAuthGuard )
     @Get('getUploadUrl')
     async getUploadUrl(@Req() req, @Res() res ): Promise<object>{
         try {
@@ -106,8 +90,9 @@ export class ImageUploadController {
         }
     }
 
-    @UseGuards( JwtAuthGuard )
+    @UseGuards( AdminJWTAuthGuard )
     @Post('completedUpload')
+
     async completedUpload(@Req() req, @Res() res ): Promise<object>{
         try {
          

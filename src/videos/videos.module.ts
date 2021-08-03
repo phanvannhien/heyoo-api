@@ -6,6 +6,7 @@ import { VideosSchema } from './schemas/videos.schema';
 import { FilesModule } from 'src/files/files.module';
 import { VideoCategoriesModule } from 'src/video-categories/video-categories.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { AdminVideosController } from './admin-videos.controller';
 
 
 @Module({
@@ -18,7 +19,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     VideoCategoriesModule,
     NotificationsModule
   ],
-  controllers: [VideosController],
+  controllers: [VideosController, AdminVideosController],
   providers: [VideosService],
   exports:[
     VideosService

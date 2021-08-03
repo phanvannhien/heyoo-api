@@ -13,6 +13,7 @@ import { GetTransactionDto } from './dto/get-transaction.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { UsersService } from 'src/users/users.service';
 import { CreateManyTransactionDto } from './dto/create-many-transaction.dto';
+import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 
 
 @ApiTags('transaction')
@@ -57,20 +58,10 @@ export class TransactionController {
     }
 
 
-
-
-    @Get()
-    @ApiOkResponse({
-        type: TransactionItemsResponse
-    })
-    async find( @Query() query: GetTransactionDto ): Promise<IResponse>{
-        const d = await this.transactionService.findAll(query);
-        return new ResponseSuccess(new TransactionItemsResponse(d));
-    }
-
-
     @Get(':userId/balance')
     @HttpCode( HttpStatus.OK )
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     async getUserBlance( @Res() res, @Param('userId', new MongoIdValidationPipe() ) userId: string ): Promise<any> {
         const balance = await this.transactionService.getUserBlance(userId)
         return res.json({
@@ -80,29 +71,5 @@ export class TransactionController {
         }) 
     }
 
-    @ApiOkResponse({
-        type: TransactionItemsResponse
-    })
-    @Post('give')
-    async systemGiveBlance(
-        @Req() request,
-        @Body() body: CreateManyTransactionDto
-    ): Promise<IResponse>
-    {
-        const allUsers = await this.userService.find()
-        const createMany = allUsers.map( (item ) => {
-            return {
-                user: item.id,
-                rate: 1,
-                quantity: body.quantity,
-                total: body.quantity * 1,
-                paymentMethod: 'system',
-                status: 'success',
-            }
-        })
-      
-        const d = await this.transactionService.createMany(createMany);
-        return new ResponseSuccess( (d));
-    }
 
 }

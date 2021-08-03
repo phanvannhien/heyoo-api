@@ -40,7 +40,8 @@ import { GoogleVerifyTokenStrategy } from './strategies/google.strategy';
     JwtStrategy,
     FacebookStrategy,
     GoogleAuthStrategy,
-    AppleStrategy, GoogleVerifyTokenStrategy
+    AppleStrategy, 
+    GoogleVerifyTokenStrategy
   ],
   exports: [AuthService],
 })
