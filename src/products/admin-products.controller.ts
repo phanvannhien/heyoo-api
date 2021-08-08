@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, Req, Body, UploadedFile, Get, Query, Put, Param, BadRequestException, UsePipes, UseGuards, Delete } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiBody, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { ProductItemResponse } from './responses/product.response';
@@ -85,6 +85,14 @@ export class AdminProductsController {
         if( !find ) throw new BadRequestException('Product not found');
         const data = await this.productService.update( id,  body);
         return new ResponseSuccess(new ProductItemResponse(data));
+    }
+
+
+    @ApiBearerAuth()
+    @UseGuards( AdminJWTAuthGuard )
+    @Delete(':id')
+    async remove(@Param('id') id: string) {
+        return this.productService.remove(id);
     }
 
 }

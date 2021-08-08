@@ -41,7 +41,20 @@ export class ImageUploadController {
             .json({ fileUrl: fileUploaded });
     }
 
-
+    @Post('admin/upload')
+    @ApiBody({
+        type: UploadFileDto
+    })
+    @ApiBearerAuth()
+    @ApiConsumes('multipart/form-data')
+    @UseGuards( AdminJWTAuthGuard )
+    @UseInterceptors(FileInterceptor('file'))
+    async adminUpload( @UploadedFile() file, @Res() response ): Promise<object> {
+        const fileUploaded = await this.imageUploadService.uploadImage(file.buffer, file.originalname);
+        return response
+            .status(201)
+            .json({ fileUrl: fileUploaded });
+    }
     
     @Post('video')
     @UseGuards( AdminJWTAuthGuard )

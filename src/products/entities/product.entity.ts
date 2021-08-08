@@ -1,4 +1,5 @@
-import { Document } from 'mongoose';
+import { Document, Model } from 'mongoose';
+
 
 export interface ProductEntityDocument extends Document {
     readonly productName: string;

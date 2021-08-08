@@ -42,6 +42,7 @@
     "firebase-admin": "^9.10.0",
     "moment": "^2.29.1",
     "mongoose": "^5.11.13",
+    "mongoose-delete": "^0.5.3",
     "multer-s3": "^2.9.0",
     "multer-sharp-s3": "^0.2.1",
     "nestjs-command": "^2.0.0",

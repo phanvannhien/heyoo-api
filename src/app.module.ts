@@ -39,11 +39,28 @@ import { LevelModule } from './level/level.module';
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    MongooseModule.forRoot( MONGO_URI , { 
+
+    // MongooseModule.forRoot( MONGO_URI , { 
+    //   useNewUrlParser: true,
+    //   useUnifiedTopology: true,
+    //   useCreateIndex: true,
+    // }),
+
+    MongooseModule.forRoot( MONGO_URI , {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex: true,
+      connectionFactory: (connection) => {
+    
+        connection.plugin(require('mongoose-delete'), {
+          deletedAt : true,
+          deletedBy: true,
+          overrideMethods: true
+        });
+        return connection;
+      }
     }),
+
     ImageUploadModule,
     AuthModule,
     UsersModule, 

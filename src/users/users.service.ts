@@ -27,7 +27,7 @@ export class UsersService {
 
 
     constructor(
-        @InjectModel('User') private readonly userModel: Model<User>,
+        @InjectModel('User') private readonly userModel,
         @InjectModel('Follow') private readonly followModel: Model<FollowEntityDocument>,
         @InjectModel( USER_FCMTOKEN_MODEL ) private readonly fcmTokenModel: Model<UserFcmTokenEntityDocument>,
         private readonly filesService: FilesService,
@@ -170,9 +170,9 @@ export class UsersService {
 
     async delete( id ): Promise<any> {
         // delete user
-        const deleted = await this.userModel.findByIdAndRemove(id);
+        const deleted = await this.userModel.deleteById(id);
         // delete livestream by user
-        await this.liveStreamService.removeLiveStreamByUser( id );
+        // await this.liveStreamService.removeLiveStreamByUser( id );
         return deleted;
     }
 

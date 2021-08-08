@@ -9,7 +9,7 @@ import { GetProductDto } from './dto/get-product.dto';
 @Injectable()
 export class ProductsService {
     constructor(
-        @InjectModel('Product') private readonly productModel: Model<ProductEntityDocument>,
+        @InjectModel('Product') private readonly productModel,
     ){}
 
     async create( createDto: CreateProductDto): Promise<any> {
@@ -40,6 +40,6 @@ export class ProductsService {
     }
     
     async remove(id: string): Promise<any> {
-        return await this.productModel.findByIdAndRemove( id );
+        return await this.productModel.deleteById( id );
     }
 }

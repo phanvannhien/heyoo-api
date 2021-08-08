@@ -219,10 +219,10 @@ export class LivestreamsService {
         recordingConfig: {
           channelType: 1, // 0: (Default) Communication profile. 1: Live broadcast profile.
           streamTypes: 2, // 2: (Default) Subscribes to both audio and video streams. 1: Subscribes to video streams only.
-          videoStreamType: 1,  // 0: (Default) Subscribes to the high-quality stream. 1: Subscribes to the low-quality stream.
-          maxIdleTime: 300, // Cloud recording automatically stops recording and leaves the channel when there is no user in the channel after a period (in seconds) set by this parameter. The value range is from 5 to 2^32-1
+          videoStreamType: 0,  // 0: (Default) Subscribes to the high-quality stream. 1: Subscribes to the low-quality stream.
+          maxIdleTime: 600, // Cloud recording automatically stops recording and leaves the channel when there is no user in the channel after a period (in seconds) set by this parameter. The value range is from 5 to 2^32-1
           // audioProfile: 1,
-
+     
           "transcodingConfig":{
             "width": 360,
             "height": 640,
