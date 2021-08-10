@@ -32,6 +32,8 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { ChatModule } from './chat/chat.module';
 import { LevelModule } from './level/level.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TasksService } from './schedule/TasksService';
 
 
 @Module({
@@ -87,16 +89,19 @@ import { LevelModule } from './level/level.module';
     ConfigurationModule,
     ChatModule,
     LevelModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [
     AppController,
     IdolController
   ],
   providers: [
-    AppService
+    AppService,
+    TasksService
   ],
   exports: [
-    AppService
+    AppService,
+    
   ]
 })
 

@@ -44,17 +44,17 @@ export class FirebaseCloudMessageService {
             //         clickAction: messageData.clickAction
             //     }
             // },
-            // apns: {
-            //     payload: {
-            //         aps: {
-            //             'mutable-content': 1,
-            //             category: messageData.clickAction
-            //         }
-            //     },
-            //     fcmOptions: {
-            //         imageUrl: messageData.imageUrl
-            //     }
-            // }
+            apns: {
+                payload: {
+                    aps: {
+                        'mutable-content': 1,
+                        category: messageData.clickAction
+                    }
+                },
+                fcmOptions: {
+                    imageUrl: messageData.imageUrl
+                }
+            }
         };
 
         admin.messaging().sendMulticast(message)

@@ -11,9 +11,9 @@ import { AdminGetLiveStreamDto } from './dto/admin-get-livestream.dto';
 import * as moment from 'moment';
 import { DuetLiveStreamEntityDocument } from './entities/duet.entity';
 
+
 var ObjectId = mongoose.Types.ObjectId;
 const crypto = require('crypto');
-
 
 
 @Injectable()
@@ -92,6 +92,18 @@ export class LivestreamsService {
       )
       .sort({ "_id": -1 })
       .populate(['categories','streamer']).exec();
+  }
+
+  async findAllShopLiveStreamAfter7Days(): Promise<LiveStreamEntityDocument[]> {
+    return await this.liveStreamModel.find(
+        { 
+          // $and: [ {shop:{$exists: true}}, {shop:{ $ne : null}} ],
+          shop:{ $exists: true },
+          createdAt: { 
+            $lt: new Date(new Date().setDate(new Date().getDate() - 7 ))
+          }
+        }
+      ).exec();
   }
 
 

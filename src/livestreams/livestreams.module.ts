@@ -1,4 +1,4 @@
-import { HttpModule, Module } from '@nestjs/common';
+import { HttpModule, Module, Global } from '@nestjs/common';
 import { LivestreamsService } from './livestreams.service';
 import { LivestreamsController } from './livestreams.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -17,6 +17,7 @@ import { DuetService } from './duet.service';
 import { ProductsModule } from 'src/products/products.module';
 import { AdminLivestreamsController } from './admin-livestreams.controller';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
