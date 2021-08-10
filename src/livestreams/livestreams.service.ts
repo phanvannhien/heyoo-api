@@ -98,7 +98,7 @@ export class LivestreamsService {
     return await this.liveStreamModel.find(
         { 
           // $and: [ {shop:{$exists: true}}, {shop:{ $ne : null}} ],
-          shop:{ $exists: true },
+          shop:{ $ne: null },
           createdAt: { 
             $lt: new Date(new Date().setDate(new Date().getDate() - 7 ))
           }
