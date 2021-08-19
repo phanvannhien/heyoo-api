@@ -20,7 +20,7 @@ const crypto = require('crypto');
 export class LivestreamsService {
 
   constructor(
-    @InjectModel('LiveStreams') private readonly liveStreamModel: Model<LiveStreamEntityDocument>,
+    @InjectModel('LiveStreams') private readonly liveStreamModel,
     @InjectModel('LiveStreamMembers') private readonly liveStreamMemberModel: Model<LiveStreamMemberEntityDocument>,
     @InjectModel('Duet') private readonly duetModel: Model<DuetLiveStreamEntityDocument>,
     private httpService: HttpService,
@@ -514,5 +514,13 @@ export class LivestreamsService {
     }, { new: true });
   }
 
+
+  async delete( id ): Promise<any> {
+    // delete user
+    const deleted = await this.liveStreamModel.deleteById(id);
+    // delete livestream by user
+    // await this.liveStreamService.removeLiveStreamByUser( id );
+    return deleted;
+  }
 
 }

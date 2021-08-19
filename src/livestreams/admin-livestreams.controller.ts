@@ -136,7 +136,7 @@ export class AdminLivestreamsController {
     description: 'Deleted a livestream'
   })
   async remove(@Param('id', new MongoIdValidationPipe() ) liveStreamId: string): Promise<any>{
-    return await this.livestreamsService.remove(liveStreamId);
+    return await this.livestreamsService.delete(liveStreamId);
   }
 
   @Delete()
@@ -251,6 +251,8 @@ export class AdminLivestreamsController {
 
     return new ResponseSuccess( data );
   }
+
+
 
 
 

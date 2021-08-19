@@ -45,8 +45,8 @@ export class TasksService {
             
                 s3.deleteObjects( deleteParams, (err, data) => {
                     if (err) return err;
-                    this.logger.debug('Deleted');
-                    this.logger.debug( deleteParams );
+                    this.livestreamsService.delete( live.id );
+
                 });
             })
         });
