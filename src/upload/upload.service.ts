@@ -76,13 +76,14 @@ export class ImageUploadService {
         return `${process.env.CLOUD_FRONT_VIDEO_URL}/${uploadResult.Key}`
     }
 
-    async uploadFileS3(dataBuffer: Buffer, filename: string): Promise<string> {
+    async uploadFileS3( file ): Promise<string> {
         const s3 = new AWS.S3();
         
         const uploadResult = await s3.upload({
             Bucket: AWS_S3_BUCKET_NAME,
-            Body: dataBuffer,
-            Key: `${uuid()}-${filename}`
+            Body: file.buffer,
+            Key: `${uuid()}-${file.originalname}`,
+            ContentType: file.mimetype
         }) .promise();
      
         return `${process.env.CLOUD_FRONT_VIDEO_URL}/${uploadResult.Key}`;

@@ -285,7 +285,7 @@ export class LivestreamsController {
     const newLiveStream = await this.livestreamsService.findOne(id);
     const responseObj = {
       stream: newLiveStream,
-      agoraToken: await this.agoraService.generateAgoraToken( d.liveStream.channelName, uid ),
+      agoraToken: await this.agoraService.generateAgoraToken( newLiveStream.channelName.toString() , uid ),
       rtmToken: await this.agoraService.generateAgoraRtmToken( uid.toString(), 1 ),
       joinInfo: d
     };

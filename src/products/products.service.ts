@@ -23,13 +23,13 @@ export class ProductsService {
 
     async getAll(): Promise<ProductEntityDocument[]> {
         return await this.productModel.find()
-            .sort({ price: -1 })
+            .sort({ price: 1 })
             .exec();
     }
 
     async findAll(query: GetProductDto): Promise<ProductEntityDocument[]> {
         return await this.productModel.find()
-            .sort({ productName: 1 })
+            .sort({ price: 1 })
             .skip( Number( (query.page - 1)*query.limit ) )
             .limit( Number( query.limit ) )
             .exec();

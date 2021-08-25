@@ -32,9 +32,13 @@ export class AdminUploadController {
     @ApiBearerAuth()
     @ApiConsumes('multipart/form-data')
     @UseGuards( AdminJWTAuthGuard )
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', {
+        limits: {
+            fieldSize: 10*1024*1024
+        }
+    }))
     async create( @UploadedFile() file, @Res() response ): Promise<object> {
-        const fileUploaded = await this.imageUploadService.uploadFileS3(file.buffer, file.originalname);
+        const fileUploaded = await this.imageUploadService.uploadFileS3(file);
         return response
             .status(201)
             .json({ fileUrl: fileUploaded });
