@@ -1,4 +1,6 @@
 import { Global, HttpModule, Module } from '@nestjs/common';
+import { FirebaseDBService } from './firebase-db.service';
+import { FirebaseUserService } from './firebase-user.service';
 import { FirebaseCloudMessageService } from './firebase.service';
 
 @Global()
@@ -8,10 +10,14 @@ import { FirebaseCloudMessageService } from './firebase.service';
     ],
     controllers: [],
     providers: [
-        FirebaseCloudMessageService
+        FirebaseCloudMessageService,
+        FirebaseUserService,
+        FirebaseDBService
     ],
     exports: [
-        FirebaseCloudMessageService
+        FirebaseCloudMessageService,
+        FirebaseUserService,
+        FirebaseDBService
     ],
 })
 export class FirebaseCloudMessageModule {}

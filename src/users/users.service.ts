@@ -62,6 +62,12 @@ export class UsersService {
         return await this.userModel.find().exec();
     }
 
+    async findUsersByIds( ids: string[] ): Promise<User[]>{
+        return  await this.userModel.find({
+            _id: { $in: ids }
+        }).exec()
+    }
+
     async findAll( query: GetUserDto ): Promise<User[]> {
         const builder = this.userModel.find();
         if( query.phone ) builder.where({ phone: query.phone });
@@ -201,8 +207,7 @@ export class UsersService {
         return true
     }
 
-     // Lấy danh sách user ids đang theo dõi của userId 
-
+    // Lấy danh sách user ids đang theo dõi của userId 
     async getUserIdsFollower(userId): Promise<any>{
         const findFollowUser = await this.userModel.findById(userId);
         if (!findFollowUser) throw new BadRequestException('User not found');
@@ -212,7 +217,6 @@ export class UsersService {
         }).select('user').distinct('user').exec();
     }
 
-    
     // Lấy danh sách user đang theo dõi của userId 
     async getFollower(userId, query: GetFollowerDto): Promise<any>{
         const findFollowUser = await this.userModel.findById(userId);
@@ -227,8 +231,6 @@ export class UsersService {
             .limit( Number( query.limit ) )
             .exec()
     }
-
-
 
     // Lấy danh sách user mà userId đang theo dõi
     async getFollowing(userId, query: GetFollowingDto): Promise<any>{

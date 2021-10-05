@@ -14,6 +14,9 @@ import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/fi
 import { NotificationItemResponse } from './responses/notification.response';
 import { UpdateReadNotificationDto } from './dto/update-read.dto';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { CreateNotificationTopicDto } from './dto/notification-topic.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -22,6 +25,7 @@ export class NotificationsController {
     private readonly notificationsService: NotificationsService,
     private readonly userService: UsersService,
     private readonly fcmService: FirebaseCloudMessageService,
+    private firebaseDBService: FirebaseDBService,
   ) {}
 
   @Post('set-read')
@@ -74,5 +78,48 @@ export class NotificationsController {
       unreadCount: data
     });
   }
+
+
+  @ApiBearerAuth()
+  @UseGuards( JwtAuthGuard )
+  @Post('topic')
+  async sendToTopic(@Req() req, @Body() body: CreateNotificationTopicDto ): Promise<IResponse> {
+    const userSender = await this.userService.findById( body.uid );
+    if (!userSender) throw new BadRequestException( 'Sender not found' );
+
+    const allMembers = await this.firebaseDBService.getMemberIdsInChatRoom(body.chatRoomId);
+    
+    const notifyId = uuidv4();
+    const notifyData = {
+        title: `New message`,
+        body: body.body,
+        imageUrl: userSender.avatar,
+        metaData: {
+          sender: body.uid,
+          id: body.chatRoomId,
+          status: 'done',
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+        },
+        clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+    }
+
+    // create user notify
+    const notifyDataCreate =  allMembers.map( user => {
+        return {
+          ...notifyData,
+          user: user.id ,
+          notifyId: notifyId,
+          isRead: false
+        }
+    })
+    await this.notificationsService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
+    this.fcmService.sendTopicMessage( body.body, body.chatRoomId, userSender.avatar, body.uid );
+
+    return new ResponseSuccess({
+      message: 'OK'
+    });
+
+  }
+
 
 }

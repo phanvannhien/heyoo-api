@@ -236,23 +236,36 @@ export class LivestreamsService {
           // audioProfile: 1,
      
           "transcodingConfig":{
-            "width": 360,
-            "height": 640,
-            "fps": 15,
-            "bitrate": 500,
+            "width": 1080,
+            "height": 1920,
+            "fps": 60,
+            "bitrate": 6500,
+
             "maxResolutionUid": liveStream.streamerUid.toString(),
-            "mixedVideoLayout": 1,
-            backgroundColor: "#FF0000",
+            // (Optional) String. When mixedVideoLayout is set as 2 (vertical layout), you can specify the UID of the large video window by this parameter.
+
+            "mixedVideoLayout": 0,
+            // 0: (Default) Floating layout. The first user in the channel occupies the full canvas. The other users occupy the small regions on top of the canvas, starting from the bottom left corner. The small regions are arranged in the order of the users joining the channel. This layout supports one full-size region and up to four rows of small regions on top with four regions per row, comprising 17 users.
+            // 1: Best fit layout. This is a grid layout. The number of columns and rows and the grid size vary depending on the number of users in the channel. This layout supports up to 17 users.
+            // 2: Vertical layout. One large region is displayed on the left edge of the canvas, and several smaller regions are displayed along the right edge of the canvas. The space on the right supports up to 2 columns of small regions with 8 regions per column. This layout supports up to 17 users. When mixedVideoLayout is set as 2, you can specify the UID of the large video window by maxResolutionUid.
+            // 3: Customized layout. Set the layoutConfig parameter to customize the layout.
+
+           
+            backgroundColor: "#FFFFFF",
           },
 
-          subscribeVideoUids: [liveStream.streamerUid.toString()],
-          subscribeAudioUids: [liveStream.streamerUid.toString()],
+          subscribeVideoUids: [liveStream.streamerUid.toString()], // only streamer
+          subscribeAudioUids: [liveStream.streamerUid.toString()], // only streamer
           subscribeUidGroup: 0
 
         },
 
         recordingFileConfig: {
+
           avFileType: ["hls"],
+          // "hls": (Default) M3U8 and TS files.
+          // "mp4": MP4 files. This value is for composite recording (mix) and web page recording (web) only and must be set together with "hls"; otherwise, the recording service returns error code 2. When the length of the recorded file reaches approximately two hours, or when the size of the file exceeds approximately 2 GB, the recording service automatically creates an additional MP4 file.
+
         },
 
         storageConfig: {

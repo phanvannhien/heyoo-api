@@ -39,6 +39,8 @@ import { UpdateAvatarDto } from 'src/users/dto/update-avatar.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginSocialDto } from './dto/login-social.dto';
+import { FirebaseUserService } from 'src/firebase/firebase-user.service';
+import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 
 const clientTwilio = require('twilio')( TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN);
 
@@ -49,7 +51,9 @@ export class AuthController{
         private authService: AuthService,
         private userService: UsersService,
         private jwtService: JwtService,
-        private httpService: HttpService
+        private httpService: HttpService,
+        private firebaseUserService: FirebaseUserService,
+        private firebaseDBService: FirebaseDBService,
     ) {}
     
 
@@ -60,6 +64,7 @@ export class AuthController{
     })
     async login(@Body() loginDto: LoginDto): Promise<IResponse> {
         const user = await this.authService.login(loginDto);
+        this.firebaseDBService.saveUser(user);
         return new ResponseSuccess( new AuthResponse({
             accessToken: this.jwtService.sign( this.authService.getJWTPayload(user), { expiresIn: '7d' } ),
             user: user
@@ -106,6 +111,7 @@ export class AuthController{
                 user = await this.userService.findOrCreateAppleId( appleProfile );
             }
 
+            this.firebaseDBService.saveUser(user);
             return new ResponseSuccess( new AuthResponse({
                 accessToken: this.jwtService.sign( this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
                 user: user
@@ -131,7 +137,7 @@ export class AuthController{
 
         registerDto.password = await bcrypt.hash(registerDto.password, SALT_ROUNDS );
         const user = await this.authService.register( registerDto );
-
+        this.firebaseDBService.saveUser(user);
         return new ResponseSuccess( new AuthResponse({
             accessToken: this.jwtService.sign(this.authService.getJWTPayload(user) , { expiresIn: '7d' }),
             user: user
@@ -167,6 +173,7 @@ export class AuthController{
     async updateProfile(@Request() req, @Body() body: UpdateProfileDto ): Promise<IResponse>  {
         await this.userService.updateUser(req.user.id, body );
         const user = await this.userService.getProfile(req.user.id);
+        this.firebaseDBService.saveUser(user[0]);
         return new ResponseSuccess( new UserProfileResponse(user[0]) );
     }
 

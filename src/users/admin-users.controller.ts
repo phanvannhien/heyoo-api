@@ -15,6 +15,7 @@ import { GetFollowingDto } from './dto/getfollowing.dto';
 import { UserProfileResponse } from 'src/auth/responses/profile.response';
 import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 
 
 @ApiTags('admin')
@@ -23,6 +24,7 @@ export class AdminUsersFrontController {
 
     constructor( 
         private userService: UsersService,
+        private firebaseDBService: FirebaseDBService,
     ){}
 
     @Get()
@@ -86,5 +88,19 @@ export class AdminUsersFrontController {
         return await this.userService.getUserFcmToken( request.user.id );
     }
 
+
+    @Post('do/migrate-user-firebase')
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async migrateUserDBFirebase(): Promise<any>{
+        const allUser = await this.userService.find();
+        allUser.forEach( user => {
+            this.firebaseDBService.saveUser(user);
+        })
+        return { message: 'Success' }
+    }
+    
 
 }
