@@ -26,7 +26,7 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy,'admin') {
         return {
             ...user.toObject(),
             id: user.id,
-            permissions: role.permissions
+            permissions: role ? role.permissions : []
         };
     }
 }

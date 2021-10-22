@@ -119,7 +119,12 @@ export class ImageUploadController {
             }
        
             let data = await s3.completeMultipartUpload(params).promise();
-            res.send({data})
+        
+            res.send({
+                ...data,
+                Location: `${process.env.CLOUD_FRONT_VIDEO_URL}/${data.Key}`
+            });
+
         } catch(err) {
             throw err
         }
