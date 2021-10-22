@@ -90,17 +90,23 @@ export class NotificationsController {
     const allMembers = await this.firebaseDBService.getMemberIdsInChatRoom(body.chatRoomId);
     
     const notifyId = uuidv4();
+    const title = userSender.fullname; 
+    const avatar = userSender.avatar ?? 'https://d21y6rmzuyq1qt.cloudfront.net/27a2ff52-6ae1-49e3-bde6-6427b661588f'; 
+    
     const notifyData = {
-        title: `New message`,
+      title: title,
+      body: body.body,
+      imageUrl: avatar ,
+      metaData: {
+        sender: body.uid,
+        senderAvatar: avatar,
+        title: title,
         body: body.body,
-        imageUrl: userSender.avatar,
-        metaData: {
-          sender: body.uid,
-          id: body.chatRoomId,
-          status: 'done',
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-        },
+        id: body.chatRoomId,
+        status: 'done',
         clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+      },
+      clickAction: 'FLUTTER_NOTIFICATION_CLICK'
     }
 
     // create user notify
@@ -112,8 +118,9 @@ export class NotificationsController {
           isRead: false
         }
     })
+
     await this.notificationsService.createMany( notifyDataCreate as Array<CreateNotificationDto> )
-    this.fcmService.sendTopicMessage( body.body, body.chatRoomId, userSender.avatar, body.uid );
+    this.fcmService.sendTopicMessage( title, body.body, body.chatRoomId, avatar, body.uid );
 
     return new ResponseSuccess({
       message: 'OK'

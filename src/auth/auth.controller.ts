@@ -41,6 +41,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginSocialDto } from './dto/login-social.dto';
 import { FirebaseUserService } from 'src/firebase/firebase-user.service';
 import { FirebaseDBService } from 'src/firebase/firebase-db.service';
+import { User } from "src/users/interfaces/user.interface";
 
 const clientTwilio = require('twilio')( TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN);
 

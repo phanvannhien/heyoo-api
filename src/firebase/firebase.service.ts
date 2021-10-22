@@ -16,7 +16,7 @@ export class FirebaseCloudMessageService {
     constructor(
     ){}
     
-    sendTopicMessage( body: string, chatRoomId: string, icon: string, uid: string ){
+    sendTopicMessage( title:string, body: string, chatRoomId: string, icon: string, uid: string ){
 
         const payload: messaging.MessagingPayload = {
             data: {
@@ -26,13 +26,12 @@ export class FirebaseCloudMessageService {
                 clickAction: 'FLUTTER_NOTIFICATION_CLICK'
             },
             notification: {
-                title: 'Heyoo',
+                title: title,
                 body: body,
-                icon: icon ?? 'https://d21y6rmzuyq1qt.cloudfront.net/27a2ff52-6ae1-49e3-bde6-6427b661588f',
+                icon: icon,
                 clickAction: 'FLUTTER_NOTIFICATION_CLICK',
             }
         }
-
         admin.messaging().sendToTopic( chatRoomId, payload  )
     }
 

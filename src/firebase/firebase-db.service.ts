@@ -9,14 +9,17 @@ export class FirebaseDBService {
         const db = admin.database();
         const ref = db.ref('live');
         const usersRef = ref.child('users');
-        usersRef.child( user.id ).set({
+        const childId = user.id || user._id;
+        const updateUserFirebase = {
             email: user.email,
             phoneNumber: user.phone ,
             name: user.fullname,
             gender: user.gender,
-            avatar: user.avatar ?? '',
-            bio: user.bio ?? '',
-        });
+            avatar: '',
+            bio: user.bio ?? 'heyoo',
+        };
+        usersRef.child( childId.toString() ).set(updateUserFirebase);
+
     }
     
     getMemberIdsInChatRoom( chatRoomId: string ): Promise<any>{
