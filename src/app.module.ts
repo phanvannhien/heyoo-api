@@ -34,6 +34,8 @@ import { ChatModule } from './chat/chat.module';
 import { LevelModule } from './level/level.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksService } from './schedule/TasksService';
+import { ShopProductCategoryModule } from './shop-products-category/shop-products-category.module';
+import { ShopProductsModule } from './shop-products/shop-products.module';
 
 
 @Module({
@@ -89,6 +91,8 @@ import { TasksService } from './schedule/TasksService';
     ConfigurationModule,
     ChatModule,
     LevelModule,
+    ShopProductCategoryModule,
+    ShopProductsModule,
     ScheduleModule.forRoot()
   ],
   controllers: [
