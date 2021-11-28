@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { UserResponse } from "src/users/responses/user.response";
 import * as moment from 'moment';
 import { UserWallEntityDocument } from "../entities/user-wall.entity";
+import { UserWallCommentsItemResponse } from "./user-walls-comment.response";
 
 
 export class UserWallsItemResponse{
@@ -20,6 +21,10 @@ export class UserWallsItemResponse{
         this.liveStreamId = object.liveStreamId ?? null;
         this.liveStreamStatus = object.liveStreamStatus ?? false;
         this.user = object.user ?? false;
+        this.comment = object?.comments?.total?.length > 0 
+            ? new UserWallCommentsItemResponse( object.comments.latest[0] )
+            : null;
+        this.commentCount = object?.comments?.total?.length > 0 ?  object.comments.total[0]['count'] : 0
     }
     @ApiProperty()
     id: string;
@@ -59,4 +64,10 @@ export class UserWallsItemResponse{
 
     @ApiProperty()
     user: any;
+
+    @ApiProperty()
+    comment: any;
+
+    @ApiProperty()
+    commentCount: number;
 }

@@ -11,7 +11,7 @@ import { GetShopCategoryDto } from './dto/get-shop-category.dto';
 export class ShopCategoriesService {
 
   constructor(
-    @InjectModel('ShopCategories') private readonly categoryModel: Model<ShopCategoriesEntityDocument>
+    @InjectModel('ShopCategories') private readonly categoryModel
   ){}
 
   async create(createCategoryDto: CreateShopCategoryDto): Promise<ShopCategoriesEntityDocument> {
@@ -46,4 +46,13 @@ export class ShopCategoriesService {
   async remove(id: string): Promise<any> {
     return await this.categoryModel.findByIdAndRemove(id);
   }
+
+  async delete( id ): Promise<any> {
+    // delete user
+    const deleted = await this.categoryModel.deleteById(id);
+    // delete livestream by user
+    // await this.liveStreamService.removeLiveStreamByUser( id );
+    return deleted;
+  }
+
 }

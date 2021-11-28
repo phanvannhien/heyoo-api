@@ -86,7 +86,15 @@ export class AdminShopProductCategoryController {
   @Delete(':id')
   @ApiBearerAuth()
   @UseGuards(AdminJWTAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(id);
+  async delete(@Param('id') id: string) {
+    return await this.categoryService.delete(id);
   }
+
+  @Delete(':id/delete-forever')
+  @ApiBearerAuth()
+  @UseGuards(AdminJWTAuthGuard)
+  async remove(@Param('id') id: string) {
+    return await this.categoryService.remove(id);
+  }
+
 }

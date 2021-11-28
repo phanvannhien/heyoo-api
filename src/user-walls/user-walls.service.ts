@@ -12,7 +12,7 @@ import { GetUserWallDto } from './dto/get-userwall.dto';
 @Injectable()
 export class UserWallsService {
   constructor(
-    @InjectModel( USER_WALL_MODEL ) private readonly userWallModel: Model<UserWallEntityDocument>,
+    @InjectModel( USER_WALL_MODEL ) private readonly userWallModel,
     @InjectModel( USER_WALL_LIKE_MODEL ) private readonly userWallLikeModel: Model<UserWallEntityLikeDocument>,
   ){}
 
@@ -32,6 +32,52 @@ export class UserWallsService {
       {
         $match: { user: new mongoose.Types.ObjectId( userId ) }
       },
+
+      {
+        $lookup: {
+          from: 'user_wall_comments',
+          let: { wallId: "$_id" },
+          pipeline: [
+            {
+              $match: { 
+                $expr: {
+                  $eq: ['$wall', '$$wallId' ]
+                }
+              }
+            },
+            { $sort: { "_id": -1 } },
+            {
+              $lookup: {
+                from: 'users',
+                localField: "user",
+                foreignField: "_id",
+                as: "user"
+              }
+            },
+            {
+              $unwind: {  path: "$user" }
+            },
+
+            {
+              $facet: {
+                latest: [{ $limit:1 }],
+                total: [
+                  {
+                    $count: 'count'
+                  }
+                ]
+              }
+            }
+            
+          ],
+          as: 'comments'
+        }
+      },
+
+      {
+        $unwind: {  path: "$comments", preserveNullAndEmptyArrays: true }
+      },
+
       {
         $lookup: {
           from: 'user_wall_likes',
@@ -67,6 +113,7 @@ export class UserWallsService {
         },
 
       },
+      
       {
         $addFields: {
           isLiked: { 
@@ -85,6 +132,7 @@ export class UserWallsService {
   }
 
   async findById(id: string): Promise<UserWallEntityDocument> {
+
     return await this.userWallModel.findById(id).exec();
   }
 
@@ -102,6 +150,10 @@ export class UserWallsService {
 
   async remove(id: string): Promise<UserWallEntityDocument> {
     return await this.userWallModel.findByIdAndDelete(id);
+  }
+
+  async delete(id: string): Promise<any> {
+    return await this.userWallModel.deleteById(id);
   }
 
   async saveLike( post: UserWallEntityDocument , userId: string ): Promise<boolean>{

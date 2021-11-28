@@ -51,4 +51,9 @@ export class UserWallCommentService {
     return await this.userWallCommentModel.findByIdAndDelete(id);
   }
 
+
+  async findAll( queryData ): Promise<UserWallCommentEntityDocument[]>{
+    return await this.userWallCommentModel.aggregate(queryData).exec();
+  }
+
 }

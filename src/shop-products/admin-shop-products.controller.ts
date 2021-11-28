@@ -24,7 +24,6 @@ export class AdminShopProductsController {
     ) {}
 
 
-
     @Get()
     @ApiBearerAuth()
     @UseGuards(AdminJWTAuthGuard)

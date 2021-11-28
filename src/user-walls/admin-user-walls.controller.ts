@@ -18,13 +18,20 @@ import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { UserWallEntityDocument } from './entities/user-wall.entity';
 import { UserWallsPaginationResponse } from './responses/userwalls-pagination.response';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { AdminGetUserWallCommentDto } from './dto/admin-get-user-wall-comment.dto';
+import { UserWallCommentService } from './user-wall-comments.service';
+import { UserWallCommentPaginateResponse } from './responses/user-walls-comment-paginate.response';
+import { AdminUserWallCommentPaginateResponse } from './responses/admin-user-walls-comment-paginate.response';
+import * as mongoose from 'mongoose';
 
 @ApiTags('admin')
 @Controller('admin-user-walls')
 export class AdminUserWallsController {
-  constructor(private readonly userWallsService: UserWallsService) {}
+  constructor(
+      private readonly userWallsService: UserWallsService,
+      private readonly userWallCommentService: UserWallCommentService,
+    ) {}
 
- 
  
   @Get()
   @ApiBearerAuth()
@@ -36,6 +43,7 @@ export class AdminUserWallsController {
     
     let queryData = [
       { $match:  query.caption ? { caption: { $regex: new RegExp( query.caption ) } } : {}  },
+      
       {
         $lookup: {
           from: 'user_wall_likes',
@@ -60,6 +68,51 @@ export class AdminUserWallsController {
         },
 
       },
+
+      {
+        $lookup: {
+          from: 'user_wall_comments',
+          let: { wallId: "$_id" },
+          pipeline: [
+            {
+              $match: { 
+                $expr: {
+                  $eq: ['$wall', '$$wallId' ]
+                }
+              }
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: "user",
+                foreignField: "_id",
+                as: "user"
+              }
+            },
+            { $sort: { "_id": -1 } },
+       
+            {
+              $unwind: {  path: "$user" }
+            },
+            {
+              $facet: {
+                latest: [{ $limit:1 }],
+                total: [
+                  {
+                    $count: 'count'
+                  }
+                ]
+              }
+            }
+          ],
+          as: 'comments'
+        }
+      },
+
+      {
+        $unwind: {  path: "$comments", preserveNullAndEmptyArrays: true }
+      },
+
       {
         $addFields: {
           isLiked: { 
@@ -106,7 +159,7 @@ export class AdminUserWallsController {
   @UseGuards(AdminJWTAuthGuard)
   @Delete(':id')
   async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
-    return await this.userWallsService.remove(id);
+    return await this.userWallsService.delete(id);
   }
 
   @ApiBearerAuth()
@@ -114,6 +167,72 @@ export class AdminUserWallsController {
   @Delete('post/reset-like-count')
   async resetAllLikePost() {
     return await this.userWallsService.resetAllLikeCount();
+  }
+
+
+  @Get('comments')
+  @ApiBearerAuth()
+  @UseGuards(AdminJWTAuthGuard)
+  @ApiOkResponse({
+      type: UserWallsPaginationResponse
+  })
+  async getAllComments( @Req() request, @Query() query: AdminGetUserWallCommentDto ): Promise<IResponse>{
+    
+    let queryData = [
+      { $match: query.comment ? { comment: { $regex: new RegExp( query.comment ) } } : {}  },
+      { $match: query.wallId ? { wall:  new mongoose.Types.ObjectId( query.wallId )   } : {}  },
+      { $match: query.createdAt ? {createdAt : new Date ( query.createdAt )} : {} },
+      {
+        $lookup:
+          {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "user"
+          }
+      },
+      {
+        $unwind: {  path: "$user", preserveNullAndEmptyArrays: true }
+      },
+      {
+        $lookup:
+          {
+            from: "user_walls",
+            localField: "wall",
+            foreignField: "_id",
+            as: "wall"
+          }
+      },
+      {
+        $unwind: {  path: "$wall", preserveNullAndEmptyArrays: true }
+      },
+      { $sort: { "_id": -1 } },
+      {
+        $facet: {
+          items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+          total: [
+            {
+              $count: 'count'
+            }
+          ]
+        }
+      },
+      {
+        $unwind: {  path: "$total"}
+      },
+
+    ];
+
+    const d = await this.userWallCommentService.findAll(queryData);
+    return new ResponseSuccess(new AdminUserWallCommentPaginateResponse(  d[0] ));
+  }
+
+
+  @ApiBearerAuth()
+  @UseGuards(AdminJWTAuthGuard)
+  @Delete('comments/:id')
+  async delete(@Param('id', new MongoIdValidationPipe() ) id: string) {
+    return await this.userWallCommentService.remove(id);
   }
 
 }

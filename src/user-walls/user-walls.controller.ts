@@ -69,6 +69,50 @@ export class UserWallsController {
 
       },
       {
+        $lookup: {
+          from: 'user_wall_comments',
+          let: { wallId: "$_id" },
+          pipeline: [
+            {
+              $match: { 
+                $expr: {
+                  $eq: ['$wall', '$$wallId' ]
+                }
+              }
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: "user",
+                foreignField: "_id",
+                as: "user"
+              }
+            },
+            { $sort: { "_id": -1 } },
+       
+            {
+              $unwind: {  path: "$user" }
+            },
+            {
+              $facet: {
+                latest: [{ $limit:1 }],
+                total: [
+                  {
+                    $count: 'count'
+                  }
+                ]
+              }
+            }
+          ],
+          as: 'comments'
+        }
+      },
+
+      {
+        $unwind: {  path: "$comments", preserveNullAndEmptyArrays: true }
+      },
+
+      {
         $addFields: {
           isLiked: { 
               $cond: {
@@ -77,7 +121,9 @@ export class UserWallsController {
           }
         }
       },
+      
       { $sort: { "_id": -1 } },
+
       {
         $facet: {
           items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
@@ -92,7 +138,7 @@ export class UserWallsController {
     ];
   
     const d = await this.userWallsService.findAll(queryData);
-   
+
     return new ResponseSuccess(new UserWallsPaginationResponse(  d[0] ));
   }
 
