@@ -6,9 +6,9 @@ export class WalletItemResponse{
   
     constructor( object: any ){
         this.id = object.id;
-        this.product = new ProductItemResponse(object.product);
-        this.user = new UserResponse(object.user);
-        this.toUser = new UserResponse(object.toUser);
+        this.product = object.product ? new ProductItemResponse(object.product) : null;
+        this.user = object.user ? new UserResponse(object.user) : null;
+        this.toUser = object.toUser ? new UserResponse(object.toUser) : null;
         this.price = object.price;
         this.price = object.price;
         this.quantity = object.quantity;

@@ -17,8 +17,8 @@ export class ShopItemResponse{
         this.createdAt = moment(object.createdAt).valueOf().toString();
         this.viewCount = object.viewCount;
         this.status = object.status;
-        this.category = new ShopCategoriesResponse(object.category);
-        this.user = new UserResponse(object.user);
+        this.category = object.category ? new ShopCategoriesResponse(object.category) : null;
+        this.user = object.user ?  new UserResponse(object.user) : null;
         this.followCount = object.followCount ?? 0;
         this.isLiveStreamNow = object.isLiveStreamNow ?? false;
         this.isFollow = object.isFollow ?? false;

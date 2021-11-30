@@ -39,10 +39,12 @@ export class UsersService {
     }
 
     async findPaginate(query: GetUserDto): Promise<any>{
+        if(query.phone)
+            query.phone = query.phone.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
         return await this.userModel.aggregate([
             { 
                 $match: {
-                    phone: { $regex: new RegExp( query.phone, 'i' ) }
+                    phone: {  $regex: new RegExp( query.phone, 'i' ) }
                 }
             },
             {

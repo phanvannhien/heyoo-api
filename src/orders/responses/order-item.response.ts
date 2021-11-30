@@ -6,8 +6,8 @@ export class OrderItemResponse{
   
     constructor( object: any ){
         this.id = object.id;
-        this.product = new ProductItemResponse(object.product);
-        this.user = new UserResponse(object.user);
+        this.product = object.product ? new ProductItemResponse(object.product) : null;
+        this.user = object.user ? new UserResponse(object.user) : null;
         this.price = object.price;
         this.quantity = object.quantity;
         this.total = object.total;

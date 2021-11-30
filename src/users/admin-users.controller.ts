@@ -36,7 +36,7 @@ export class AdminUsersFrontController {
         return res.json( {
             data: { 
                 items: data[0].items,
-                total: data[0].total[0].count
+                total: data[0].total[0]?.count
             }
         });
     }

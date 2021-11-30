@@ -13,7 +13,7 @@ export class LiveStreamItemResponse{
         this.startLiveAt = moment(object.startLiveAt).valueOf().toString();
         this.endLiveAt = object.endLiveAt;
         this.categories = object.categories.map( i => new CategoriesResponse(i) ) ;
-        this.streamer = new UserResponse(object.streamer);
+        this.streamer =  object.streamer ? new UserResponse(object.streamer) : null;
         this.streamerUid = object.streamerUid;
         this.viewCount = object.viewCount ?? 0;
         this.shop = object.shop ?? '';

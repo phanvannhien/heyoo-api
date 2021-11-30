@@ -11,7 +11,7 @@ export class NewsItemResponse{
         this.id = object.id ?? object._id;
         this.title = object.title;
         this.image = object.image;
-        this.category = new NewsCategoriesResponse(object.category);
+        this.category = object.category ? new NewsCategoriesResponse(object.category) : null;
         this.createdAt = moment(object.createdAt).valueOf().toString();
         this.excerpt = object.excerpt;
         this.description = object.description;

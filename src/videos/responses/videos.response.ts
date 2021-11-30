@@ -12,7 +12,7 @@ export class VideosItemResponse{
         this.title = object.title;
         this.image = object.image;
         this.videoUrl = object.videoUrl;
-        this.category = new VideoCategoriesResponse(object.category);
+        this.category = object.category ? new VideoCategoriesResponse(object.category) : null;
         this.createdAt = moment(object.createdAt).valueOf().toString();
         this.excerpt = object.excerpt;
         this.description = object.description;
