@@ -15,16 +15,21 @@ export class ShopProductsService {
 
     async create( createDto: CreateShopProductDto): Promise<any> {
         const doc = new this.productModel( createDto );
-        return await doc.save();
+        await doc.save();
+        return await doc.populate('category').execPopulate();
     }
 
     async findById( id: string ): Promise<any> {
-        return await this.productModel.findById(id).exec();
+        return await this.productModel.findById(id).populate('category').exec();
     }
 
     async findPaginate(query: GetShopProductDto){
-        const countPromise = this.productModel.countDocuments({ shop: query.shop });
-        const docsPromise = this.productModel.find({ shop: query.shop })
+        const countPromise = this.productModel.countDocuments({ shop: query.shop, isPublished: true });
+        const docsPromise = this.productModel.find({ 
+            shop: query.shop,
+            isPublished: true
+         })
+            .populate('category')
             .sort('-_id')
             .skip( Number( (query.page - 1)*query.limit ) )
             .limit( Number( query.limit ) )

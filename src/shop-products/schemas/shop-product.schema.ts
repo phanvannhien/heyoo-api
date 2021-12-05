@@ -8,7 +8,10 @@ export const ShopProductSchema = new mongoose.Schema({
     price: Number,
     thumbnail: String,
     images: [String],
-    category: String,
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ShopProductCategories'
+    },
     description: String,
     isPublished: {
         type: Boolean,

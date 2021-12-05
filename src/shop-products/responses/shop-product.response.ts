@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { ShopCategoriesResponse } from "src/shop-categories/responses/shop-categories.response";
 
 export class ShopProductItemResponse{
   
@@ -8,7 +9,7 @@ export class ShopProductItemResponse{
         this.thumbnail = object.thumbnail;
         this.images = object.images ?? '';
         this.price = object.price;
-        this.category = object.category;
+        this.category = object.category ? new ShopCategoriesResponse(object.category) :null;
         this.description = object.description;
         this.shop = object.shop;
         this.isPublished = object.isPublished;
@@ -32,7 +33,7 @@ export class ShopProductItemResponse{
     description: string;
 
     @ApiProperty()
-    category: string;
+    category: ShopCategoriesResponse;
 
     @ApiProperty()
     shop: string;

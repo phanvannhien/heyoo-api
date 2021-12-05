@@ -6,6 +6,7 @@ import { FilesModule } from 'src/files/files.module';
 import { ShopProductSchema } from './schemas/shop-product.schema';
 import { AdminShopProductsController } from './admin-shop-products.controller';
 import { ShopModule } from 'src/shop/shop.module';
+import { ShopProductCategoryModule } from 'src/shop-products-category/shop-products-category.module';
 
 @Module({
 
@@ -14,7 +15,8 @@ import { ShopModule } from 'src/shop/shop.module';
       { name: 'ShopProduct', schema: ShopProductSchema },
     ]),
     FilesModule,
-    ShopModule
+    ShopModule,
+    ShopProductCategoryModule
   ],
   controllers: [ShopProductsController, AdminShopProductsController],
   providers: [ShopProductsService],

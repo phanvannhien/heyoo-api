@@ -28,6 +28,7 @@ export class CreateShopProductDto {
 
     @ApiProperty()
     @IsNotEmpty()
+    @IsMongoId()
     category: string;
 
     @ApiProperty()

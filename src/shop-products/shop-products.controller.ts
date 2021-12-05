@@ -17,6 +17,7 @@ import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ShopService } from 'src/shop/shop.service';
 import { GetShopProductRelatedDto } from './dto/get-shop-product-related.dto';
+import { ShopProductCategoryService } from 'src/shop-products-category/shop-products-category.service';
 
 @ApiTags('shop-products')
 @Controller('shop-products')
@@ -25,7 +26,8 @@ export class ShopProductsController {
     constructor(
         private readonly productService: ShopProductsService,
         private readonly fileService: FilesService,
-        private readonly shopService: ShopService
+        private readonly shopService: ShopService,
+        private readonly shopProductCategoryService: ShopProductCategoryService,
     ) {}
 
     @Get()
@@ -79,6 +81,10 @@ export class ShopProductsController {
         const shop = await this.shopService.findById( body.shop );
         if(!shop) throw new BadRequestException('Shop not found');
         if(shop.user.id != req.user.id) throw new BadRequestException('User are not owner this shop');
+
+        const findCategory = await this.shopProductCategoryService.findCategoryById(body.category)
+        if(!findCategory) throw new BadRequestException('Shop product category not found');
+
         const data = await this.productService.create(body);
         return new ResponseSuccess(new ShopProductItemResponse(data));
     }
