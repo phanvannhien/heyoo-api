@@ -10,7 +10,6 @@ import { AdminVideosController } from './admin-videos.controller';
 
 
 @Module({
-
   imports: [
     MongooseModule.forFeature([
       { name: 'videos', schema: VideosSchema },

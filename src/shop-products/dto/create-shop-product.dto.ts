@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsInt, IsMongoId, IsNotEmpty, Min } from "class-validator";
+import { IsArray, IsBoolean, IsInt, IsMongoId, IsNotEmpty, IsNumber, IsOptional, Min } from "class-validator";
 
 export class CreateShopProductDto {
     @ApiProperty()
@@ -8,7 +8,7 @@ export class CreateShopProductDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    @IsInt()
+    @IsNumber()
     price: number;
 
     @ApiProperty({ 
@@ -31,7 +31,7 @@ export class CreateShopProductDto {
     category: string;
 
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     description: string;
 
     @ApiProperty()

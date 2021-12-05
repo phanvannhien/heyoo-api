@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { UserWallsService } from './user-walls.service';
 import { UserWallsController } from './user-walls.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -10,6 +10,7 @@ import { UserWallCommentService } from './user-wall-comments.service';
 import { UserWallCommentController } from './user-wall-comments.controller';
 import { UserWallCommentSchema } from './schemas/user-wall-comment.schema';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([

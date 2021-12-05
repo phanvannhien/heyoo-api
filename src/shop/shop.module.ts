@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ShopController } from './shop.controller';
 import { ShopService } from './shop.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -9,7 +9,7 @@ import { ShopFollowSchema } from './schemas/follow.schema';
 import { LiveStreamSchema } from 'src/livestreams/schemas/livestream.schema';
 import { AdminShopController } from './admin-shop.controller';
 
-
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([

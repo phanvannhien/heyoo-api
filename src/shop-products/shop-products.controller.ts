@@ -16,6 +16,7 @@ import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ShopService } from 'src/shop/shop.service';
+import { GetShopProductRelatedDto } from './dto/get-shop-product-related.dto';
 
 @ApiTags('shop-products')
 @Controller('shop-products')
@@ -48,6 +49,20 @@ export class ShopProductsController {
         const find = await this.productService.findById(id);
         if( !find ) throw new BadRequestException('Product not found');
         return new ResponseSuccess(new ShopProductItemResponse(find));
+    }
+
+    @ApiOkResponse({
+        type: ShopProductItemResponse
+    })
+    @Get(':id/related')
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
+    async getRelated(@Param('id', new MongoIdValidationPipe() ) id: string, @Query() query: GetShopProductRelatedDto ): Promise<IResponse>{
+        const find = await this.productService.findById(id);
+        if( !find ) throw new BadRequestException('Product not found');
+
+        const products = await this.productService.getRelatedProduct(find, query);
+        return new ResponseSuccess(new ShopProductItemsResponse(products));
     }
 
 

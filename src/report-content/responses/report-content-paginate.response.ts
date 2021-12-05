@@ -1,17 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ShopProductItemResponse } from "./shop-product.response";
+import { ReportContentItemResponse } from "./report-content.response";
 
-export class ShopProductItemsResponse{
+export class ReportContentPaginateResponse{
   
     constructor( object: any ){
         this.total = object.total ? object.total: 0;
         this.items = object.items && object.items.length > 0 
-            ? object.items.map( i => new ShopProductItemResponse(i) )
+            ? object.items.map( i => new ReportContentItemResponse(i) )
             : [];
     }
    
     @ApiProperty()
-    items: ShopProductItemResponse[];
+    items: ReportContentItemResponse[];
 
     @ApiProperty()
     total: number;

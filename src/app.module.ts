@@ -36,6 +36,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TasksService } from './schedule/TasksService';
 import { ShopProductCategoryModule } from './shop-products-category/shop-products-category.module';
 import { ShopProductsModule } from './shop-products/shop-products.module';
+import { ReportModule } from './reports/report.module';
+import { ReportContentModule } from './report-content/report-content.module';
 
 
 @Module({
@@ -93,6 +95,8 @@ import { ShopProductsModule } from './shop-products/shop-products.module';
     LevelModule,
     ShopProductCategoryModule,
     ShopProductsModule,
+    ReportContentModule,
+    ReportModule,
     ScheduleModule.forRoot()
   ],
   controllers: [

@@ -5,6 +5,7 @@ import { ShopProductEntityDocument } from './entities/shop-product.entity';
 import { CreateShopProductDto } from './dto/create-shop-product.dto';
 import { UpdateShopProductDto } from './dto/update-shop-product.dto';
 import { GetShopProductDto } from './dto/get-shop-product.dto';
+import { GetShopProductRelatedDto } from './dto/get-shop-product-related.dto';
 
 @Injectable()
 export class ShopProductsService {
@@ -24,7 +25,7 @@ export class ShopProductsService {
     async findPaginate(query: GetShopProductDto){
         const countPromise = this.productModel.countDocuments({ shop: query.shop });
         const docsPromise = this.productModel.find({ shop: query.shop })
-            .sort({ id: 1 })
+            .sort('-_id')
             .skip( Number( (query.page - 1)*query.limit ) )
             .limit( Number( query.limit ) )
             .exec();
@@ -43,5 +44,29 @@ export class ShopProductsService {
     
     async remove(id: string): Promise<any> {
         return await this.productModel.deleteById( id );
+    }
+
+    async getRelatedProduct( product: ShopProductEntityDocument, query: GetShopProductRelatedDto){
+
+        const countPromise = this.productModel.countDocuments({
+            _id: { $ne: product.id },
+            shop: product.shop
+        });
+        const docsPromise = this.productModel.find({
+            _id: { $ne: product.id },
+            shop: product.shop
+        })
+            .populate('category')
+            .sort('-_id')
+            .limit( Number(query.limit) )
+            .skip( Number(query.limit) * (Number(query.page) - 1) )
+            .exec();
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+        return {
+          total,
+          items
+        }
+
     }
 }
