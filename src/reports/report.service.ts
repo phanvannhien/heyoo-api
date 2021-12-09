@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Body, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { AdminGetReportDto } from './dto/admin-get-report.dto';
 import { CreateReportDto } from './dto/create-report.dto';
 import { GetReportDto } from './dto/get-report-content.dto';
+import { ReportSubject } from './schemas/report.schema';
 
 @Injectable()
 export class ReportService {
@@ -18,24 +20,126 @@ export class ReportService {
     async findById( id: string ): Promise<any> {
         return await this.model.findById(id).exec();
     }
-
-    async findPaginate(query: GetReportDto){
-        const countPromise = this.model.countDocuments();
-        const docsPromise = this.model.find(query)
-            .sort('-_id')
-            .skip( Number( (query.page - 1)*query.limit ) )
-            .limit( Number( query.limit ) )
-            .exec();
-    
-        const [total, items] = await Promise.all([countPromise, docsPromise]);
-        return {
-          total,
-          items
-        }
-    }
     
     async remove(id: string): Promise<any> {
         return await this.model.deleteById( id );
     }
 
+    // ADMIN
+    async findAdminPaginate(query: AdminGetReportDto){
+        let lookupObject = {};
+        if( query.subject == ReportSubject.LIVESTREAM ){
+            lookupObject = {
+                from: "livestreams",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+        }
+        if( query.subject.toString() === ReportSubject.SHOP ){
+    
+            lookupObject = {
+                from: "shops",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+
+        }
+        if( query.subject == ReportSubject.USER ){
+            lookupObject = {
+                from: "users",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+        }
+        if( query.subject == ReportSubject.NEWS ){
+            lookupObject = {
+                from: "news",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+        }
+        if( query.subject == ReportSubject.VIDEOS ){
+            lookupObject = {
+                from: "videos",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+        }
+        if( query.subject == ReportSubject.POST ){
+            lookupObject = {
+                from: "user_walls",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+        }
+        if( query.subject == ReportSubject.PRODUCT ){
+            lookupObject = {
+                from: "shop_products",
+                localField: "reportSubjectId",
+                foreignField: "_id",
+                as: "reportObject"
+            }
+        }
+    
+
+        const docsPromise = this.model.aggregate([
+            {
+                $match: { subject: query.subject }
+            },
+      
+            {
+                $lookup:
+                {
+                    from: "users",
+                    localField: "reportBy",
+                    foreignField: "_id",
+                    as: "reportBy"
+                }
+            },
+            {
+                $lookup:
+                {
+                    from: "report_contents",
+                    localField: "reportContentId",
+                    foreignField: "_id",
+                    as: "reportContent"
+                }
+            },
+
+            {
+                $lookup: lookupObject
+            },
+
+            {
+                $unwind: {  path: "$reportBy", preserveNullAndEmptyArrays: true }
+            },
+            {
+                $unwind: {  path: "$reportContent", preserveNullAndEmptyArrays: true }
+            },
+            {
+                $unwind: {  path: "$reportObject", preserveNullAndEmptyArrays: true }
+            },
+
+            { $sort: { "_id": -1 } },
+            { $limit: Number(query.limit) },
+            { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+          ]).exec();
+   
+        const countPromise = this.model.countDocuments({
+            subject: query.subject
+        });
+
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+      
+        return {
+            total,
+            items
+        }
+    }
 }

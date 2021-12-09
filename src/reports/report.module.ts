@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { NewsModule } from 'src/news/news.module';
 import { ReportContentModule } from 'src/report-content/report-content.module';
 import { VideosModule } from 'src/videos/videos.module';
+import { AdminReportController } from './admin-report.controller';
 import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
 import { ReportSchema } from './schemas/report.schema';
@@ -16,7 +17,7 @@ import { ReportSchema } from './schemas/report.schema';
     VideosModule,
     ReportContentModule
   ],
-  controllers: [ReportController],
+  controllers: [ReportController, AdminReportController],
   providers: [ReportService],
   exports:[
     ReportService

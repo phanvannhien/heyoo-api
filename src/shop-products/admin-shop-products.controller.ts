@@ -13,6 +13,7 @@ import { ShopProductItemsResponse } from './responses/shop-products.response';
 import { UpdateShopProductDto } from './dto/update-shop-product.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { ShopService } from 'src/shop/shop.service';
 
 @ApiTags('admin')
 @Controller('admin-shop-products')
@@ -21,6 +22,7 @@ export class AdminShopProductsController {
     constructor(
         private readonly productService: ShopProductsService,
         private readonly fileService: FilesService,
+        private readonly shopService: ShopService
     ) {}
 
 
@@ -31,7 +33,7 @@ export class AdminShopProductsController {
         type: ShopProductItemsResponse
     })
     async find( @Query() query: GetShopProductDto ): Promise<IResponse>{
-        const d = await this.productService.findPaginate(query);
+        const d = await this.productService.findAdminPaginate(query);
         return new ResponseSuccess(new ShopProductItemsResponse(d));
     }
 

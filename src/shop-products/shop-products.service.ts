@@ -23,12 +23,14 @@ export class ShopProductsService {
         return await this.productModel.findById(id).populate('category').exec();
     }
 
-    async findPaginate(query: GetShopProductDto){
-        const countPromise = this.productModel.countDocuments({ shop: query.shop, isPublished: true });
-        const docsPromise = this.productModel.find({ 
-            shop: query.shop,
-            isPublished: true
-         })
+    async findPaginate(shopOfUser: any, query: GetShopProductDto){
+
+        const queryData = shopOfUser && query.shop.toString() === shopOfUser.id.toString()
+            ? { shop: query.shop }
+            : { shop: query.shop, isPublished: true } 
+
+        const countPromise = this.productModel.countDocuments(queryData);
+        const docsPromise = this.productModel.find(queryData)
             .populate('category')
             .sort('-_id')
             .skip( Number( (query.page - 1)*query.limit ) )
@@ -51,16 +53,15 @@ export class ShopProductsService {
         return await this.productModel.deleteById( id );
     }
 
-    async getRelatedProduct( product: ShopProductEntityDocument, query: GetShopProductRelatedDto){
+    async getRelatedProduct(shopOfUser:any, product: ShopProductEntityDocument, query: GetShopProductRelatedDto){
 
-        const countPromise = this.productModel.countDocuments({
-            _id: { $ne: product.id },
-            shop: product.shop
-        });
-        const docsPromise = this.productModel.find({
-            _id: { $ne: product.id },
-            shop: product.shop
-        })
+        const queryData = shopOfUser && product.shop.toString() === shopOfUser.id.toString()
+            ? { shop: product.shop, _id: { $ne: product.id } }
+            : { shop: product.shop, isPublished: true, _id: { $ne: product.id } } 
+
+
+        const countPromise = this.productModel.countDocuments(queryData);
+        const docsPromise = this.productModel.find(queryData)
             .populate('category')
             .sort('-_id')
             .limit( Number(query.limit) )
@@ -74,4 +75,24 @@ export class ShopProductsService {
         }
 
     }
+    // ADMIN
+    async findAdminPaginate(query: GetShopProductDto){
+        const countPromise = this.productModel.countDocuments({ shop: query.shop, isPublished: true });
+        const docsPromise = this.productModel.find({ 
+            shop: query.shop,
+            isPublished: true
+         })
+            .populate('category')
+            .sort('-_id')
+            .skip( Number( (query.page - 1)*query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec();
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+        return {
+          total,
+          items
+        }
+    }
+    
 }

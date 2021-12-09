@@ -18,10 +18,12 @@ export const ReportSchema = new mongoose.Schema({
         enum: ReportSubject,
         default: ReportSubject.LIVESTREAM
     },
-    reportSubjectId: String,
+    reportSubjectId: {
+        type: mongoose.Schema.Types.ObjectId,
+    },
     reportContentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Report'
+        ref: 'ReportContent'
     },
     reportBy: {
         type: mongoose.Schema.Types.ObjectId,

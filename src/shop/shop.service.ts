@@ -214,7 +214,11 @@ export class ShopService {
         ]).exec();
     }
     
-    
+    async getUserShop(userId): Promise<ShopEntityDocument>{
+        return await this.shopModel.findOne({
+            user: userId
+        }).exec()
+    }
 
     async checkUserHasShop( user ): Promise<boolean>{
         const find = await this.shopModel.aggregate([

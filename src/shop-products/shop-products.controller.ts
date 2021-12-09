@@ -36,8 +36,9 @@ export class ShopProductsController {
     })
     @ApiBearerAuth()
     @UseGuards( JwtAuthGuard )
-    async find( @Query() query: GetShopProductDto ): Promise<IResponse>{
-        const d = await this.productService.findPaginate(query);
+    async find( @Req() request, @Query() query: GetShopProductDto ): Promise<IResponse>{
+        const shopOfUser = await this.shopService.getUserShop(request.user.id);
+        const d = await this.productService.findPaginate(shopOfUser, query);
         return new ResponseSuccess(new ShopProductItemsResponse(d));
     }
 
@@ -59,11 +60,11 @@ export class ShopProductsController {
     @Get(':id/related')
     @ApiBearerAuth()
     @UseGuards( JwtAuthGuard )
-    async getRelated(@Param('id', new MongoIdValidationPipe() ) id: string, @Query() query: GetShopProductRelatedDto ): Promise<IResponse>{
+    async getRelated(@Req() request, @Param('id', new MongoIdValidationPipe() ) id: string, @Query() query: GetShopProductRelatedDto ): Promise<IResponse>{
         const find = await this.productService.findById(id);
         if( !find ) throw new BadRequestException('Product not found');
-
-        const products = await this.productService.getRelatedProduct(find, query);
+        const shopOfUser = await this.shopService.getUserShop(request.user.id);
+        const products = await this.productService.getRelatedProduct(shopOfUser,find, query);
         return new ResponseSuccess(new ShopProductItemsResponse(products));
     }
 
