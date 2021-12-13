@@ -28,7 +28,8 @@ export class ReportService {
     // ADMIN
     async findAdminPaginate(query: AdminGetReportDto){
         let lookupObject = {};
-        if( query.subject == ReportSubject.LIVESTREAM ){
+        
+        if( query.subject.toString() == ReportSubject.LIVESTREAM ){
             lookupObject = {
                 from: "livestreams",
                 localField: "reportSubjectId",
@@ -46,7 +47,7 @@ export class ReportService {
             }
 
         }
-        if( query.subject == ReportSubject.USER ){
+        if( query.subject.toString() == ReportSubject.USER ){
             lookupObject = {
                 from: "users",
                 localField: "reportSubjectId",
@@ -54,7 +55,7 @@ export class ReportService {
                 as: "reportObject"
             }
         }
-        if( query.subject == ReportSubject.NEWS ){
+        if( query.subject.toString() == ReportSubject.NEWS ){
             lookupObject = {
                 from: "news",
                 localField: "reportSubjectId",
@@ -62,7 +63,7 @@ export class ReportService {
                 as: "reportObject"
             }
         }
-        if( query.subject == ReportSubject.VIDEOS ){
+        if( query.subject.toString() == ReportSubject.VIDEOS ){
             lookupObject = {
                 from: "videos",
                 localField: "reportSubjectId",
@@ -70,7 +71,7 @@ export class ReportService {
                 as: "reportObject"
             }
         }
-        if( query.subject == ReportSubject.POST ){
+        if( query.subject.toString() == ReportSubject.POST ){
             lookupObject = {
                 from: "user_walls",
                 localField: "reportSubjectId",
@@ -78,7 +79,7 @@ export class ReportService {
                 as: "reportObject"
             }
         }
-        if( query.subject == ReportSubject.PRODUCT ){
+        if( query.subject.toString() == ReportSubject.PRODUCT ){
             lookupObject = {
                 from: "shop_products",
                 localField: "reportSubjectId",
