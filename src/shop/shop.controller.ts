@@ -17,7 +17,6 @@ import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import { ShopVideoResponse } from './responses/shop-videos.response';
 
 
-
 @ApiTags('shop')
 @Controller('shop')
 export class ShopController {
@@ -25,6 +24,7 @@ export class ShopController {
     constructor(
         private readonly shopService: ShopService,
         private readonly shopCategoryService: ShopCategoriesService,
+        
     ) {}
 
     @ApiOkResponse({ type: ShopItemResponse })

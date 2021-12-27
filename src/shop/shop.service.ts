@@ -10,6 +10,7 @@ import { ShopFollowEntityDocument } from './entities/follow.entity';
 import * as mongoose from 'mongoose';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import { LiveStreamEntityDocument } from 'src/livestreams/entities/livestream.entity';
+import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 
 @Injectable()
 export class ShopService {
@@ -17,11 +18,14 @@ export class ShopService {
         @InjectModel( SHOP_MODEL ) private readonly shopModel: Model<ShopEntityDocument>,
         @InjectModel( SHOP_FOLLOW_MODEL ) private readonly followModel: Model<ShopFollowEntityDocument>,
         @InjectModel('LiveStreams') private readonly liveStreamModel: Model<LiveStreamEntityDocument>,
+        private firebaseDBService: FirebaseDBService,
     ){}
 
     async create( createDto: object ): Promise<ShopEntityDocument> {
         const doc = new this.shopModel( createDto );
         await doc.save();
+         // migrate to firebase DB
+         this.firebaseDBService.saveShop(doc);
         return await doc
             .populate('category')
             .populate('user')

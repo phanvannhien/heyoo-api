@@ -1,7 +1,7 @@
 import { IsBoolean, IsMongoId, IsNotEmpty, IsOptional } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetShopProductDto{
+export class GetSearchShopProductDto{
     @ApiProperty({
         type: Number,
         default: 1
@@ -18,9 +18,9 @@ export class GetShopProductDto{
 
     @ApiProperty({
         type: String,
-        default: ''
+        default: '',
+        required: false
     })
-    @IsNotEmpty()
-    @IsMongoId()
-    shop: string;
+    @IsOptional()
+    productName?: string;
 }

@@ -12,7 +12,7 @@ import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 export class NotificationsService {
 
   constructor(
-    @InjectModel( NOTIFICATION_MODEL ) private readonly notyModel: Model<NotificationEntityDocument>,
+    @InjectModel( NOTIFICATION_MODEL ) private readonly notyModel,
   ){}
 
   async create(createNotificationDto: CreateNotificationDto): Promise<NotificationEntityDocument> {
@@ -71,5 +71,11 @@ export class NotificationsService {
 
   async remove(id: string) {
     return await this.notyModel.findByIdAndDelete(id);
+  }
+
+  async clear( userId: string ){
+    return await this.notyModel.delete({
+      user: userId
+    })
   }
 }

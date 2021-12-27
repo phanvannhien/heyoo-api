@@ -32,4 +32,5 @@ export interface LiveStreamEntityDocument extends Document {
     readonly duetGuestId: string;
     readonly duetGuestUid: string;
     readonly donateUid: string;
+    readonly products: Array<any>;
 }

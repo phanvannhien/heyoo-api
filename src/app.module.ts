@@ -38,6 +38,7 @@ import { ShopProductCategoryModule } from './shop-products-category/shop-product
 import { ShopProductsModule } from './shop-products/shop-products.module';
 import { ReportModule } from './reports/report.module';
 import { ReportContentModule } from './report-content/report-content.module';
+import { PackageModule } from './packages/package.module';
 
 
 @Module({
@@ -97,6 +98,7 @@ import { ReportContentModule } from './report-content/report-content.module';
     ShopProductsModule,
     ReportContentModule,
     ReportModule,
+    PackageModule,
     ScheduleModule.forRoot()
   ],
   controllers: [

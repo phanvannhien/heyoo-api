@@ -129,4 +129,23 @@ export class NotificationsController {
   }
 
 
+  @Post('clear')
+  @ApiOkResponse({
+    type: NotificationPaginateResponse
+  })
+  @ApiBearerAuth()
+  @UseGuards( JwtAuthGuard )
+  async clear(@Req() req ): Promise<IResponse> {
+    await this.notificationsService.clear(req.user.id);
+    const data = await this.notificationsService.findAll( req.user.id, {
+      page: 1,
+      limit: 20
+    } as QueryPaginateDto );
+    const countUnread = await this.notificationsService.getCountMessageUnread( req.user.id );
+    return new ResponseSuccess( new NotificationPaginateResponse({
+      ...data,
+      countUnread: countUnread
+    }))
+  }
+
 }

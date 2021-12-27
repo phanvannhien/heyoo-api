@@ -1,7 +1,8 @@
-import { IsBoolean, IsMongoId, IsNotEmpty, IsOptional } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetShopProductDto{
+export class GetPackageDto{
+
     @ApiProperty({
         type: Number,
         default: 1
@@ -15,12 +16,4 @@ export class GetShopProductDto{
     })
     @IsNotEmpty()
     limit: number;
-
-    @ApiProperty({
-        type: String,
-        default: ''
-    })
-    @IsNotEmpty()
-    @IsMongoId()
-    shop: string;
 }

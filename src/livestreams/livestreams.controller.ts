@@ -38,6 +38,8 @@ import { ProductsService } from 'src/products/products.service';
 import { DonateUserResponse } from './responses/donate-user.response';
 import { WalletItemResponse } from 'src/wallets/responses/wallet.response';
 import { ConfigurationService } from 'src/configuration/configuration.service';
+import { ShopProductsService } from 'src/shop-products/shop-products.service';
+import { ShopProductItemResponse } from 'src/shop-products/responses/shop-product.response';
 const crypto = require('crypto');
 
 
@@ -58,6 +60,7 @@ export class LivestreamsController {
     private readonly walletService: WalletsService,
     private readonly productService: ProductsService,
     private readonly configurationService: ConfigurationService,
+    private readonly productShopService: ShopProductsService,
     ) {}
 
 
@@ -99,7 +102,6 @@ export class LivestreamsController {
       coverPicture: coverPhoto,
       channelTitle: body.channelTitle,
       categories: body.categories,
-
       streamer: request.user.id,
       streamerUid: uid,
       shop: body.shop,
@@ -733,6 +735,44 @@ export class LivestreamsController {
       user: toUser,
       ...productDonate
     }));
+  }
+
+  /**
+   * shop product livestream
+   */
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/add-live-product/:productId')
+  async addLiveStreamProduct( 
+    @Param('id', new MongoIdValidationPipe() ) id: string, 
+    @Param('productId', new MongoIdValidationPipe() ) productId: string, 
+   ): Promise<any>{
+
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+    
+    const product = await this.productShopService.findById(productId);
+    if( !product ) throw new BadRequestException('Product Not found');
+
+    liveStream.products.push(product);
+    await liveStream.save();
+    return new ResponseSuccess(new ShopProductItemResponse(product));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get(':id/get-current-live-product')
+  async getCurrentLiveStreamProduct( 
+    @Param('id', new MongoIdValidationPipe() ) id: string 
+  ): Promise<any>{
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+    if( liveStream.products && liveStream.products.length > 0 ){
+      const lastestProductId =  liveStream.products[ liveStream.products.length - 1 ];
+      const product = await this.productShopService.findById(lastestProductId);
+      return new ResponseSuccess(new ShopProductItemResponse(product));
+    }
+    return new ResponseSuccess( null );
   }
 
 

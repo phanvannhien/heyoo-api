@@ -25,8 +25,7 @@ export class CreateTransactionDto {
 
     @ApiProperty({
         type: String,
-        default: 'gateway',
-        examples: ['gateway,wallet,sytem']
+        default: 'gateway'
     })
     @IsNotEmpty()
     @IsIn(['gateway','wallet'])

@@ -8,8 +8,8 @@ import { AdminShopProductsController } from './admin-shop-products.controller';
 import { ShopModule } from 'src/shop/shop.module';
 import { ShopProductCategoryModule } from 'src/shop-products-category/shop-products-category.module';
 
-@Module({
 
+@Module({
   imports: [
     MongooseModule.forFeature([
       { name: 'ShopProduct', schema: ShopProductSchema },

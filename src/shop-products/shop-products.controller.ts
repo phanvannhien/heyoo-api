@@ -18,6 +18,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ShopService } from 'src/shop/shop.service';
 import { GetShopProductRelatedDto } from './dto/get-shop-product-related.dto';
 import { ShopProductCategoryService } from 'src/shop-products-category/shop-products-category.service';
+import { GetSearchShopProductDto } from './dto/get-search-product.dto';
 
 @ApiTags('shop-products')
 @Controller('shop-products')
@@ -37,8 +38,21 @@ export class ShopProductsController {
     @ApiBearerAuth()
     @UseGuards( JwtAuthGuard )
     async find( @Req() request, @Query() query: GetShopProductDto ): Promise<IResponse>{
-        const shopOfUser = await this.shopService.getUserShop(request.user.id);
-        const d = await this.productService.findPaginate(shopOfUser, query);
+        const userRequest = await this.shopService.getUserShop(request.user.id);
+        const d = await this.productService.findPaginate(userRequest, query);
+        return new ResponseSuccess(new ShopProductItemsResponse(d));
+    }
+
+    @Get('find/products')
+    @ApiOkResponse({
+        type: ShopProductItemsResponse
+    })
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
+    async searchFindProductShop( @Req() request, @Query() query: GetSearchShopProductDto ): Promise<IResponse>{
+        const shopOfUserRequest = await this.shopService.getUserShop(request.user.id);
+        if(!shopOfUserRequest) throw new BadRequestException('Not found any shop of this user');
+        const d = await this.productService.searchProductToLivestream(shopOfUserRequest, query);
         return new ResponseSuccess(new ShopProductItemsResponse(d));
     }
 

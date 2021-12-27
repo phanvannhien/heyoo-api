@@ -49,7 +49,12 @@ export const LiveStreamSchema = new mongoose.Schema({
     liveMode: { type: String, default: '' }, // single / duet
     donateUid: { type: String, default: '' }, // use for donate
     duetGuestId: String, // for liveMode duet 
-    duetGuestUid: String, // for liveMode duet 
+    duetGuestUid: String, // for liveMode duet
+    products: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ShopProduct',
+        default: null
+    }],
 }, {
     timestamps: true
 });

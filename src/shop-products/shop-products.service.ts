@@ -6,6 +6,8 @@ import { CreateShopProductDto } from './dto/create-shop-product.dto';
 import { UpdateShopProductDto } from './dto/update-shop-product.dto';
 import { GetShopProductDto } from './dto/get-shop-product.dto';
 import { GetShopProductRelatedDto } from './dto/get-shop-product-related.dto';
+import { GetSearchShopProductDto } from './dto/get-search-product.dto';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class ShopProductsService {
@@ -38,6 +40,34 @@ export class ShopProductsService {
             .exec();
     
         const [total, items] = await Promise.all([countPromise, docsPromise]);
+
+        return {
+          total,
+          items
+        }
+    }
+
+    async searchProductToLivestream(shopOfUserRequest, query: GetSearchShopProductDto){
+        let queryDocs = {
+            isPublished: true,
+            shop: shopOfUserRequest.id.toString()
+        }
+
+        if( query.productName ){
+            query.productName = query.productName.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
+            queryDocs['productName'] = { $regex: new RegExp( query.productName ), $options: 'i' }
+        }
+       
+        const countPromise = this.productModel.countDocuments(queryDocs);
+        const docsPromise = this.productModel.find(queryDocs)
+            .populate('category')
+            .sort('-_id')
+            .skip( Number( (query.page - 1) * query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec();
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+
         return {
           total,
           items
@@ -58,7 +88,6 @@ export class ShopProductsService {
         const queryData = shopOfUser && product.shop.toString() === shopOfUser.id.toString()
             ? { shop: product.shop, _id: { $ne: product.id } }
             : { shop: product.shop, isPublished: true, _id: { $ne: product.id } } 
-
 
         const countPromise = this.productModel.countDocuments(queryData);
         const docsPromise = this.productModel.find(queryData)

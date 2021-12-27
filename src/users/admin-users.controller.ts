@@ -16,6 +16,7 @@ import { UserProfileResponse } from 'src/auth/responses/profile.response';
 import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 import { FirebaseDBService } from 'src/firebase/firebase-db.service';
+import { ShopService } from 'src/shop/shop.service';
 
 
 @ApiTags('admin')
@@ -25,6 +26,7 @@ export class AdminUsersFrontController {
     constructor( 
         private userService: UsersService,
         private firebaseDBService: FirebaseDBService,
+        private shopService: ShopService
     ){}
 
     @Get()
@@ -96,8 +98,13 @@ export class AdminUsersFrontController {
     @HttpCode(HttpStatus.OK)
     async migrateUserDBFirebase(): Promise<any>{
         const allUser = await this.userService.find();
-        allUser.forEach( user => {
+        allUser.forEach( async user => {
             this.firebaseDBService.saveUser(user);
+            const shop = await this.shopService.getUserShop(user.id);
+            if(shop){
+                this.firebaseDBService.saveShop(shop);
+            }
+            
         })
         return { message: 'Success' }
     }

@@ -1,9 +1,28 @@
 import { Injectable } from "@nestjs/common";
 import * as admin from 'firebase-admin';
+import { ShopEntityDocument } from "src/shop/entities/shop.entity";
 import { User } from "src/users/interfaces/user.interface";
 
 @Injectable()
 export class FirebaseDBService {
+
+    saveShop( shop: ShopEntityDocument ){
+        const db = admin.database();
+        const ref = db.ref('live');
+        const usersRef = ref.child('users');
+        const childId = shop.id || shop._id;
+
+        const updateShopFirebase = {
+            email: shop.email,
+            phoneNumber: shop.phone ,
+            name: shop.shopName,
+            gender: 0,
+            avatar: shop.image,
+            bio: shop.description,
+            shopAdmins: shop.user.toString()
+        };
+        usersRef.child( childId.toString() ).set(updateShopFirebase);
+    }
 
     saveUser( user: User ){
         const db = admin.database();
@@ -19,7 +38,6 @@ export class FirebaseDBService {
             bio: user.bio ?? 'heyoo',
         };
         usersRef.child( childId.toString() ).set(updateUserFirebase);
-
     }
     
     getMemberIdsInChatRoom( chatRoomId: string ): Promise<any>{

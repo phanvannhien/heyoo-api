@@ -750,6 +750,14 @@ export class UsersService {
     }
 
     async getUserFollowerFcmToken( userId ): Promise<any>{
+        // const users: string[] = await this.followModel.find({
+        //     follow: userId
+        // }).select('user').distinct('user').exec()
+
+        // const fcms = await this.fcmTokenModel.find(
+        //     { user : { $in : users } }
+        // ).select('fcmToken').distinct('fcmToken').exec()
+
         const users = await this.followModel.find({
             follow: userId
         }).select('user').distinct('user').exec()

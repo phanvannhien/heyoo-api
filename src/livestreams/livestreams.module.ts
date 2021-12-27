@@ -16,6 +16,7 @@ import { DuetLivestreamSchema } from './schemas/duet.schema';
 import { DuetService } from './duet.service';
 import { ProductsModule } from 'src/products/products.module';
 import { AdminLivestreamsController } from './admin-livestreams.controller';
+import { ShopProductsModule } from 'src/shop-products/shop-products.module';
 
 @Global()
 @Module({
@@ -35,7 +36,8 @@ import { AdminLivestreamsController } from './admin-livestreams.controller';
     HttpModule,
     NotificationsModule,
     FirebaseCloudMessageModule,
-    ProductsModule
+    ProductsModule,
+    ShopProductsModule
   ],
   controllers: [LivestreamsController, AdminLivestreamsController],
   providers: [LivestreamsService, DuetService],
