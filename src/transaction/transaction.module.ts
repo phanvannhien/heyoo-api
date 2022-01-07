@@ -6,6 +6,8 @@ import { TransactionSchema } from './schemas/transaction.schema';
 import { UsersModule } from 'src/users/users.module';
 import { OrdersModule } from 'src/orders/orders.module';
 import { AdminTransactionController } from './admin-transaction.controller';
+import { PackageModule } from 'src/packages/package.module';
+import { PaymentModule } from 'src/payment/payment.module';
 
 
 @Module({
@@ -15,6 +17,8 @@ import { AdminTransactionController } from './admin-transaction.controller';
     ]),
     UsersModule,
     OrdersModule,
+    PackageModule,
+    PaymentModule,
   ],
   providers: [TransactionService],
   controllers: [TransactionController, AdminTransactionController ],

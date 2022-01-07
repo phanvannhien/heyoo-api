@@ -76,6 +76,7 @@ export class CategoriesController {
     const data = await this.categoriesService.findOne(id);
     if(!data) throw new BadRequestException('Category not found');
     const response = await this.categoriesService.getLiveByCategory(id, query);
+    console.log(response)
     return new ResponseSuccess(
       new CategoryLiveStreamResponse({
         page: query.page,

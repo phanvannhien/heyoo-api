@@ -12,6 +12,7 @@ import { PackageItemsResponse } from './responses/packages.response';
 import { UpdatePackageDto } from './dto/update-package.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { PackageItemPaginateResponse } from './responses/package-paginate.response';
 
 @ApiTags('admin')
 @Controller('admin-packages')
@@ -52,11 +53,11 @@ export class AdminPackageController {
     @ApiBearerAuth()
     @UseGuards(AdminJWTAuthGuard)
     @ApiOkResponse({
-        type: PackageItemsResponse
+        type: PackageItemPaginateResponse
     })
     async find( @Query() query: GetPackageDto ): Promise<IResponse>{
         const d = await this.productService.findPaginate(query);
-        return new ResponseSuccess(new PackageItemsResponse(d));
+        return new ResponseSuccess(new PackageItemPaginateResponse(d));
     }
 
     @ApiOkResponse({

@@ -17,6 +17,10 @@ import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 import { ShopService } from 'src/shop/shop.service';
+import { AdminGetWithDrawDto } from './dto/admin-get-withdraw.dto';
+import { WithDrawPaginateResponse } from './responses/withdraw-paginate.response';
+import { WithDrawItemResponse } from './responses/withdraw.response';
+import { AdminUpdateWithDrawDto } from './dto/update-withdraw-status.dto';
 
 
 @ApiTags('admin')
@@ -108,6 +112,30 @@ export class AdminUsersFrontController {
         })
         return { message: 'Success' }
     }
-    
 
+
+
+    @Get('do/get-withdraw')
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async getAllUserWithDrawRequest( @Query() query: AdminGetWithDrawDto ): Promise<any>{
+        const data = await this.userService.adminGetWithDrawHistory( query );
+        return new ResponseSuccess( new WithDrawPaginateResponse(data) )
+    }
+
+    
+    @Post('do/withdraw/:id/update')
+    @ApiOkResponse()
+    @ApiBearerAuth()
+    @UseGuards(AdminJWTAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async updateWithDrawStatus( 
+        @Param('id', new MongoIdValidationPipe() ) id: string,
+        @Body() body: AdminUpdateWithDrawDto ): Promise<any>
+        {
+        const data = await this.userService.adminUpdateWithDrawStatus( id,  body );
+        return new ResponseSuccess( new WithDrawItemResponse(data) )
+    }
 }

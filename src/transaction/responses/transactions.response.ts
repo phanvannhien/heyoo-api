@@ -5,8 +5,8 @@ import { TransactionItemResponse } from "./transaction.response";
 export class TransactionItemsResponse{
   
     constructor( object: any ){
-        this.total = object.length;
-        this.items = object.map( i => new TransactionItemResponse(i) );
+        this.total = object.total;
+        this.items = object.items.map( i => new TransactionItemResponse(i) );
     }
    
     @ApiProperty()

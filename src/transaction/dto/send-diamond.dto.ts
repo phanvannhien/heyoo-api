@@ -1,19 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsIn, IsMongoId } from "class-validator";
 
-export class CreateTransactionDto {
-
+export class SendDiamondDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsNumber()
     quantity: number;
 
-    @ApiProperty({
-        type: String,
-        default: 'gateway'
-    })
+    @ApiProperty()
     @IsNotEmpty()
-    @IsIn(['gateway','wallet'])
-    paymentMethod: string;
-
+    @IsMongoId()
+    toUserId: string;
 }

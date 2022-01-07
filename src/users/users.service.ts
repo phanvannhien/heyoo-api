@@ -21,6 +21,10 @@ import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
 import { USER_FCMTOKEN_MODEL } from 'src/mongo-model.constance';
 import { UserFcmTokenEntityDocument } from './interfaces/fcm-token.entity';
 import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service';
+import { CreateWithDrawDto } from './dto/withdraw.dto';
+import { GetWithDrawDto } from './dto/get-withdraw.dto';
+import { AdminGetWithDrawDto } from './dto/admin-get-withdraw.dto';
+import { AdminUpdateWithDrawDto } from './dto/update-withdraw-status.dto';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +32,7 @@ export class UsersService {
 
     constructor(
         @InjectModel('User') private readonly userModel,
+        @InjectModel('WithDraw') private readonly withDrawModel,
         @InjectModel('Follow') private readonly followModel: Model<FollowEntityDocument>,
         @InjectModel( USER_FCMTOKEN_MODEL ) private readonly fcmTokenModel: Model<UserFcmTokenEntityDocument>,
         private readonly filesService: FilesService,
@@ -39,25 +44,45 @@ export class UsersService {
     }
 
     async findPaginate(query: GetUserDto): Promise<any>{
-        if(query.phone)
-            query.phone = query.phone.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
-        return await this.userModel.aggregate([
-            { 
-                $match: {
-                    phone: {  $regex: new RegExp( query.phone, 'i' ) }
-                }
-            },
-            {
-                $facet: {
-                    items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
-                    total: [
-                        {
-                            $count: 'count'
-                        }
-                    ]
-                }
+        let docsQuery = {}
+        if(query.phone){
+            query.phone = query.phone.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+            docsQuery =  {
+                phone: {  $regex: new RegExp( query.phone, 'i' ) }
             }
-        ]).exec();
+        }
+  
+        const countPromise = this.userModel.countDocuments(docsQuery);
+        const docsPromise = this.userModel.find(docsQuery)
+            .sort('-_id')
+            .skip( Number( (query.page - 1) * query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec();
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+
+        return {
+          total,
+          items
+        }
+
+        // return await this.userModel.aggregate([
+        //     { 
+        //         $match: {
+        //             phone: {  $regex: new RegExp( query.phone, 'i' ) }
+        //         }
+        //     },
+        //     {
+        //         $facet: {
+        //             items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+        //             total: [
+        //                 {
+        //                     $count: 'count'
+        //                 }
+        //             ]
+        //         }
+        //     }
+        // ]).exec();
     }
 
     async find(): Promise<User[]>{
@@ -805,5 +830,82 @@ export class UsersService {
         if(fcms.length > 0)
             return await this.firebaseService.sendMessage( fcms, messageData );
         return false;
+    }
+
+    async createWithDraw( dto ): Promise<any>{
+        const data = new this.withDrawModel(dto);
+        await data.save();
+        return await data.populate('user').execPopulate();
+    }
+
+    async getTotalWithDraw(userId: string): Promise<any>{
+        return await this.withDrawModel.aggregate([
+            { $match: { 
+                    user: new mongoose.Types.ObjectId(userId),
+                    status: 'completed'
+                } 
+            },
+            { $group: { _id: "$user" , total: { $sum: "$total" }} },
+            { $project: { _id: 0, total: 1, } }
+        ]).exec()
+    }
+
+    async getWithDrawHistory( userId: string, query: GetWithDrawDto ): Promise<any>{
+        let queryDocs = {
+            user: userId
+        };
+     
+        if( query.status ){
+            queryDocs['status'] = query.status;
+        }
+        
+        const countPromise = this.withDrawModel.countDocuments(queryDocs);
+        const docsPromise = this.withDrawModel.find(queryDocs)
+            .populate('user')
+            .sort({ createdAt: -1 })
+            .skip( Number( (query.page - 1) * query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec()
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+
+        return {
+          total,
+          items
+        }
+    }
+
+    // admin
+    async adminGetWithDrawHistory( query: AdminGetWithDrawDto ): Promise<any>{
+        let queryDocs = {};
+        if( query.user ){
+            queryDocs['user'] = query.user;
+        }
+        
+        if( query.status ){
+            queryDocs['status'] = query.status;
+        }
+        
+        const countPromise = this.withDrawModel.countDocuments(queryDocs);
+        const docsPromise = this.withDrawModel.find(queryDocs)
+            .populate('user')
+            .sort({ createdAt: -1 })
+            .skip( Number( (query.page - 1) * query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec()
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+
+        return {
+          total,
+          items
+        }
+    }
+
+    async adminUpdateWithDrawStatus(id: string, body: AdminUpdateWithDrawDto): Promise<any>{
+        const data = await this.withDrawModel.findByIdAndUpdate(id, {
+            status: body.status
+        });
+        return await data.populate('user').execPopulate();
     }
 }

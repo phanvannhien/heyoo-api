@@ -3,6 +3,7 @@ import { User } from '../../users/interfaces/user.interface'
 
 export interface TransactionEntityDocument extends Document {
     readonly user: User;
+    readonly referenceId: string;
     readonly transactionId: string;
     readonly quantity: number;
     readonly rate: number;

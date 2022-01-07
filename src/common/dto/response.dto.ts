@@ -5,7 +5,6 @@ import { IResponse } from '../interfaces/response.interface';
 export class ResponseError implements IResponse{
   constructor (error: any) {
     this.error = error;
-    console.warn(new Date().toString() + ' - [Response]: ' + JSON.stringify(error) );
   };
   data: any[];
   error: any;

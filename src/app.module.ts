@@ -39,6 +39,7 @@ import { ShopProductsModule } from './shop-products/shop-products.module';
 import { ReportModule } from './reports/report.module';
 import { ReportContentModule } from './report-content/report-content.module';
 import { PackageModule } from './packages/package.module';
+import { PaymentModule } from './payment/payment.module';
 
 
 @Module({
@@ -99,7 +100,8 @@ import { PackageModule } from './packages/package.module';
     ReportContentModule,
     ReportModule,
     PackageModule,
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
+    PaymentModule
   ],
   controllers: [
     AppController,

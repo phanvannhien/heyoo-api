@@ -13,6 +13,8 @@ export class TransactionItemResponse{
         this.resource = object.resource;
         this.paymentMethod = object.paymentMethod;
         this.createdAt = object.createdAt;
+        this.referenceId = object.referenceId;
+        this.info = object.info;
     }
 
     @ApiProperty()
@@ -20,7 +22,6 @@ export class TransactionItemResponse{
 
     @ApiProperty()
     user: any;
-
 
     @ApiProperty()
     rate: number;
@@ -39,6 +40,12 @@ export class TransactionItemResponse{
 
     @ApiProperty()
     resource: string;
+
+    @ApiProperty()
+    referenceId: string;
+
+    @ApiProperty()
+    info: string;
 
     @ApiProperty()
     createdAt: Date;

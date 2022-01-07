@@ -155,4 +155,13 @@ export class WalletsService {
         }
     }
 
+
+    async getTotalDonate(userId: string): Promise<any>{
+        return await this.walletModel.aggregate([
+            { $match: { toUser: new mongoose.Types.ObjectId(userId) } },
+            { $group: { _id: "$toUser" , total: { $sum: "$total" }} },
+            { $project: { _id: 0, total: 1, } }
+        ]).exec()
+    }
+
 }

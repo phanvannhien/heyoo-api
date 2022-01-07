@@ -6,7 +6,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesEntityDocument } from './entities/category.entity';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { LiveStreamEntityDocument } from 'src/livestreams/entities/livestream.entity';
-
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class CategoriesService {
@@ -47,12 +47,14 @@ export class CategoriesService {
 
   async getLiveByCategory(id: string, query): Promise<any> {
 
+    const arrFind = [ new mongoose.Types.ObjectId(id) ]
+
     return await this.liveStreamModel
-      .find({ endLiveAt : null })
-      .populate({
-        path: 'categories',
-        '$match': { '$expr': { $in: [ id, '$categories' ] } }
+      .find({ 
+        endLiveAt : { $exists: false },
+        categories: { $in: arrFind } 
       })
+      .populate('categories')
       .populate('streamer')
       .skip( Number(query.limit) * (Number(query.page) - 1) )
       .limit( Number(query.limit) )

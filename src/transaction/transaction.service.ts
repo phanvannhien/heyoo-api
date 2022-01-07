@@ -8,6 +8,9 @@ import { UsersService } from 'src/users/users.service';
 import { OrdersService } from 'src/orders/orders.service';
 import { LevelService } from 'src/level/level.service';
 import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service'
+import { GetTransactionHistoryDto } from './dto/get-transaction-history.dto'
+import { User } from 'src/users/interfaces/user.interface'
+import { AdminGetTransactionHistoryDto } from './dto/admin-get-transaction-history.dto'
 
 @Injectable()
 export class TransactionService {
@@ -40,12 +43,35 @@ export class TransactionService {
             .exec()
     }
 
+    async findHistory(user: User, query: GetTransactionHistoryDto): Promise<any> {
+        let queryDocs = {
+            user: user
+        };
+        if( query.method ){
+            query['paymentMethod'] = query.method;
+        }
+
+        const countPromise = this.transactionModel.countDocuments(queryDocs);
+        const docsPromise = this.transactionModel.find(queryDocs)
+            .populate('user')
+            .sort({ createdAt: -1 })
+            .skip( Number( (query.page - 1)*query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec()
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+
+        return {
+          total,
+          items
+        }
+    }
+
     async findById( id: string ): Promise<TransactionEntityDocument>{
         return await this.transactionModel.findById(id)
     }
 
     async getTotalByUser( userId: string ){
-      
         return await this.transactionModel.aggregate([
             { 
                 $match: { 
@@ -87,26 +113,49 @@ export class TransactionService {
                 break;
             }
         }
-
         return ;
-
     }
 
     async getUserBlance(userId: string){
-        const findUser = await this.userService.findById(userId)
-        if(!findUser) throw new BadRequestException('User not found')
-
-        const pay = await this.getTotalByUser(userId)
-        const spent = await this.orderService.getUserTotalOrdered(userId)
-        let balance = 0
+        const findUser = await this.userService.findById(userId);
+        if(!findUser) throw new BadRequestException('User not found');
+        const pay = await this.getTotalByUser(userId); // total in
+        const spent = await this.orderService.getUserTotalOrdered(userId); // total buy gifts items
+        let balance = 0;
         if( pay.length > 0 && spent.length > 0){
-            balance = pay[0]['total'] - spent[0]['total']
+            balance = pay[0]['total'] - spent[0]['total'];
         }else if( pay.length > 0 && spent.length <= 0 ){
-            balance = pay[0]['total']
+            balance = pay[0]['total'];
         }else if( pay.length <= 0){
-            balance = 0
+            balance = 0;
+        }
+        return balance;
+    }
+
+    // admin
+    async adminGetAllTransaction(query: AdminGetTransactionHistoryDto): Promise<any> {
+        let queryDocs = {};
+        if( query.method ){
+            queryDocs['paymentMethod'] = query.method;
         }
 
-        return balance
+        if( query.user ){
+            queryDocs['user'] = query.user;
+        }
+        
+        const countPromise = this.transactionModel.countDocuments(queryDocs);
+        const docsPromise = this.transactionModel.find(queryDocs)
+            .populate('user')
+            .sort({ createdAt: -1 })
+            .skip( Number( (query.page - 1)*query.limit ) )
+            .limit( Number( query.limit ) )
+            .exec()
+    
+        const [total, items] = await Promise.all([countPromise, docsPromise]);
+
+        return {
+          total,
+          items
+        }
     }
 }

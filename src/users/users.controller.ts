@@ -11,6 +11,14 @@ import { GetFollowerDto } from './dto/getfollower.dto';
 import { GetFollowingDto } from './dto/getfollowing.dto';
 import { UserProfileResponse } from 'src/auth/responses/profile.response';
 import { RegisterFcmTokenDto } from './dto/register-fcmtoken.dto';
+import { GetUserDto } from './dto/get-users.dto';
+import { UsersResponse } from './responses/users.response';
+import { CreateWithDrawDto } from './dto/withdraw.dto';
+import { WalletsService } from 'src/wallets/wallets.service';
+import { WithDrawStatus } from './schemas/withdraw.schema';
+import { WithDrawItemResponse } from './responses/withdraw.response';
+import { GetWithDrawDto } from './dto/get-withdraw.dto';
+import { WithDrawPaginateResponse } from './responses/withdraw-paginate.response';
 
 
 @ApiTags('users')
@@ -19,6 +27,7 @@ export class UsersController {
 
     constructor( 
         private userService: UsersService,
+        private walletService: WalletsService
     ){}
 
 
@@ -113,6 +122,58 @@ export class UsersController {
             return new ResponseSuccess({ isFollowing: true }) 
         }
         return new ResponseSuccess({ isFollowing: false }) 
+    }
+
+    @Get()
+    @HttpCode(HttpStatus.OK )
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
+    async getAll( @Query() queryParams: GetUserDto ): Promise<any>{
+        const data = await this.userService.findPaginate(queryParams);
+        return new ResponseSuccess(  new UsersResponse(data) );
+    }
+
+    @ApiOkResponse({
+        type: WithDrawItemResponse
+    })
+    @ApiBearerAuth()
+    @Post('do/request-withdraw')
+    @HttpCode( HttpStatus.OK )
+    @UseGuards(JwtAuthGuard)
+    async withdraw( @Req() request, @Body() body: CreateWithDrawDto ): Promise<IResponse> {
+
+        const user = await this.userService.findById(request.user.id);
+
+        const totalDonate = await this.walletService.getTotalDonate( request.user.id );
+        const totalWithDraw = await this.userService.getTotalWithDraw(request.user.id);
+
+        const numberTotalDonate = totalDonate.length > 0 ? totalDonate[0]['total'] : 0;
+        const numberTotalWithDraw = totalWithDraw.length > 0 ? totalWithDraw[0]['total']: 0;
+
+        if( numberTotalWithDraw + body.quantity > numberTotalDonate ){
+            throw new BadRequestException( 'Over allowed to withdraw' );
+        }
+
+        const data = await this.userService.createWithDraw({
+            total: body.quantity,
+            quantity: body.quantity,
+            info: `${user.fullname } make request withdraw ${body.quantity}`,
+            status: WithDrawStatus.PROCESSING,
+            user: request.user.id
+        });
+        return new ResponseSuccess( new WithDrawItemResponse(data) )
+    }
+
+    @ApiOkResponse({
+        type: WithDrawPaginateResponse
+    })
+    @ApiBearerAuth()
+    @Get('do/withdraw')
+    @HttpCode( HttpStatus.OK )
+    @UseGuards(JwtAuthGuard)
+    async getWithDrawHistory( @Req() request, @Query() query: GetWithDrawDto ): Promise<IResponse> {
+        const data = await this.userService.getWithDrawHistory(request.user.id, query);
+        return new ResponseSuccess( new WithDrawPaginateResponse(data) )
     }
 
 

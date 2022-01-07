@@ -3,8 +3,8 @@ import { UserResponse } from "./user.response";
 
 export class UsersResponse{
     constructor( object: any ){
-        this.total = object.length;
-        this.items = object.map( i => new UserResponse(i) );
+        this.total = object.total;
+        this.items = object.items.map( i => new UserResponse(i) );
     }
    
     @ApiProperty()

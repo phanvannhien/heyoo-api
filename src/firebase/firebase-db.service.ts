@@ -34,7 +34,7 @@ export class FirebaseDBService {
             phoneNumber: user.phone ,
             name: user.fullname,
             gender: user.gender,
-            avatar: '',
+            avatar: user.avatar ?? '',
             bio: user.bio ?? 'heyoo',
         };
         usersRef.child( childId.toString() ).set(updateUserFirebase);

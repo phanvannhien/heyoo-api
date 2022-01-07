@@ -9,6 +9,7 @@ import { FollowSchema } from './schemas/follow.schema';
 import { USER_FCMTOKEN_MODEL } from 'src/mongo-model.constance';
 import { FcmTokenSchema } from './schemas/fcm-token.schema';
 import { AdminUsersFrontController } from './admin-users.controller';
+import { WithDrawSchema } from './schemas/withdraw.schema';
 
 
 @Global()
@@ -17,6 +18,7 @@ import { AdminUsersFrontController } from './admin-users.controller';
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Follow', schema: FollowSchema },
+      { name: 'WithDraw', schema: WithDrawSchema },
       { name: USER_FCMTOKEN_MODEL , schema: FcmTokenSchema },
     ]),
     FilesModule,
