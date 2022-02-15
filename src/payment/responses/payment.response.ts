@@ -9,7 +9,7 @@ export class PaymentItemResponse{
         this.diamondQty = object.diamondQty ?? 0 ;
         this.price = object.price ?? 0;
         this.user = new UserResponse(object.user);
-        this.createdAt = object.createdAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
     @ApiProperty()
     id: string;
@@ -30,5 +30,5 @@ export class PaymentItemResponse{
     user: UserResponse;
 
     @ApiProperty()
-    createdAt: Boolean;
+    createdAt: string;
 }

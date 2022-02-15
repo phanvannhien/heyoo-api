@@ -7,7 +7,7 @@ export class ReportItemResponse{
         this.subject = object.subject;
         this.reportSubjectId = object.reportSubjectId;
         this.reportContentId = object.reportContentId;
-        this.createdAt = object.createdAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
     @ApiProperty()
     id: string;

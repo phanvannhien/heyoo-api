@@ -16,7 +16,7 @@ export class UserWallsItemResponse{
         this.shareCount = object.shareCount;
         this.likeCount = object.likeCount;
         this.postType = object.postType;
-        this.createdAt = moment(object.createdAt).valueOf().toString();
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
         this.isLiked = object.isLiked ?? false;
         this.liveStreamId = object.liveStreamId ?? null;
         this.liveStreamStatus = object.liveStreamStatus ?? false;

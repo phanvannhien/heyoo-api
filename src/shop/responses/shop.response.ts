@@ -14,7 +14,7 @@ export class ShopItemResponse{
         this.email = object.email;
         this.location = object.location;
         this.description = object.description;
-        this.createdAt = moment(object.createdAt).valueOf().toString();
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
         this.viewCount = object.viewCount;
         this.status = object.status;
         this.category = object.category ? new ShopCategoriesResponse(object.category) : null;

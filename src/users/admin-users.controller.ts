@@ -41,8 +41,8 @@ export class AdminUsersFrontController {
         const data = await this.userService.findPaginate(queryParams);
         return res.json( {
             data: { 
-                items: data[0].items,
-                total: data[0].total[0]?.count
+                items: data.items,
+                total: data.total
             }
         });
     }

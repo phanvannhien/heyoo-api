@@ -27,6 +27,8 @@ import { PaymentStatus } from 'src/payment/schemas/payment.schema';
 import { CreateCompletedTransactionDto } from './dto/create-completed-transaction.dto';
 import { GetTransactionHistoryDto } from './dto/get-transaction-history.dto';
 import { TransactionMethod } from './schemas/transaction.schema';
+import { ConfigurationService } from 'src/configuration/configuration.service';
+import { WalletsService } from 'src/wallets/wallets.service';
 
 
 @ApiTags('transaction')
@@ -37,6 +39,8 @@ export class TransactionController {
         private readonly userService: UsersService,
         private readonly packageService: PackageService,
         private readonly paymentService: PaymentService,
+        private readonly configService: ConfigurationService,
+        private readonly walletService: WalletsService
     ){}
 
     @Get('history')
@@ -44,8 +48,7 @@ export class TransactionController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     async getPaymentHistory( @Req() request, @Query() query: GetTransactionHistoryDto ): Promise<any> {
-        const fromUser = await this.userService.findById(request.user.id);
-        const data = await this.transactionService.findHistory( fromUser, query );
+        const data = await this.transactionService.findHistory( request.user.id, query );
         return new ResponseSuccess( new TransactionItemsResponse(data) );
     }
 
@@ -85,9 +88,25 @@ export class TransactionController {
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     async getUserBlance( @Res() res, @Param('userId', new MongoIdValidationPipe() ) userId: string ): Promise<any> {
-        const balance = await this.transactionService.getUserBlance(userId)
+
+        const balance = await this.transactionService.getUserBlance(userId); // All send, topup, received, buy items
+        const donate = await this.walletService.getTotalDonate(userId);
+        const withDraw = await this.userService.getTotalWithDrawOnRequest(userId); 
+        const diamondRate = await this.configService.getDiamondToVNDRate(); // rate VND => Dinamond
+        
+        const donateDiamond = donate[0]?.total ?? 0;
+        const withDrawDiamond = withDraw[0]?.total ?? 0;
+
+        const diamond = Number(donateDiamond - withDrawDiamond) * Number(diamondRate.configValue);
+
         return res.json({
-            data: { balance: balance },
+            data: { 
+                balance: balance,
+                donate: donateDiamond,
+                withDraw: withDrawDiamond,
+                remain: donateDiamond - withDrawDiamond,
+                diamond: diamond
+            },
             code: 200,
             message: 'Successful'
         }) 

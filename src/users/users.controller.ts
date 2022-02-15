@@ -142,10 +142,14 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     async withdraw( @Req() request, @Body() body: CreateWithDrawDto ): Promise<IResponse> {
 
+        if( body.quantity % 5000 !== 0 ){
+            throw new BadRequestException( 'Quantity must be multiples of 5000' );
+        }
+
         const user = await this.userService.findById(request.user.id);
 
         const totalDonate = await this.walletService.getTotalDonate( request.user.id );
-        const totalWithDraw = await this.userService.getTotalWithDraw(request.user.id);
+        const totalWithDraw = await this.userService.getTotalWithDrawOnRequest(request.user.id);
 
         const numberTotalDonate = totalDonate.length > 0 ? totalDonate[0]['total'] : 0;
         const numberTotalWithDraw = totalWithDraw.length > 0 ? totalWithDraw[0]['total']: 0;
@@ -153,6 +157,7 @@ export class UsersController {
         if( numberTotalWithDraw + body.quantity > numberTotalDonate ){
             throw new BadRequestException( 'Over allowed to withdraw' );
         }
+
 
         const data = await this.userService.createWithDraw({
             total: body.quantity,

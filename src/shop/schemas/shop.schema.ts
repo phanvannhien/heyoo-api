@@ -7,8 +7,6 @@ export const ShopSchema = new mongoose.Schema({
     email:  { type: String, require: true },
     location: { type: String },
     description: { type: String },
-    createdAt: { type: Date, default: Date.now() },
-    updatedAt: { type: Date, default: Date.now() },
     status: { type: Number, default: 1 },
     category: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,5 +18,6 @@ export const ShopSchema = new mongoose.Schema({
     },
     viewCount: { type: Number, default: 0 },
 }, {
-    collection: 'shops'
+    collection: 'shops',
+    timestamps: true
 });

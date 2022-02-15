@@ -19,6 +19,8 @@ export const TransactionSchema = new mongoose.Schema({
     status: { type: String, default: 'processing' }, // success
     paymentMethod: { type: String, default: 'topup' }, // topup, send, received
     resource: { type: String, default: 'user' }, // user | system
-    info: String,
-    createdAt: { type: Date, default: Date.now() }
+    info: String
+},{
+    collection: 'transactions',
+    timestamps: true
 });

@@ -8,7 +8,7 @@ export class WithDrawItemResponse{
         this.info = object.info;
         this.quantity = object.quantity ?? 0 ;
         this.user = new UserResponse(object.user);
-        this.createdAt = object.createdAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
     @ApiProperty()
     id: string;
@@ -29,5 +29,5 @@ export class WithDrawItemResponse{
     user: UserResponse;
 
     @ApiProperty()
-    createdAt: Boolean;
+    createdAt: string;
 }

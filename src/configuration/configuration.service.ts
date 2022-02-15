@@ -7,7 +7,9 @@ import { CreateConfigurationDto } from './dto/create-configuration.dto';
 import { UpdateConfigurationDto } from './dto/update-configuration.dto';
 import { ConfigurationEntityDocument } from './entities/configuration.entity';
 
-import {defaultConfig, FAKE_NUMBER_VIEW_STEP, NUMBER_OF_DATE_DELETE_VIDEO} from "./schemas/configuration.schema";
+import {defaultConfig, FAKE_NUMBER_VIEW_STEP, NUMBER_OF_DATE_DELETE_VIDEO,
+  DIAMOND_TO_VND_RATE
+} from "./schemas/configuration.schema";
 
 @Injectable()
 export class ConfigurationService {
@@ -62,6 +64,10 @@ export class ConfigurationService {
 
   async getNumberOfDateDeleteVideo(): Promise<ConfigurationEntityDocument>{
     return await this.configModel.findOne({ configKey: NUMBER_OF_DATE_DELETE_VIDEO }).exec();
+  }
+
+  async getDiamondToVNDRate(): Promise<ConfigurationEntityDocument>{
+    return await this.configModel.findOne({ configKey: DIAMOND_TO_VND_RATE }).exec();
   }
 
   async update(id: string, updateConfigurationDto: UpdateConfigurationDto) {

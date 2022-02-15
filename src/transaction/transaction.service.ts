@@ -43,12 +43,11 @@ export class TransactionService {
             .exec()
     }
 
-    async findHistory(user: User, query: GetTransactionHistoryDto): Promise<any> {
-        let queryDocs = {
-            user: user
-        };
+    async findHistory(user: string, query: GetTransactionHistoryDto): Promise<any> {
+        let queryDocs = {};
+        queryDocs['user'] = user;
         if( query.method ){
-            query['paymentMethod'] = query.method;
+            queryDocs['paymentMethod'] = query.method;
         }
 
         const countPromise = this.transactionModel.countDocuments(queryDocs);
@@ -119,8 +118,9 @@ export class TransactionService {
     async getUserBlance(userId: string){
         const findUser = await this.userService.findById(userId);
         if(!findUser) throw new BadRequestException('User not found');
-        const pay = await this.getTotalByUser(userId); // total in
+        const pay = await this.getTotalByUser(userId); // total topup, send, received
         const spent = await this.orderService.getUserTotalOrdered(userId); // total buy gifts items
+        
         let balance = 0;
         if( pay.length > 0 && spent.length > 0){
             balance = pay[0]['total'] - spent[0]['total'];

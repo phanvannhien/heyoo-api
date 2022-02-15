@@ -42,6 +42,7 @@ import { LoginSocialDto } from './dto/login-social.dto';
 import { FirebaseUserService } from 'src/firebase/firebase-user.service';
 import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 import { User } from "src/users/interfaces/user.interface";
+import { UpdatePhoneDto } from './dto/update-phone.dto';
 
 const clientTwilio = require('twilio')( TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN);
 
@@ -177,6 +178,23 @@ export class AuthController{
         this.firebaseDBService.saveUser(user[0]);
         return new ResponseSuccess( new UserProfileResponse(user[0]) );
     }
+
+    @ApiOkResponse({
+        type: UserProfileResponse,
+    })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @Post('update-phone')
+    @HttpCode(HttpStatus.OK)
+    async updatePhone(@Request() req, @Body() body: UpdatePhoneDto ): Promise<IResponse>  {
+        const foundUserByPhone = await this.userService.findByPhone( body.phone );
+        if(foundUserByPhone) throw new BadRequestException('Phone is exists');
+        await this.userService.updateUser(req.user.id, body );
+        const user = await this.userService.getProfile(req.user.id);
+        this.firebaseDBService.saveUser(user[0]);
+        return new ResponseSuccess( new UserProfileResponse(user[0]) );
+    }
+
 
     @ApiBearerAuth()
     @ApiOkResponse({ type: UserProfileResponse })

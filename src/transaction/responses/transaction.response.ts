@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { UserResponse } from "src/users/responses/user.response";
+import * as moment from 'moment';
 
 export class TransactionItemResponse{
   
@@ -12,7 +13,7 @@ export class TransactionItemResponse{
         this.status = object.status;
         this.resource = object.resource;
         this.paymentMethod = object.paymentMethod;
-        this.createdAt = object.createdAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
         this.referenceId = object.referenceId;
         this.info = object.info;
     }
@@ -48,5 +49,5 @@ export class TransactionItemResponse{
     info: string;
 
     @ApiProperty()
-    createdAt: Date;
+    createdAt: string;
 }

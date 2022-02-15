@@ -13,6 +13,8 @@ export const OrderSchema = new mongoose.Schema({
     price: Number,
     total: Number,
     paymentMethod: String,
-    status: String,
-    createdAt: { type: Date, default: Date.now() }
+    status: String
+},{
+    collection: 'orders',
+    timestamps: true
 });

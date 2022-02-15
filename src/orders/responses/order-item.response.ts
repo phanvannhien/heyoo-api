@@ -13,7 +13,7 @@ export class OrderItemResponse{
         this.total = object.total;
         this.paymentMethod = object.paymentMethod;
         this.status = object.status;
-        this.createdAt = object.createdAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
 
     @ApiProperty()
@@ -41,5 +41,5 @@ export class OrderItemResponse{
     status: string;
 
     @ApiProperty()
-    createdAt: Date;
+    createdAt: string;
 }

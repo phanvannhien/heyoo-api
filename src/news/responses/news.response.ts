@@ -12,14 +12,13 @@ export class NewsItemResponse{
         this.title = object.title;
         this.image = object.image;
         this.category = object.category ? new NewsCategoriesResponse(object.category) : null;
-        this.createdAt = moment(object.createdAt).valueOf().toString();
         this.excerpt = object.excerpt;
         this.description = object.description;
         this.status = object.status;
         this.viewCount = object.viewCount;
         this.shareCount = object.shareCount;
         this.isHot = object.isHot;
-
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
     @ApiProperty()
     id: string;

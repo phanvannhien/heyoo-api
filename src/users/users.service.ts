@@ -25,6 +25,7 @@ import { CreateWithDrawDto } from './dto/withdraw.dto';
 import { GetWithDrawDto } from './dto/get-withdraw.dto';
 import { AdminGetWithDrawDto } from './dto/admin-get-withdraw.dto';
 import { AdminUpdateWithDrawDto } from './dto/update-withdraw-status.dto';
+import { WithDrawStatus } from './schemas/withdraw.schema';
 
 @Injectable()
 export class UsersService {
@@ -843,6 +844,18 @@ export class UsersService {
             { $match: { 
                     user: new mongoose.Types.ObjectId(userId),
                     status: 'completed'
+                } 
+            },
+            { $group: { _id: "$user" , total: { $sum: "$total" }} },
+            { $project: { _id: 0, total: 1, } }
+        ]).exec()
+    }
+
+    async getTotalWithDrawOnRequest(userId: string): Promise<any>{
+        return await this.withDrawModel.aggregate([
+            { $match: { 
+                    user: new mongoose.Types.ObjectId(userId),
+                    status: { $in : [ WithDrawStatus.COMPLETED , WithDrawStatus.PROCESSING ]}
                 } 
             },
             { $group: { _id: "$user" , total: { $sum: "$total" }} },

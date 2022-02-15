@@ -12,7 +12,7 @@ export class NotificationItemResponse{
         this.clickAction = object.clickAction;
         this.isRead = object.isRead;
         this.notifyId = object.notifyId;
-        this.createdAt = moment(object.createdAt).valueOf().toString();
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
     @ApiProperty()
     id: string;

@@ -7,7 +7,7 @@ export class FollowResponse{
         this.id         = object.id;
         this.user       = new UserResponse(object.user);
         this.follow     = new UserResponse(object.follow);
-        this.createdAt  = object.createdAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
     }
     @ApiProperty()
     readonly id: string;
@@ -19,6 +19,6 @@ export class FollowResponse{
     readonly follow: UserResponse;
 
     @ApiProperty()
-    readonly createdAt: Date;
+    readonly createdAt: string;
 
 }

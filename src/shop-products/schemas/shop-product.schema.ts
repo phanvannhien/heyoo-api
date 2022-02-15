@@ -22,5 +22,6 @@ export const ShopProductSchema = new mongoose.Schema({
         ref: 'ShopModel'
     }, 
 },{
-    collection: 'shop_products'
+    collection: 'shop_products',
+    timestamps: true
 })

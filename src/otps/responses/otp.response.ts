@@ -7,8 +7,8 @@ export class OtpResponse{
         this.phone = object.phone;
         this.otpCode = object.otpCode;
         this.otpType = object.otpType;
-        this.createdAt = object.createdAt;
-        this.expriredAt = object.expriredAt;
+        this.createdAt =  new Date(object.createdAt).getTime().toString();
+        this.expriredAt =  new Date(object.expriredAt).getTime().toString();
         this.nextRequestMinutes = object.nextRequestMinutes;
     }
     @ApiProperty()
@@ -24,10 +24,10 @@ export class OtpResponse{
     otpType: String;
 
     @ApiProperty()
-    createdAt: Date;
+    createdAt: string;
 
     @ApiProperty()
-    expriredAt: Date;
+    expriredAt: string;
 
     @ApiProperty()
     nextRequestMinutes: Number

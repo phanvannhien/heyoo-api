@@ -6,6 +6,8 @@ export const ProductSchema = new mongoose.Schema({
     price: Number,
     image: String,
     imageAnimation: String,
+},{
+    timestamps: true
 })
 
 // .plugin(mongoose_delete, {

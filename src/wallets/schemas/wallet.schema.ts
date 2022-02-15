@@ -22,5 +22,6 @@ export const WalletSchema = new mongoose.Schema({
     price: Number,
     total: Number,
     resource: { type: String, default: 'user' }, // user | system
-    createdAt: { type: Date, default: Date.now() }
+},{
+    timestamps: true
 });
