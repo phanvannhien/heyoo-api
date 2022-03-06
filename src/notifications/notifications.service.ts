@@ -7,12 +7,15 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationEntityDocument } from './entities/notification.entity';
 import * as mongoose from 'mongoose';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
+import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class NotificationsService {
 
   constructor(
     @InjectModel( NOTIFICATION_MODEL ) private readonly notyModel,
+    private readonly fcmService: FirebaseCloudMessageService,
   ){}
 
   async create(createNotificationDto: CreateNotificationDto): Promise<NotificationEntityDocument> {
@@ -77,5 +80,20 @@ export class NotificationsService {
     return await this.notyModel.delete({
       user: userId
     })
+  }
+
+  sendNotify( fcmUserToken: string[], notifyData: INotifyMessageBody , userId: string ){
+    const notifyId = uuidv4();
+    // create notify data
+    this.create({
+      ...notifyData,
+      user: userId,
+      notifyId: notifyId
+    } as CreateNotificationDto )
+    // send to fcm
+    if(fcmUserToken.length > 0){
+      this.fcmService.sendMessage( fcmUserToken, notifyData );
+    }
+
   }
 }

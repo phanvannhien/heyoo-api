@@ -7,6 +7,7 @@ import { ProductItemResponse } from "src/products/responses/product.response";
 
 interface IDonateProduct{
     total: number,
+    quantity: number,
     product: ProductItemResponse
 }
 
@@ -17,6 +18,7 @@ export class DonateUserResponse{
         this.items = object.items.map( i => {
             return {
                 total: i.total,
+                quantity: i.quantity,
                 product: new ProductItemResponse( i.product )
             } as IDonateProduct
         });

@@ -120,7 +120,11 @@ export class WalletsService {
                     }
                 },
                 {
-                    $group: { _id: "$product" , total: { $sum: "$total" }}
+                    $group: { 
+                        _id: "$product" , 
+                        quantity: { $sum: "$quantity" },
+                        total: { $sum: "$total" },
+                    }
                 },
 
                 {

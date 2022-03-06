@@ -18,11 +18,18 @@ import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { UserWallEntityDocument } from './entities/user-wall.entity';
 import { UserWallsPaginationResponse } from './responses/userwalls-pagination.response';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { UsersService } from 'src/users/users.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { INotifyMessageBody } from 'src/firebase/firebase.service';
 
 @ApiTags('user-walls')
 @Controller('user-walls')
 export class UserWallsController {
-  constructor(private readonly userWallsService: UserWallsService) {}
+  constructor(
+      private readonly userWallsService: UserWallsService,
+      private readonly userService: UsersService,
+      private readonly notifyService: NotificationsService,
+    ) {}
 
   @ApiBearerAuth()
   @Post()
@@ -199,10 +206,27 @@ export class UserWallsController {
       @Req() request,
       @Param('id', new MongoIdValidationPipe() ) id: string
     ): Promise<IResponse>{
-      const find: UserWallEntityDocument = await this.userWallsService.findById(id);
-      if( !find ) throw new BadRequestException('Post Not found');
+      const post: UserWallEntityDocument = await this.userWallsService.findById(id);
+      if( !post ) throw new BadRequestException('Post Not found');
       
-      const data = await this.userWallsService.saveLike( find, request.user.id );
+      const data = await this.userWallsService.saveLike( post, request.user.id );
+      const userLike = await this.userService.findById(request.user.id);
+
+      const notifyData = {
+        title: `${userLike.fullname} commented on your post`,
+        body: post.caption !== '' ? post.caption.substring(0,10) : 'Tap to view',
+        imageUrl: userLike.avatar,
+        clickAction: 'VIEW_WALL_POST',
+        metaData: {
+          wallId: post.id.toString(),
+          userId: post.user.id.toString(),
+          userLikeId: request.user.id.toString()
+        },
+      } as INotifyMessageBody
+  
+      const fcmTokens = await this.userService.getUserFcmToken(post.user.id);
+      this.notifyService.sendNotify(fcmTokens, notifyData, post.user.id );
+
       return new ResponseSuccess( { data: data } );
   }
 

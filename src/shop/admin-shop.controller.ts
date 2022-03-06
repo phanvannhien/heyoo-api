@@ -16,6 +16,9 @@ import { ShopFollowResponse } from './responses/shop-follow.response';
 import { QueryPaginateDto } from 'src/common/dto/paginate.dto';
 import { ShopVideoResponse } from './responses/shop-videos.response';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { INotifyMessageBody } from 'src/firebase/firebase.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { UsersService } from 'src/users/users.service';
 
 @ApiTags('admin')
 @Controller('admin-shop')
@@ -24,8 +27,9 @@ export class AdminShopController {
     constructor(
         private readonly shopService: ShopService,
         private readonly shopCategoryService: ShopCategoriesService,
+        private readonly notifyService: NotificationsService,
+        private readonly userService: UsersService,
     ) {}
-
 
 
     @Get()
@@ -101,7 +105,23 @@ export class AdminShopController {
     @UseGuards( AdminJWTAuthGuard )
     @Delete(':id')
     async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
-      return await this.shopService.remove(id);
+        const shop = await this.shopService.findById(id);
+        if( !shop ) throw new BadRequestException('shop not found');
+
+        const notifyData = {
+            title: `System notification`,
+            body: `Your shop was removed because it violated our Community Guidelines. Please check these guidelines for more details.`,
+            imageUrl: 'https://d21y6rmzuyq1qt.cloudfront.net/27a2ff52-6ae1-49e3-bde6-6427b661588f',
+            clickAction: 'VIEW_PRIVACY_POLICY',
+            metaData: {
+                shopId: id.toString()
+            },
+        } as INotifyMessageBody
+
+        const fcmTokens = await this.userService.getUserFcmToken( shop.user.id );
+        this.notifyService.sendNotify(fcmTokens, notifyData, shop.user.id );
+
+        return await this.shopService.remove(id);
     }
 
 

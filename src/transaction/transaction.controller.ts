@@ -29,6 +29,8 @@ import { GetTransactionHistoryDto } from './dto/get-transaction-history.dto';
 import { TransactionMethod } from './schemas/transaction.schema';
 import { ConfigurationService } from 'src/configuration/configuration.service';
 import { WalletsService } from 'src/wallets/wallets.service';
+import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 
 @ApiTags('transaction')
@@ -40,7 +42,9 @@ export class TransactionController {
         private readonly packageService: PackageService,
         private readonly paymentService: PaymentService,
         private readonly configService: ConfigurationService,
-        private readonly walletService: WalletsService
+        private readonly walletService: WalletsService,
+        private readonly fcmService: FirebaseCloudMessageService,
+        private readonly notifyService: NotificationsService,
     ){}
 
     @Get('history')
@@ -105,7 +109,8 @@ export class TransactionController {
                 donate: donateDiamond,
                 withDraw: withDrawDiamond,
                 remain: donateDiamond - withDrawDiamond,
-                diamond: diamond
+                diamond: diamond,
+                diamondRate: diamondRate
             },
             code: 200,
             message: 'Successful'
@@ -151,6 +156,21 @@ export class TransactionController {
                 info: 'Transferred Diamond to '+ user.fullname 
             };
             await this.transactionService.create(send);
+
+            const notifyData = {
+                title: `Received ${body.quantity} diamond(s) from ${fromUser.fullname}`,
+                body: 'Tap to check your wallet',
+                imageUrl: fromUser.avatar,
+                clickAction: 'VIEW_YOUR_WALLET',
+                metaData: {
+                  fromUserId: fromUser.id.toString(),
+                  toUserId: user.id.toString(),
+                  quantity: body.quantity
+                },
+              } as INotifyMessageBody
+          
+            const fcmTokens = await this.userService.getUserFcmToken(user.id);
+            this.notifyService.sendNotify(fcmTokens, notifyData, user.id );
 
             return new ResponseSuccess( new TransactionItemResponse(d));
         }catch(e){

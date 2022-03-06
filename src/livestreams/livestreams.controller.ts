@@ -295,6 +295,32 @@ export class LivestreamsController {
     return new ResponseSuccess(new LiveMemerResponse(responseObj));
   }
 
+  @ApiOkResponse({
+    type: LiveStreamItemResponse
+  })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post(':id/duet/reset')
+  async resetDuetLiveStream( 
+      @Param('id', new MongoIdValidationPipe() ) id: string,
+      @Req() request
+    ): Promise<IResponse>{
+    
+    const liveStream = await this.livestreamsService.findOne(id);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+
+    // update livestream donateUid
+    const donateUid = uuidv4();
+
+    await this.livestreamsService.update( id, {
+      donateUid: donateUid
+    });
+
+    const newLiveStream = await this.livestreamsService.findOne(id);
+    return new ResponseSuccess(new LiveStreamItemResponse(newLiveStream));
+  }
+
+
 
   @ApiOkResponse({
     type: LiveMemerResponse,
@@ -773,6 +799,28 @@ export class LivestreamsController {
       return new ResponseSuccess(new ShopProductItemResponse(product));
     }
     return new ResponseSuccess( null );
+  }
+
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({
+    description: 'Delete a livestream'
+  })
+  async remove(
+    @Param('id', new MongoIdValidationPipe() ) liveStreamId: string,
+    @Req() request 
+  ): Promise<any>{
+    const liveStream = await this.livestreamsService.findOne(liveStreamId);
+    if( !liveStream ) throw new BadRequestException('Livestream Not found');
+    if( liveStream.streamer.id !== request.user.id ){
+      throw new BadRequestException('You are is not ownner this video');
+    }
+    await this.livestreamsService.delete(liveStreamId);
+    return new ResponseSuccess({
+      deleted: true
+    });
   }
 
 

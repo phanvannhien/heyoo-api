@@ -23,6 +23,9 @@ import { UserWallCommentService } from './user-wall-comments.service';
 import { UserWallCommentPaginateResponse } from './responses/user-walls-comment-paginate.response';
 import { AdminUserWallCommentPaginateResponse } from './responses/admin-user-walls-comment-paginate.response';
 import * as mongoose from 'mongoose';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { UsersService } from 'src/users/users.service';
+import { INotifyMessageBody } from 'src/firebase/firebase.service';
 
 @ApiTags('admin')
 @Controller('admin-user-walls')
@@ -30,6 +33,8 @@ export class AdminUserWallsController {
   constructor(
       private readonly userWallsService: UserWallsService,
       private readonly userWallCommentService: UserWallCommentService,
+      private readonly notifyService: NotificationsService,
+      private readonly userService: UsersService,
     ) {}
 
  
@@ -159,6 +164,20 @@ export class AdminUserWallsController {
   @UseGuards(AdminJWTAuthGuard)
   @Delete(':id')
   async remove(@Param('id', new MongoIdValidationPipe() ) id: string) {
+    const post = await this.userWallsService.findById(id);
+    const notifyData = {
+      title: `System notification`,
+      body: `A post you published on ${new Date(post.createdAt).getTime().toString()} was removed because it violated our Community Guidelines. 
+      Please check these guidelines for more details`,
+      imageUrl: 'https://d21y6rmzuyq1qt.cloudfront.net/27a2ff52-6ae1-49e3-bde6-6427b661588f',
+      clickAction: 'VIEW_PRIVACY_POLICY',
+      metaData: {
+        postWallId: id.toString()
+      },
+    } as INotifyMessageBody
+
+    const fcmTokens = await this.userService.getUserFcmToken( post.user.id);
+    this.notifyService.sendNotify(fcmTokens, notifyData, post.user.id );
     return await this.userWallsService.delete(id);
   }
 

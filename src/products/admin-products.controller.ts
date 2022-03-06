@@ -12,6 +12,9 @@ import { ProductItemsResponse } from './responses/products.response';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { MongoIdValidationPipe } from 'src/common/pipes/parse-mongo-id';
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { UsersService } from 'src/users/users.service';
+import { INotifyMessageBody } from 'src/firebase/firebase.service';
 
 @ApiTags('admin')
 @Controller('admin-products')
@@ -20,6 +23,8 @@ export class AdminProductsController {
     constructor(
         private readonly productService: ProductsService,
         private readonly fileService: FilesService,
+        private readonly notifyService: NotificationsService,
+        private readonly userService: UsersService,
     ) {}
 
 
@@ -92,7 +97,7 @@ export class AdminProductsController {
     @UseGuards( AdminJWTAuthGuard )
     @Delete(':id')
     async remove(@Param('id') id: string) {
-        return this.productService.remove(id);
+        return await this.productService.remove(id);
     }
 
 }

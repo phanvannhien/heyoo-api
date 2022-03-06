@@ -18,6 +18,9 @@ import { UserWallCommentEntityDocument } from './entities/user-wall-comment.enti
 import { AdminJWTAuthGuard } from 'src/admin-users/admin-jwt-auth.guard';
 import { UserWallsService } from './user-walls.service';
 import { UserWallsResponse } from './responses/userwalls-paginate.response';
+import { UsersService } from 'src/users/users.service';
+import { FirebaseCloudMessageService, INotifyMessageBody } from 'src/firebase/firebase.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @ApiTags('user-wall-comments')
 @Controller('user-wall-comments')
@@ -25,6 +28,9 @@ export class UserWallCommentController {
   constructor(
     private readonly userWallCommentService: UserWallCommentService,
     private readonly userWallService: UserWallsService,
+    private readonly userService: UsersService,
+    private readonly fcmService: FirebaseCloudMessageService,
+    private readonly notifyService: NotificationsService,
     ) {}
 
   @ApiBearerAuth()
@@ -39,7 +45,22 @@ export class UserWallCommentController {
       user: request.user.id,
       wall: createWallCommentDto.wallId
     });
-    console.log(create);
+    const userComment = await this.userService.findById(request.user.id);
+   
+    const notifyData = {
+      title: `${userComment.fullname} commented on your post`,
+      body: createWallCommentDto.comment.substring(0,10),
+      imageUrl: userComment.avatar,
+      clickAction: 'VIEW_WALL_POST',
+      metaData: {
+        wallId: createWallCommentDto.wallId.toString(),
+        userId: postWall.user.id.toString(),
+        userCommendId: request.user.id.toString()
+      },
+    } as INotifyMessageBody
+
+    const fcmTokens = await this.userService.getUserFcmToken(postWall.user.id);
+    this.notifyService.sendNotify(fcmTokens, notifyData, postWall.user.id );
     return new ResponseSuccess( new UserWallCommentsItemResponse( create ) );
   }
 
