@@ -784,7 +784,7 @@ export class UsersService {
         //     { user : { $in : users } }
         // ).select('fcmToken').distinct('fcmToken').exec()
 
-        const users: String[] = await this.followModel.find({
+        const users: any[] = await this.followModel.find({
             follow: userId
         }).select('user').distinct('user').exec()
 
