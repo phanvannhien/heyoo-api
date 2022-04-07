@@ -54,16 +54,18 @@ export class FirebaseCloudMessageService {
         const message: messaging.MulticastMessage = {
             data: metaData,
             tokens: deviceTokens,
-            // notification: {
-            //     title: messageData.title,
-            //     body: messageData.body
-            // },
-            // android: {
-            //     notification: {
-            //         imageUrl: messageData.imageUrl,
-            //         clickAction: messageData.clickAction
-            //     }
-            // },
+            notification: {
+                title: messageData.title,
+                body: messageData.body
+            },
+            android: {
+                notification: {
+                    title: messageData.title,
+                    body: messageData.body,
+                    imageUrl: messageData.imageUrl,
+                    clickAction: messageData.clickAction
+                }
+            },
             apns: {
                 payload: {
                     aps: {
@@ -81,8 +83,12 @@ export class FirebaseCloudMessageService {
             .then( response => { 
                 console.log('Notify Send status');
                 console.log(response);
+                console.log(response['responses'][0]);
             })
-            .catch( err => { console.log(err) } );
+            .catch( err => { 
+                console.log('Notify Send errr');
+                console.log(err) ;
+            });
                
     }
 }

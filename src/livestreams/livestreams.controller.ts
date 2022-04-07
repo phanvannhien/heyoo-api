@@ -40,8 +40,10 @@ import { WalletItemResponse } from 'src/wallets/responses/wallet.response';
 import { ConfigurationService } from 'src/configuration/configuration.service';
 import { ShopProductsService } from 'src/shop-products/shop-products.service';
 import { ShopProductItemResponse } from 'src/shop-products/responses/shop-product.response';
-const crypto = require('crypto');
+import * as moment from 'moment-timezone';
 
+moment.tz.setDefault("Asia/Singapore");
+const crypto = require('crypto');
 
 @ApiTags('livestreams')
 @Controller('livestreams')
@@ -165,9 +167,8 @@ export class LivestreamsController {
     // get users and fcm tokens of follower current user
     const userFollowAndTokens = await this.userService.getUserFollowerFcmToken( request.user.id );
 
-
     // send notify to all follower user
-    if( userFollowAndTokens.fcms.length>0){
+    if( userFollowAndTokens.fcms.length > 0){
       this.fcmService.sendMessage( userFollowAndTokens.fcms, notifyData );
     }
 
@@ -408,6 +409,7 @@ export class LivestreamsController {
 
     if( userGuest.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
 
+    const inviteAt = moment().toDate();
     const notifyId = uuidv4();
     const metadataBody = {
       streamerId: liveStream.streamer.id,
@@ -418,7 +420,8 @@ export class LivestreamsController {
       channelTitle: liveStream.channelTitle,
       agoraToken: liveStream.agoraToken,
       agoraRtmToken: liveStream.agoraRtmToken,
-      notifyId: notifyId
+      notifyId: notifyId,
+      inviteAt: inviteAt
     }
 
     const notifyData = {
@@ -445,6 +448,7 @@ export class LivestreamsController {
       hostUser: liveStream.streamer.id,
       guestUser: body.userIdGuest,
       status: 'INVITE_DUET',
+      inviteAt: inviteAt,
       fcmTokens: fcmTokens
     })
 
@@ -532,6 +536,20 @@ export class LivestreamsController {
     if( userHost.id == request.user.id )  throw new BadRequestException('User guest must be different user host');
 
     const guestUser = await this.userService.findById(request.user.id);
+
+    // check expired invite time
+    const findIntivedBefore = await this.duetService.findLatestGuestInvite({
+      liveStream: liveStream.id,
+      hostUser: userHost.id,
+      guestUser: guestUser.id,
+      status: 'INVITE_DUET'
+    });
+
+    if( !findIntivedBefore ) throw new BadRequestException('Guest user are not intived before');
+
+    if( moment().isAfter(moment(findIntivedBefore.inviteAt).add(1,'minutes')) ){
+      throw new BadRequestException(`${guestUser.fullname} are expried time to join`);
+    }
 
     const notifyId = uuidv4();
     const metadataBody = {

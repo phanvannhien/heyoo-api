@@ -5,8 +5,8 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "engines" : { 
-    "node" : ">12.22.2"
+  "engines": {
+    "node": ">12.22.2"
   },
   "scripts": {
     "prebuild": "rimraf dist",

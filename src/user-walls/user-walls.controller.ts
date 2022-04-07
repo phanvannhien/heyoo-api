@@ -160,7 +160,7 @@ export class UserWallsController {
       @Req() request, @Query() query: GetUserWallDto )
     : Promise<IResponse>{
     const d = await this.userWallsService.findWallByUser( userId, request, query);
-    return new ResponseSuccess(new UserWallsResponse(d));
+    return new ResponseSuccess(new UserWallsResponse(d[0]));
   }
 
   @ApiOkResponse({ type: UserWallsItemResponse  })

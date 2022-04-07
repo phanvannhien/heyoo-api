@@ -5,5 +5,6 @@ export interface DuetLiveStreamEntityDocument extends Document{
     readonly hostUser: string;
     readonly guestUser: string;
     status: string;
+    inviteAt: Date,
     fcmTokens: string[];
 }

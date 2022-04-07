@@ -110,7 +110,7 @@ export class TransactionController {
                 withDraw: withDrawDiamond,
                 remain: donateDiamond - withDrawDiamond,
                 diamond: diamond,
-                diamondRate: diamondRate
+                diamondRate: diamondRate.configValue
             },
             code: 200,
             message: 'Successful'

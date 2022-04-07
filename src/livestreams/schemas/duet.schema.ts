@@ -14,6 +14,7 @@ export const DuetLivestreamSchema = new mongoose.Schema({
         ref: 'User'
     },
     status: String,
+    inviteAt: Date,
     fcmTokens: [String]
 },{
     collection: 'duets',

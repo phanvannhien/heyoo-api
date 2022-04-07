@@ -125,8 +125,18 @@ export class UserWallsService {
       },
       // { $unwind: { path : "$likes" } },
       { $sort: { "_id": -1 } },
-      { $limit: Number(query.limit) },
-      { $skip:  Number(query.limit) * (Number(query.page) - 1) }
+      {
+        $facet: {
+            items: [{ $skip: Number(query.limit) * (Number(query.page) - 1) }, { $limit: Number(query.limit) }],
+            total: [
+                {
+                    $count: 'count'
+                }
+            ]
+        }
+      }
+
+
     ]).exec();
 
   }

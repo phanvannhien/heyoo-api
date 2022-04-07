@@ -27,6 +27,10 @@ export class DuetService {
         return await duet.save();
     }
 
+    async findLatestGuestInvite( query ): Promise<DuetLiveStreamEntityDocument>{
+        return await this.duetModel.findOne(query).sort({createdAt: -1}).exec();
+    }
+
     async getCurrentLiveStreamDuetPlayGame( liveStreamId: string ): Promise<DuetLiveStreamEntityDocument>{
         return await this.duetModel.findOne({ 
                     status: "ACCEPTED_DUET",
@@ -34,5 +38,7 @@ export class DuetService {
                 })
                 .sort({ _id: -1 }).limit(1)
     }
+
+
 
 }

@@ -43,6 +43,7 @@ import { FirebaseUserService } from 'src/firebase/firebase-user.service';
 import { FirebaseDBService } from 'src/firebase/firebase-db.service';
 import { User } from "src/users/interfaces/user.interface";
 import { UpdatePhoneDto } from './dto/update-phone.dto';
+import { CheckPhoneDto } from './dto/check-phone.dto';
 
 const clientTwilio = require('twilio')( TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN);
 
@@ -193,6 +194,21 @@ export class AuthController{
         const user = await this.userService.getProfile(req.user.id);
         this.firebaseDBService.saveUser(user[0]);
         return new ResponseSuccess( new UserProfileResponse(user[0]) );
+    }
+
+    @ApiOkResponse()
+    @Post('check-phone')
+    @HttpCode(HttpStatus.OK)
+    async checkPhone( @Body() body: CheckPhoneDto ): Promise<IResponse>  {
+        const foundUserByPhone = await this.userService.findByPhone( body.phone );
+        if(foundUserByPhone){
+            return new ResponseSuccess( {
+                exists: true
+            });
+        };
+        return new ResponseSuccess( {
+            exists: false
+        });
     }
 
 

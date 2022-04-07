@@ -11,7 +11,7 @@ export class LiveStreamItemResponse{
         this.channelName = object.channelName;
         this.coverPicture = object.coverPicture;
         this.startLiveAt =  new Date(object.startLiveAt).getTime().toString();
-        this.endLiveAt = object.endLiveAt;
+        this.endLiveAt = new Date(object.endLiveAt).getTime().toString();
         this.categories = object.categories.map( i => new CategoriesResponse(i) ) ;
         this.streamer =  object.streamer ? new UserResponse(object.streamer) : null;
         this.streamerUid = object.streamerUid;
@@ -42,7 +42,7 @@ export class LiveStreamItemResponse{
     startLiveAt: string;
 
     @ApiProperty()
-    endLiveAt: Date;
+    endLiveAt: string;
 
     @ApiProperty()
     streamer: UserResponse;
