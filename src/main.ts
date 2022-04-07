@@ -28,7 +28,7 @@ async function bootstrap() {
   });
 
   admin.initializeApp({
-    credential: admin.credential.cert( path.resolve(__dirname, "./heyoolive-firebase-adminsdk-olx1e-125e013a4d.json") ),
+    credential: admin.credential.cert( path.resolve(__dirname, "./heyoolive-firebase-adminsdk-olx1e-3cd70f562d.json") ),
     databaseURL: process.env.FIREBASE_DB_URL
   });
 
