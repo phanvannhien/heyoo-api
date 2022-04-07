@@ -784,11 +784,11 @@ export class UsersService {
         //     { user : { $in : users } }
         // ).select('fcmToken').distinct('fcmToken').exec()
 
-        const users: any[] = await this.followModel.find({
+        const users = await this.followModel.find({
             follow: userId
         }).select('user').distinct('user').exec()
 
-        const fcms = await this.fcmTokenModel.where(
+        const fcms = await this.fcmTokenModel.find(
             { user : { $in : users } }
         ).select('fcmToken').distinct('fcmToken').exec()
 
