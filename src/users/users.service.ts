@@ -750,29 +750,22 @@ export class UsersService {
     }
 
     async registerFcmToken( userId: string, body: RegisterFcmTokenDto ): Promise<UserFcmTokenEntityDocument>{
+        
         const find = await this.fcmTokenModel.findOne({
-            fcmToken: body.fcmToken
+            user: userId
         }).exec();
 
         if( find ){
-
-            if(find.user == userId){
-                return find;
-            }else{
-                await this.fcmTokenModel.updateOne({
-                    fcmToken: body.fcmToken
-                },{
-                    user: userId
-                })
-            }
-            
-        }else{
-            const createNew = new this.fcmTokenModel({
-                user: userId,
+            return await this.fcmTokenModel.findByIdAndUpdate( find.id, {
                 fcmToken: body.fcmToken
-            });
-            return await createNew.save();
-        }  
+            })   
+        }
+        const createNew = new this.fcmTokenModel({
+            user: userId,
+            fcmToken: body.fcmToken
+        });
+        return await createNew.save();
+    
     }
 
     async getUserFollowerFcmToken( userId ): Promise<any>{
