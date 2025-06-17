@@ -7,7 +7,7 @@ import { config } from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
 import * as mongoose from 'mongoose';
-import * as admin from 'firebase-admin';
+// import * as admin from 'firebase-admin';
 import path = require('path');
 
 async function bootstrap() {
@@ -27,10 +27,10 @@ async function bootstrap() {
       region: configService.get('AWS_REGION'),
   });
 
-  admin.initializeApp({
-    credential: admin.credential.cert( path.resolve(__dirname, "./heyoolive-firebase-adminsdk-olx1e-3cd70f562d.json") ),
-    databaseURL: process.env.FIREBASE_DB_URL
-  });
+  // admin.initializeApp({
+  //   credential: admin.credential.cert( path.resolve(__dirname, "./heyoolive-firebase-adminsdk-olx1e-3cd70f562d.json") ),
+  //   databaseURL: process.env.FIREBASE_DB_URL
+  // });
 
   app.enableCors();
   const documentSwagger = SwaggerModule.createDocument(app, configSwagger);

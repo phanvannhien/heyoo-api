@@ -12,6 +12,6 @@ VOLUME [ "/app/src" ]
 
 COPY . .
 
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start:prod"]
 
-EXPOSE 3000
+EXPOSE 4000
